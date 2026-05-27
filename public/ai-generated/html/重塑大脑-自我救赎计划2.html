@@ -1,0 +1,2559 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>重塑大脑 · 自我救赎计划</title>
+<style>
+  :root {
+    --primary-color: #7ab8ff;
+    --secondary-color: #9fc7ff;
+    --background-color: #0a0f24;
+    --card-bg: rgba(255,255,255,0.04);
+    --text-color: #e5e9ff;
+    --success-color: #4ade80;
+    --warning-color: #fbbf24;
+    --danger-color: #f87171;
+  }
+  
+  * {
+    box-sizing: border-box;
+  }
+  
+  body {
+    margin: 0;
+    font-family: "微软雅黑", sans-serif;
+    background: var(--background-color);
+    color: var(--text-color);
+    overflow-x: hidden;
+    transition: filter 0.3s;
+    padding-bottom: 80px;
+    line-height: 1.6;
+  }
+  
+  header {
+    padding: 30px 20px;
+    text-align: center;
+    background: linear-gradient(135deg, rgba(10,15,36,0.9) 0%, rgba(20,30,70,0.7) 100%);
+    position: relative;
+    overflow: hidden;
+  }
+  
+  header::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grid" width="10" height="10" patternUnits="userSpaceOnUse"><path d="M 10 0 L 0 0 0 10" fill="none" stroke="rgba(122,184,255,0.1)" stroke-width="0.5"/></pattern></defs><rect width="100" height="100" fill="url(%23grid)"/></svg>');
+    opacity: 0.3;
+  }
+  
+  h1 {
+    font-size: 2.5rem;
+    color: var(--primary-color);
+    text-shadow: 0 0 12px rgba(98,173,255,0.8);
+    margin-bottom: 10px;
+    position: relative;
+  }
+  
+  .subtitle {
+    font-size: 1.1rem;
+    opacity: 0.8;
+    max-width: 600px;
+    margin: 0 auto;
+  }
+  
+  h2 {
+    color: var(--secondary-color);
+    font-size: 1.5rem;
+    margin-top: 0;
+    display: flex;
+    align-items: center;
+  }
+  
+  h2::before {
+    content: '';
+    display: inline-block;
+    width: 4px;
+    height: 20px;
+    background: var(--primary-color);
+    margin-right: 10px;
+    border-radius: 2px;
+  }
+  
+  p {
+    line-height: 1.7;
+  }
+  
+  section {
+    max-width: 900px;
+    margin: auto;
+    padding: 30px 20px;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+  }
+  
+  .pill {
+    display: inline-block;
+    padding: 6px 12px;
+    background: rgba(255,255,255,0.08);
+    border-radius: 16px;
+    margin: 4px;
+    font-size: 13px;
+    transition: all 0.2s;
+  }
+  
+  .pill:hover {
+    background: rgba(122,184,255,0.2);
+    transform: translateY(-2px);
+  }
+  
+  .card {
+    background: var(--card-bg);
+    padding: 18px 20px;
+    border-radius: 12px;
+    margin: 16px 0;
+    border-left: 4px solid #6ba5ff;
+    transition: transform 0.2s, box-shadow 0.2s;
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--primary-color), transparent);
+  }
+  
+  .card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+  }
+  
+  footer {
+    text-align: center;
+    padding: 30px;
+    font-size: 13px;
+    opacity: .6;
+  }
+  
+  /* 底部导航栏 */
+  .bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: rgba(10, 15, 36, 0.95);
+    backdrop-filter: blur(10px);
+    display: flex;
+    justify-content: space-around;
+    padding: 10px;
+    border-top: 1px solid rgba(255,255,255,0.1);
+    z-index: 10000;
+  }
+  
+  .nav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 8px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s;
+    min-width: 60px;
+    position: relative;
+  }
+  
+  .nav-item:hover {
+    background: rgba(255,255,255,0.05);
+  }
+  
+  .nav-item.active {
+    background: rgba(122,184,255,0.2);
+  }
+  
+  .nav-item.active::after {
+    content: '';
+    position: absolute;
+    bottom: -10px;
+    width: 4px;
+    height: 4px;
+    background: var(--primary-color);
+    border-radius: 50%;
+  }
+  
+  .nav-icon {
+    font-size: 20px;
+    margin-bottom: 4px;
+  }
+  
+  .nav-text {
+    font-size: 12px;
+  }
+  
+  /* 响应式设计 */
+  @media (max-width: 768px){
+    h1{font-size: 1.8rem;}
+    h2{font-size: 1.3rem;}
+    section{padding:20px 12px;}
+    canvas#identityTree{width:100%!important; height:200px!important;}
+    #probCloud{width:90%!important; height:160px!important; right:5%!important; top:60px!important;}
+    body{font-size:14px;}
+    .bottom-nav {
+      padding: 8px 5px;
+    }
+    .nav-item {
+      padding: 6px 8px;
+      min-width: 50px;
+    }
+    .nav-text {
+      font-size: 10px;
+    }
+  }
+  
+  @media (prefers-color-scheme: dark){body{background:#050813;color:#e9edff;}}
+  @media (prefers-color-scheme: light){body{background:#f5f7ff;color:#222;}}
+  
+  /* 模态窗口样式 */
+  .modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0,0,0,0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10000;
+    padding: 20px;
+    animation: fadeIn 0.3s ease;
+  }
+  
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  
+  .modal-content {
+    background: linear-gradient(180deg, rgba(17,24,39,0.96), rgba(10,15,36,0.96));
+    border-radius: 16px;
+    padding: 24px;
+    max-width: 500px;
+    width: 100%;
+    max-height: 80vh;
+    overflow-y: auto;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    animation: slideUp 0.3s ease;
+    border: 1px solid rgba(255,255,255,0.1);
+  }
+  
+  @keyframes slideUp {
+    from { transform: translateY(20px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+  }
+  
+  .modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+  }
+  
+  .modal-title {
+    font-size: 20px;
+    color: var(--primary-color);
+    margin: 0;
+  }
+  
+  .close-btn {
+    background: none;
+    border: none;
+    color: var(--text-color);
+    font-size: 24px;
+    cursor: pointer;
+    padding: 0;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: background 0.2s;
+  }
+  
+  .close-btn:hover {
+    background: rgba(255,255,255,0.1);
+  }
+  
+  /* 按钮样式 */
+  .btn {
+    padding: 10px 16px;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 14px;
+    transition: all 0.2s;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    font-weight: 500;
+  }
+  
+  .btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+  
+  .btn-primary {
+    background: var(--primary-color);
+    color: var(--background-color);
+  }
+  
+  .btn-primary:hover:not(:disabled) {
+    background: #5ca5ff;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+  }
+  
+  .btn-secondary {
+    background: rgba(255,255,255,0.1);
+    color: var(--text-color);
+  }
+  
+  .btn-secondary:hover:not(:disabled) {
+    background: rgba(255,255,255,0.15);
+    transform: translateY(-2px);
+  }
+  
+  .btn-success {
+    background: var(--success-color);
+    color: white;
+  }
+  
+  .btn-warning {
+    background: var(--warning-color);
+    color: #1f2937;
+  }
+  
+  .btn-danger {
+    background: var(--danger-color);
+    color: white;
+  }
+  
+  .btn-sm {
+    padding: 6px 12px;
+    font-size: 13px;
+  }
+  
+  /* 任务列表样式 */
+  .task-list {
+    margin: 20px 0;
+  }
+  
+  .task-item {
+    display: flex;
+    align-items: center;
+    padding: 14px;
+    background: rgba(255,255,255,0.03);
+    border-radius: 8px;
+    margin-bottom: 8px;
+    transition: all 0.2s;
+    border-left: 3px solid transparent;
+  }
+  
+  .task-item:hover {
+    background: rgba(255,255,255,0.05);
+  }
+  
+  .task-item.priority-high {
+    border-left-color: var(--danger-color);
+  }
+  
+  .task-item.priority-medium {
+    border-left-color: var(--warning-color);
+  }
+  
+  .task-item.priority-low {
+    border-left-color: var(--primary-color);
+  }
+  
+  .task-checkbox {
+    margin-right: 12px;
+    transform: scale(1.2);
+  }
+  
+  .task-content {
+    flex: 1;
+  }
+  
+  .task-name {
+    margin: 0 0 4px 0;
+    font-weight: 500;
+  }
+  
+  .task-meta {
+    display: flex;
+    font-size: 12px;
+    color: rgba(255,255,255,0.6);
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  
+  .task-priority, .task-energy, .task-category, .task-deadline {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+  
+  .task-actions {
+    display: flex;
+    gap: 4px;
+  }
+  
+  /* 表单元素样式 */
+  .form-group {
+    margin-bottom: 16px;
+  }
+  
+  .form-label {
+    display: block;
+    margin-bottom: 6px;
+    font-weight: 500;
+  }
+  
+  .form-control {
+    width: 100%;
+    padding: 10px 12px;
+    border-radius: 8px;
+    border: 1px solid rgba(255,255,255,0.2);
+    background: rgba(255,255,255,0.1);
+    color: var(--text-color);
+    font-family: inherit;
+    font-size: 14px;
+    transition: border 0.2s;
+  }
+  
+  .form-control:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 2px rgba(122,184,255,0.2);
+  }
+  
+  /* 番茄钟样式 */
+  .pomodoro-container {
+    text-align: center;
+    padding: 20px;
+  }
+  
+  .pomodoro-timer {
+    font-size: 3.5rem;
+    font-weight: bold;
+    margin: 20px 0;
+    color: var(--primary-color);
+    font-family: 'Courier New', monospace;
+    text-shadow: 0 0 10px rgba(122,184,255,0.3);
+  }
+  
+  .pomodoro-status {
+    font-size: 18px;
+    margin-bottom: 20px;
+    padding: 8px 16px;
+    background: rgba(255,255,255,0.05);
+    border-radius: 20px;
+    display: inline-block;
+  }
+  
+  .pomodoro-controls {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  
+  .pomodoro-sessions {
+    margin-top: 20px;
+    font-size: 14px;
+    color: rgba(255,255,255,0.7);
+  }
+  
+  /* 统计图表容器 */
+  .stats-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 16px;
+    margin: 20px 0;
+  }
+  
+  .stat-card {
+    background: var(--card-bg);
+    border-radius: 12px;
+    padding: 16px;
+    text-align: center;
+    transition: transform 0.2s;
+  }
+  
+  .stat-card:hover {
+    transform: translateY(-3px);
+  }
+  
+  .stat-value {
+    font-size: 24px;
+    font-weight: bold;
+    color: var(--primary-color);
+    margin: 8px 0;
+  }
+  
+  .stat-label {
+    font-size: 14px;
+    color: rgba(255,255,255,0.7);
+  }
+  
+  /* 进度条样式 */
+  .progress-bar {
+    height: 8px;
+    background: rgba(255,255,255,0.1);
+    border-radius: 4px;
+    overflow: hidden;
+    margin: 10px 0;
+  }
+  
+  .progress-fill {
+    height: 100%;
+    background: var(--primary-color);
+    border-radius: 4px;
+    transition: width 0.5s ease;
+  }
+  
+  /* 标签样式 */
+  .badge {
+    display: inline-block;
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 500;
+  }
+  
+  .badge-primary {
+    background: rgba(122,184,255,0.2);
+    color: var(--primary-color);
+  }
+  
+  .badge-success {
+    background: rgba(74,222,128,0.2);
+    color: var(--success-color);
+  }
+  
+  .badge-warning {
+    background: rgba(251,191,36,0.2);
+    color: var(--warning-color);
+  }
+  
+  .badge-danger {
+    background: rgba(248,113,113,0.2);
+    color: var(--danger-color);
+  }
+  
+  /* 浮动控制面板 */
+  .floating-panel {
+    position: fixed;
+    bottom: 90px;
+    right: 20px;
+    background: rgba(255,255,255,0.08);
+    padding: 16px;
+    border-radius: 12px;
+    font-size: 14px;
+    backdrop-filter: blur(6px);
+    z-index: 9999;
+    border: 1px solid rgba(255,255,255,0.1);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    min-width: 200px;
+  }
+  
+  @media (max-width: 768px) {
+    .floating-panel {
+      right: 10px;
+      bottom: 80px;
+      left: 10px;
+      min-width: auto;
+    }
+  }
+  
+  /* 选项卡样式 */
+  .tabs {
+    display: flex;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+    margin-bottom: 16px;
+  }
+  
+  .tab {
+    padding: 10px 16px;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    transition: all 0.2s;
+  }
+  
+  .tab.active {
+    border-bottom-color: var(--primary-color);
+    color: var(--primary-color);
+  }
+  
+  .tab:hover:not(.active) {
+    background: rgba(255,255,255,0.05);
+  }
+  
+  .tab-content {
+    display: none;
+  }
+  
+  .tab-content.active {
+    display: block;
+  }
+  
+  /* 工具提示 */
+  .tooltip {
+    position: relative;
+    display: inline-block;
+  }
+  
+  .tooltip .tooltip-text {
+    visibility: hidden;
+    width: 200px;
+    background: rgba(0,0,0,0.8);
+    color: white;
+    text-align: center;
+    border-radius: 6px;
+    padding: 8px;
+    position: absolute;
+    z-index: 1;
+    bottom: 125%;
+    left: 50%;
+    transform: translateX(-50%);
+    opacity: 0;
+    transition: opacity 0.3s;
+    font-size: 13px;
+  }
+  
+  .tooltip:hover .tooltip-text {
+    visibility: visible;
+    opacity: 1;
+  }
+  
+  /* 加载动画 */
+  .loader {
+    border: 3px solid rgba(255,255,255,0.1);
+    border-radius: 50%;
+    border-top: 3px solid var(--primary-color);
+    width: 30px;
+    height: 30px;
+    animation: spin 1s linear infinite;
+    margin: 0 auto;
+  }
+  
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+  
+  /* 成就系统 */
+  .achievement {
+    display: flex;
+    align-items: center;
+    padding: 12px;
+    background: rgba(255,255,255,0.03);
+    border-radius: 8px;
+    margin-bottom: 8px;
+  }
+  
+  .achievement-icon {
+    font-size: 24px;
+    margin-right: 12px;
+  }
+  
+  .achievement-content {
+    flex: 1;
+  }
+  
+  .achievement-title {
+    margin: 0 0 4px 0;
+    font-weight: 500;
+  }
+  
+  .achievement-desc {
+    margin: 0;
+    font-size: 13px;
+    color: rgba(255,255,255,0.7);
+  }
+  
+  .achievement-progress {
+    height: 4px;
+    background: rgba(255,255,255,0.1);
+    border-radius: 2px;
+    margin-top: 6px;
+    overflow: hidden;
+  }
+  
+  .achievement-progress-fill {
+    height: 100%;
+    background: var(--primary-color);
+    transition: width 0.5s ease;
+  }
+  
+  /* 快捷键提示 */
+  .shortcuts {
+    background: rgba(255,255,255,0.03);
+    border-radius: 8px;
+    padding: 16px;
+    margin-top: 20px;
+  }
+  
+  .shortcut-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+  }
+  
+  .shortcut-item:last-child {
+    border-bottom: none;
+  }
+  
+  .shortcut-key {
+    background: rgba(255,255,255,0.1);
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-family: monospace;
+  }
+</style>
+</head>
+<body>
+<header>
+  <h1>重塑大脑 · 自我救赎</h1>
+  <p class="subtitle">改变不是靠意志，而是靠结构。通过科学的行为设计重塑你的思维习惯。</p>
+</header>
+
+<section>
+  <h2>01 · 理解人类大脑缺陷</h2>
+  <p>你的大脑天生偏向短期奖励、害怕延迟痛苦。这不是懒，这是进化遗产。重塑的第一步是承认：<strong>人性有缺陷</strong>，而现代科技正在放大它。</p>
+  <div class="card">✅ 承认偏差 ≠ 贬低自己，而是拿回控制权。</div>
+</section>
+
+<section>
+  <h2>身份树可视化</h2>
+  <div class="card">🌳 行为 → 习惯 → 价值 → 身份</div>
+  <p>多层级身份结构显示，你在成为谁。</p>
+  <canvas id="identityTree" width="800" height="300" style="background:rgba(255,255,255,0.03);border-radius:8px;width:100%;"></canvas>
+</section>
+
+<section>
+  <h2>意识编译器 · 自我画像</h2>
+  <div class="card">🧬 你是一种持续迭代的过程，而不是固定属性。</div>
+  <div class="card">📦 当前行为版本基于长期身份构建。</div>
+  <div class="card">🧠 决策由价值层签名，不受情绪波动指挥。</div>
+  <p>身份 = 行为的时间积分。</p>
+</section>
+
+<section>
+  <h2>02 · 重建奖励系统</h2>
+  <p>延迟满足能力是稀缺技能。给你的行为添加即时小奖励：</p>
+  <div class="card">📌 读书 20 分钟 → 听 5 分钟喜欢的歌</div>
+  <div class="card">📌 健身 30 分钟 → 看 10 分钟短视频</div>
+  <p>让长期行为产生短期快感。</p>
+</section>
+
+<section>
+  <h2>03 · 设计环境，而不是靠意志力</h2>
+  <p>移除诱惑比对抗诱惑更科学。</p>
+  <div class="card">🚫 把手机放到另一个房间</div>
+  <div class="card">🚫 关闭短视频推送</div>
+  <div class="card">🚫 桌面上只保留当前任务</div>
+  <p>环境塑造行为。</p>
+</section>
+
+<section>
+  <h2>04 · 建立正反馈回路</h2>
+  <p>优秀的人不是更努力，而是<strong>更会给自己反馈</strong>。</p>
+  <div class="card">✅ 记录小进步 → 让大脑意识到你在变好</div>
+  <div class="card">✅ 每周复盘 → 让错误变成可见数据</div>
+</section>
+
+<section>
+  <h2>05 · 学会孤独</h2>
+  <p>成长几乎都是反社交阶段。沉默不是停止，而是积累。</p>
+  <p>独处是一项能力。</p>
+</section>
+
+<section>
+  <h2>06 · 用系统，而不是热情</h2>
+  <p>热情会消失，但系统会持续：</p>
+  <div class="card">⚙ 触发条件 → 行为 → 奖励</div>
+  <div class="card">⚙ 时间盒 → 任务完成 → 下线</div>
+  <p>不要依赖"想做"，只要触发系统。</p>
+</section>
+
+<section>
+  <h2>07 · 大脑重塑公式</h2>
+  <p class="pill">微习惯</p>
+  <p class="pill">延迟满足</p>
+  <p class="pill">环境限制</p>
+  <p class="pill">正反馈</p>
+  <p class="pill">长期主义</p>
+  <p>→ 聚合效应。</p>
+</section>
+
+<section>
+  <h2>08 · 给未来的你</h2>
+  <p>你现在的每一个微小正向行为，都是在为未来的自己加息。</p>
+  <p>未来不是突然变强，而是<strong>悄悄积累</strong>。</p>
+</section>
+
+<section>
+  <h2>09 · 习惯行为打卡系统</h2>
+  <div class="card">📅 每天完成一个小目标 → 打卡一次</div>
+  <div class="card">📈 连续达成会触发小奖励，断档提醒温柔且不责备</div>
+  <p>让行为变得可见，形成多巴胺循环。</p>
+</section>
+
+<section>
+  <h2>10 · 奖励触发动画（情绪强化）</h2>
+  <div class="card">✨ 完成任务后，界面轻微闪烁，给大脑正向情绪刺激</div>
+  <p>奖励不需要大，只需要可见。</p>
+</section>
+
+<section>
+  <h2>11 · 深夜熄屏劝退</h2>
+  <div class="card">🌙 夜间 23:00 后浮现温柔提醒：休息也是成长</div>
+  <p>不要靠熬夜换焦虑。</p>
+</section>
+
+<section>
+  <h2>12 · 曲线型成长可视化</h2>
+  <div class="card">📊 曲线展示：习惯不是线性增长，而是指数爆发</div>
+  <p>帮助你承受初期没有反馈的阶段。</p>
+</section>
+
+<section>
+  <h2>13 · 沉浸开关</h2>
+  <div class="card">🔕 一键关闭噪音、社交、推送，只剩你与任务</div>
+  <p>意志力来自资源，而不是抵抗。</p>
+</section>
+
+<section>
+  <h2>14 · 危机提示语（认知重构）</h2>
+  <div class="card">💭 想放弃时弹出：你不是没有动力，只是被情绪遮蔽。</div>
+  <p>挫折时给大脑一点光。</p>
+</section>
+
+<section>
+  <h2>15 · 心理能量仪表盘</h2>
+  <div class="card">⚡ 今日能量剩余：███▇▁▁</div>
+  <p>能量可视化 → 做事更有策略。</p>
+</section>
+
+<section>
+  <h2>16 · 多巴胺节流设计</h2>
+  <div class="card">⛔ 默认关闭即时高刺激内容</div>
+  <div class="card">🌱 延迟快乐 → 未来更深刻</div>
+  <p>不是禁欲，是把快乐放在正确位置。</p>
+</section>
+
+<section>
+  <h2>17 · 延迟满足引导</h2>
+  <div class="card">⏳ 渐进式奖励→努力越多、奖励越甜</div>
+  <p>让未来的自己更值得期待。</p>
+</section>
+
+<section>
+  <h2>18 · 行为三要素（BJ Fogg Model）</h2>
+  <div class="card">🔥 Motivation 动机 → 小而美</div>
+  <div class="card">🚪 Ability 能力 → 降低启动难度</div>
+  <div class="card">📣 Prompt 提示 → 温柔触发</div>
+  <p>行为 = 动机 × 能力 × 提示。</p>
+</section>
+
+<footer>
+  <p>© 2025 自我救赎 · 大脑重塑引导</p>
+  <p style="font-size: 12px; margin-top: 8px;">基于神经科学和行为心理学的习惯养成系统</p>
+</footer>
+
+<!-- 底部导航栏 -->
+<div class="bottom-nav">
+  <div class="nav-item active" data-tab="dashboard">
+    <div class="nav-icon">📊</div>
+    <div class="nav-text">仪表盘</div>
+  </div>
+  <div class="nav-item" data-tab="tasks">
+    <div class="nav-icon">✅</div>
+    <div class="nav-text">任务</div>
+  </div>
+  <div class="nav-item" data-tab="pomodoro">
+    <div class="nav-icon">🍅</div>
+    <div class="nav-text">专注</div>
+  </div>
+  <div class="nav-item" data-tab="stats">
+    <div class="nav-icon">📈</div>
+    <div class="nav-text">统计</div>
+  </div>
+  <div class="nav-item" data-tab="settings">
+    <div class="nav-icon">⚙️</div>
+    <div class="nav-text">设置</div>
+  </div>
+</div>
+
+<!-- 浮动控制面板 -->
+<div class="floating-panel">
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+    <div style="font-weight: 500;">今日状态</div>
+    <div class="tooltip">
+      <span style="font-size: 12px; opacity: 0.7;">ℹ️</span>
+      <div class="tooltip-text">连续天数增加能量上限，完成任务消耗能量</div>
+    </div>
+  </div>
+  
+  <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+    <span>🔥 连续天数</span>
+    <span id="streak" style="font-weight: 500;">0</span>
+  </div>
+  
+  <div style="display: flex; justify-content: space-between; margin-bottom: 12px;">
+    <span>⚡ 当前能量</span>
+    <span id="energy" style="font-weight: 500;">100</span>
+  </div>
+  
+  <div class="progress-bar">
+    <div class="progress-fill" id="energyBar" style="width: 100%;"></div>
+  </div>
+  
+  <div style="display: flex; gap: 8px; margin-top: 12px;">
+    <button id="doneBtn" class="btn btn-primary" style="flex: 1;">✅ 完成任务</button>
+    <button id="focusBtn" class="btn btn-secondary">🎧 专注</button>
+  </div>
+  
+  <div style="margin-top: 12px;">
+    <select id="moodSelect" class="form-control">
+      <option value="😐 平淡">😐 平淡</option>
+      <option value="😞 低落">😞 低落</option>
+      <option value="😤 焦躁">😤 焦躁</option>
+      <option value="😌 平静">😌 平静</option>
+      <option value="😀 积极">😀 积极</option>
+    </select>
+  </div>
+  
+  <button id="quickTaskBtn" class="btn btn-secondary" style="width: 100%; margin-top: 8px;">🧩 快速任务</button>
+</div>
+
+<script>
+// ========== 核心数据管理 ==========
+const KEY_STREAK = 'habit_streak';
+const KEY_ENERGY = 'daily_energy';
+const KEY_LAST_DATE = 'last_date';
+const KEY_ENERGY_MAX = 'energy_max';
+
+let streak = parseInt(localStorage.getItem(KEY_STREAK)) || 0;
+let energy = parseInt(localStorage.getItem(KEY_ENERGY)) || 100;
+let energyMax = parseInt(localStorage.getItem(KEY_ENERGY_MAX)) || 100;
+let lastDate = localStorage.getItem(KEY_LAST_DATE) || '';
+
+// 每日重置能量
+const today = new Date().toDateString();
+if (today !== lastDate) {
+  // 根据连续天数增加能量上限
+  energyMax = Math.min(150, 100 + Math.floor(streak / 7) * 10);
+  energy = energyMax;
+  localStorage.setItem(KEY_ENERGY, energy);
+  localStorage.setItem(KEY_ENERGY_MAX, energyMax);
+  localStorage.setItem(KEY_LAST_DATE, today);
+}
+
+// ========== 增强的任务管理系统 ==========
+class TaskManager {
+  constructor() {
+    this.tasks = JSON.parse(localStorage.getItem('tasks')) || [];
+    this.categories = [
+      { id: 'core', name: '核心目标', color: '#f87171' },
+      { id: 'learning', name: '学习成长', color: '#60a5fa' },
+      { id: 'health', name: '健康生活', color: '#34d399' },
+      { id: 'social', name: '人际关系', color: '#a78bfa' },
+      { id: 'leisure', name: '休闲娱乐', color: '#fbbf24' }
+    ];
+    this.nextId = Math.max(0, ...this.tasks.map(t => t.id)) + 1;
+  }
+  
+  addTask(name, category, priority = 2, estimatedEnergy = 10, deadline = null, reminder = null, duration = 25) {
+    const task = {
+      id: this.nextId++,
+      name,
+      category,
+      priority,
+      estimatedEnergy,
+      duration, // 预计所需分钟数
+      completed: false,
+      createdAt: new Date().toISOString(),
+      completedAt: null,
+      deadline,
+      reminder,
+      subtasks: []
+    };
+    
+    this.tasks.push(task);
+    this.save();
+    return task;
+  }
+  
+  completeTask(taskId) {
+    const task = this.tasks.find(t => t.id === taskId);
+    if (task) {
+      task.completed = true;
+      task.completedAt = new Date().toISOString();
+      this.save();
+      
+      // 根据任务消耗能量
+      energy = Math.max(0, energy - task.estimatedEnergy);
+      save();
+      render();
+      
+      return true;
+    }
+    return false;
+  }
+  
+  deleteTask(taskId) {
+    this.tasks = this.tasks.filter(t => t.id !== taskId);
+    this.save();
+  }
+  
+  updateTask(taskId, updates) {
+    const task = this.tasks.find(t => t.id === taskId);
+    if (task) {
+      Object.assign(task, updates);
+      this.save();
+      return true;
+    }
+    return false;
+  }
+  
+  getTasksByStatus(completed = false) {
+    return this.tasks.filter(task => task.completed === completed);
+  }
+  
+  getTasksByCategory(categoryId) {
+    return this.tasks.filter(task => task.category === categoryId && !task.completed);
+  }
+  
+  getUpcomingTasks() {
+    const today = new Date().toISOString().split('T')[0];
+    return this.tasks
+      .filter(task => !task.completed && task.deadline && task.deadline >= today)
+      .sort((a, b) => a.deadline.localeCompare(b.deadline));
+  }
+  
+  getRecommendedTasks() {
+    return this.tasks
+      .filter(task => !task.completed)
+      .sort((a, b) => {
+        // 优先级排序，考虑能量消耗
+        const energyScore = a.estimatedEnergy <= energy ? 1 : 0.5;
+        const priorityScore = (b.priority * energyScore) - (a.priority * energyScore);
+        
+        // 如果有截止日期，提高优先级
+        const deadlineScore = (b.deadline ? 1 : 0) - (a.deadline ? 1 : 0);
+        
+        return priorityScore + deadlineScore;
+      })
+      .slice(0, 5);
+  }
+  
+  getTaskStats() {
+    const total = this.tasks.length;
+    const completed = this.tasks.filter(t => t.completed).length;
+    const pending = total - completed;
+    
+    const byCategory = {};
+    this.categories.forEach(cat => {
+      byCategory[cat.id] = this.tasks.filter(t => t.category === cat.id && !t.completed).length;
+    });
+    
+    return {
+      total,
+      completed,
+      pending,
+      byCategory,
+      completionRate: total > 0 ? Math.round((completed / total) * 100) : 0
+    };
+  }
+  
+  save() {
+    localStorage.setItem('tasks', JSON.stringify(this.tasks));
+    localStorage.setItem('nextTaskId', this.nextId.toString());
+  }
+}
+
+// ========== 增强的进度统计系统 ==========
+class ProgressTracker {
+  constructor() {
+    this.stats = JSON.parse(localStorage.getItem('progress_stats')) || this.getDefaultStats();
+  }
+  
+  getDefaultStats() {
+    return {
+      totalTasks: 0,
+      completedTasks: 0,
+      streakHistory: [],
+      energyHistory: [],
+      moodHistory: [],
+      productivityScore: 0,
+      weeklyGoals: {},
+      monthlyTrends: {},
+      achievements: [],
+      focusTime: 0 // 总专注时间（分钟）
+    };
+  }
+  
+  recordDailyStats() {
+    const today = new Date().toDateString();
+    
+    if (!this.stats.streakHistory.find(entry => entry.date === today)) {
+      this.stats.streakHistory.push({
+        date: today,
+        streak: streak,
+        energy: energy,
+        energyMax: energyMax,
+        mood: document.getElementById('moodSelect') ? document.getElementById('moodSelect').value : '😐 平淡',
+        tasksCompleted: taskManager.getTasksByStatus(true).length
+      });
+      
+      // 保留最近30天记录
+      if (this.stats.streakHistory.length > 30) {
+        this.stats.streakHistory.shift();
+      }
+      
+      this.calculateProductivityScore();
+      this.checkAchievements();
+      this.save();
+    }
+  }
+  
+  calculateProductivityScore() {
+    const recentDays = this.stats.streakHistory.slice(-7);
+    if (recentDays.length === 0) return 0;
+    
+    const avgStreak = recentDays.reduce((sum, day) => sum + day.streak, 0) / recentDays.length;
+    const avgEnergy = recentDays.reduce((sum, day) => sum + day.energy, 0) / recentDays.length;
+    const consistency = recentDays.filter(day => day.streak > 0).length / recentDays.length;
+    const taskCompletion = recentDays.reduce((sum, day) => sum + day.tasksCompleted, 0) / recentDays.length;
+    
+    this.stats.productivityScore = Math.round(
+      (avgStreak * 0.3) + 
+      (avgEnergy * 0.2) + 
+      (consistency * 100 * 0.3) +
+      (taskCompletion * 0.2)
+    );
+  }
+  
+  checkAchievements() {
+    const achievements = [
+      {
+        id: 'first_week',
+        title: '第一周坚持',
+        desc: '连续7天完成任务',
+        icon: '🌟',
+        condition: () => streak >= 7,
+        unlocked: this.stats.achievements.includes('first_week')
+      },
+      {
+        id: 'energy_master',
+        title: '能量管理大师',
+        desc: '单日完成5个以上任务',
+        icon: '⚡',
+        condition: () => {
+          const today = new Date().toDateString();
+          const todayEntry = this.stats.streakHistory.find(entry => entry.date === today);
+          return todayEntry && todayEntry.tasksCompleted >= 5;
+        },
+        unlocked: this.stats.achievements.includes('energy_master')
+      },
+      {
+        id: 'streak_month',
+        title: '月度坚持者',
+        desc: '连续30天完成任务',
+        icon: '📅',
+        condition: () => streak >= 30,
+        unlocked: this.stats.achievements.includes('streak_month')
+      },
+      {
+        id: 'focus_master',
+        title: '专注大师',
+        desc: '累计专注时间超过10小时',
+        icon: '🎯',
+        condition: () => this.stats.focusTime >= 600,
+        unlocked: this.stats.achievements.includes('focus_master')
+      }
+    ];
+    
+    achievements.forEach(achievement => {
+      if (!achievement.unlocked && achievement.condition()) {
+        this.stats.achievements.push(achievement.id);
+        this.showAchievement(achievement);
+      }
+    });
+  }
+  
+  showAchievement(achievement) {
+    const notification = document.createElement('div');
+    notification.style.position = 'fixed';
+    notification.style.top = '20px';
+    notification.style.right = '20px';
+    notification.style.background = 'linear-gradient(135deg, rgba(20,30,70,0.95), rgba(10,15,36,0.95))';
+    notification.style.color = 'white';
+    notification.style.padding = '16px';
+    notification.style.borderRadius = '12px';
+    notification.style.boxShadow = '0 4px 12px rgba(0,0,0,0.3)';
+    notification.style.zIndex = '10001';
+    notification.style.maxWidth = '300px';
+    notification.style.border = '1px solid rgba(122,184,255,0.3)';
+    notification.style.animation = 'slideUp 0.5s ease';
+    
+    notification.innerHTML = `
+      <div style="display: flex; align-items: center; margin-bottom: 8px;">
+        <span style="font-size: 24px; margin-right: 10px;">${achievement.icon}</span>
+        <div>
+          <div style="font-weight: 500; font-size: 16px;">成就解锁!</div>
+          <div style="font-size: 14px; opacity: 0.9;">${achievement.title}</div>
+        </div>
+      </div>
+      <div style="font-size: 13px; opacity: 0.8;">${achievement.desc}</div>
+    `;
+    
+    document.body.appendChild(notification);
+    
+    setTimeout(() => {
+      notification.style.animation = 'slideUp 0.5s ease reverse';
+      setTimeout(() => {
+        if (document.body.contains(notification)) {
+          document.body.removeChild(notification);
+        }
+      }, 500);
+    }, 3000);
+  }
+  
+  getWeeklyReport() {
+    const lastWeek = this.stats.streakHistory.slice(-7);
+    return {
+      totalDays: lastWeek.length,
+      productiveDays: lastWeek.filter(day => day.streak > 0).length,
+      avgEnergy: lastWeek.length > 0 ? 
+        Math.round(lastWeek.reduce((sum, day) => sum + day.energy, 0) / lastWeek.length) : 0,
+      totalTasks: lastWeek.reduce((sum, day) => sum + day.tasksCompleted, 0),
+      productivityScore: this.stats.productivityScore
+    };
+  }
+  
+  getMoodStats() {
+    const moodCount = {};
+    this.stats.streakHistory.forEach(day => {
+      moodCount[day.mood] = (moodCount[day.mood] || 0) + 1;
+    });
+    return moodCount;
+  }
+  
+  save() {
+    localStorage.setItem('progress_stats', JSON.stringify(this.stats));
+  }
+}
+
+// ========== 增强的番茄钟定时器 ==========
+class PomodoroTimer {
+  constructor() {
+    this.isRunning = false;
+    this.isBreak = false;
+    this.timeLeft = 25 * 60; // 25分钟
+    this.intervalId = null;
+    this.sessionsCompleted = 0;
+    this.totalFocusTime = parseInt(localStorage.getItem('totalFocusTime')) || 0;
+    this.currentSessionStart = null;
+  }
+  
+  start(task = null) {
+    if (this.isRunning) return;
+    
+    this.isRunning = true;
+    this.currentSessionStart = new Date();
+    
+    this.intervalId = setInterval(() => {
+      this.timeLeft--;
+      
+      if (this.timeLeft <= 0) {
+        this.completeSession();
+      }
+      
+      this.updateDisplay();
+    }, 1000);
+    
+    // 浏览器通知权限
+    if ('Notification' in window && Notification.permission === 'default') {
+      Notification.requestPermission();
+    }
+    
+    // 如果有任务，显示任务信息
+    if (task) {
+      document.getElementById('pomodoroTask').textContent = `当前任务: ${task.name}`;
+    }
+  }
+  
+  pause() {
+    if (!this.isRunning) return;
+    
+    clearInterval(this.intervalId);
+    this.isRunning = false;
+    
+    // 记录已完成的专注时间
+    if (this.currentSessionStart && !this.isBreak) {
+      const now = new Date();
+      const elapsed = Math.floor((now - this.currentSessionStart) / 1000 / 60); // 分钟
+      this.totalFocusTime += elapsed;
+      progressTracker.stats.focusTime += elapsed;
+      progressTracker.save();
+      localStorage.setItem('totalFocusTime', this.totalFocusTime.toString());
+    }
+  }
+  
+  reset() {
+    this.pause();
+    this.isBreak = false;
+    this.timeLeft = 25 * 60;
+    this.updateDisplay();
+    document.getElementById('pomodoroTask').textContent = '选择任务开始专注';
+  }
+  
+  completeSession() {
+    clearInterval(this.intervalId);
+    this.isRunning = false;
+    this.sessionsCompleted++;
+    
+    // 记录专注时间
+    if (this.currentSessionStart && !this.isBreak) {
+      const elapsed = 25; // 25分钟
+      this.totalFocusTime += elapsed;
+      progressTracker.stats.focusTime += elapsed;
+      progressTracker.save();
+      localStorage.setItem('totalFocusTime', this.totalFocusTime.toString());
+    }
+    
+    if (!this.isBreak) {
+      // 完成一个工作session
+      this.isBreak = true;
+      this.timeLeft = 5 * 60; // 5分钟休息
+      
+      // 发送通知
+      if (Notification.permission === 'granted') {
+        new Notification('🍅 番茄钟完成', {
+          body: '休息5分钟吧！',
+          icon: '/favicon.ico'
+        });
+      }
+      
+      // 每4个session长休息
+      if (this.sessionsCompleted % 4 === 0) {
+        this.timeLeft = 15 * 60;
+      }
+    } else {
+      // 休息结束
+      this.isBreak = false;
+      this.timeLeft = 25 * 60;
+    }
+    
+    this.updateDisplay();
+  }
+  
+  updateDisplay() {
+    const minutes = Math.floor(this.timeLeft / 60);
+    const seconds = this.timeLeft % 60;
+    const display = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+    
+    // 更新UI显示
+    const timerElement = document.getElementById('pomodoroTimer');
+    if (timerElement) {
+      timerElement.textContent = display;
+      timerElement.style.color = this.isBreak ? '#7ab8ff' : '#ff6b6b';
+    }
+    
+    const statusElement = document.getElementById('pomodoroStatus');
+    if (statusElement) {
+      statusElement.textContent = this.isBreak ? '休息时间' : '专注时间';
+      statusElement.className = this.isBreak ? 'badge badge-primary' : 'badge badge-danger';
+    }
+  }
+  
+  getFormattedFocusTime() {
+    const hours = Math.floor(this.totalFocusTime / 60);
+    const minutes = this.totalFocusTime % 60;
+    return `${hours}小时${minutes}分钟`;
+  }
+}
+
+// ========== 数据备份系统 ==========
+function exportData() {
+  const data = {
+    streak: streak,
+    energy: energy,
+    energyMax: energyMax,
+    habits: localStorage.getItem('habit_chain'),
+    core_value: localStorage.getItem('core_value'),
+    future_templates: localStorage.getItem('futureMsgTemplates'),
+    tasks: localStorage.getItem('tasks'),
+    progress_stats: localStorage.getItem('progress_stats'),
+    total_focus_time: localStorage.getItem('totalFocusTime'),
+    version: localStorage.getItem('self_version'),
+    export_date: new Date().toISOString(),
+    export_version: '1.1'
+  };
+  
+  const blob = new Blob([JSON.stringify(data, null, 2)], {type: 'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `brain_reshaping_data_${new Date().toISOString().split('T')[0]}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+  
+  // 显示导出成功消息
+  showMessage('数据导出成功！', 'success');
+}
+
+function importData(file) {
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const data = JSON.parse(e.target.result);
+      
+      // 验证数据版本
+      if (!data.export_version) {
+        showMessage('数据文件版本过旧，可能不兼容', 'warning');
+      }
+      
+      // 验证并恢复数据
+      if (data.streak !== undefined) {
+        localStorage.setItem(KEY_STREAK, data.streak);
+        streak = data.streak;
+      }
+      
+      if (data.energy !== undefined) {
+        localStorage.setItem(KEY_ENERGY, data.energy);
+        energy = data.energy;
+      }
+      
+      if (data.energyMax !== undefined) {
+        localStorage.setItem(KEY_ENERGY_MAX, data.energyMax);
+        energyMax = data.energyMax;
+      }
+      
+      if (data.tasks) {
+        localStorage.setItem('tasks', data.tasks);
+        taskManager.tasks = JSON.parse(data.tasks);
+        taskManager.nextId = Math.max(0, ...taskManager.tasks.map(t => t.id)) + 1;
+      }
+      
+      if (data.progress_stats) {
+        localStorage.setItem('progress_stats', data.progress_stats);
+        progressTracker.stats = JSON.parse(data.progress_stats);
+      }
+      
+      if (data.total_focus_time) {
+        localStorage.setItem('totalFocusTime', data.total_focus_time);
+        pomodoroTimer.totalFocusTime = parseInt(data.total_focus_time);
+      }
+      
+      // 恢复其他数据...
+      render();
+      showMessage('数据恢复成功！', 'success');
+    } catch (error) {
+      console.error('导入错误:', error);
+      showMessage('数据文件格式错误或已损坏', 'error');
+    }
+  };
+  reader.readAsText(file);
+}
+
+// ========== 工具函数 ==========
+function showMessage(message, type = 'info') {
+  const messageEl = document.createElement('div');
+  messageEl.style.position = 'fixed';
+  messageEl.style.top = '20px';
+  messageEl.style.left = '50%';
+  messageEl.style.transform = 'translateX(-50%)';
+  messageEl.style.padding = '12px 20px';
+  messageEl.style.borderRadius = '8px';
+  messageEl.style.zIndex = '10001';
+  messageEl.style.fontWeight = '500';
+  messageEl.style.boxShadow = '0 4px 12px rgba(0,0,0,0.2)';
+  messageEl.style.animation = 'slideUp 0.3s ease';
+  
+  // 根据类型设置颜色
+  switch(type) {
+    case 'success':
+      messageEl.style.background = 'var(--success-color)';
+      messageEl.style.color = 'white';
+      break;
+    case 'warning':
+      messageEl.style.background = 'var(--warning-color)';
+      messageEl.style.color = '#1f2937';
+      break;
+    case 'error':
+      messageEl.style.background = 'var(--danger-color)';
+      messageEl.style.color = 'white';
+      break;
+    default:
+      messageEl.style.background = 'var(--primary-color)';
+      messageEl.style.color = 'var(--background-color)';
+  }
+  
+  messageEl.textContent = message;
+  document.body.appendChild(messageEl);
+  
+  setTimeout(() => {
+    messageEl.style.animation = 'slideUp 0.3s ease reverse';
+    setTimeout(() => {
+      if (document.body.contains(messageEl)) {
+        document.body.removeChild(messageEl);
+      }
+    }, 300);
+  }, 3000);
+}
+
+function flashScreen() {
+  const f = document.createElement('div');
+  f.style.position = 'fixed';
+  f.style.inset = 0;
+  f.style.background = 'rgba(255,255,255,0.15)';
+  f.style.transition = 'opacity 0.6s';
+  f.style.zIndex = 9999;
+  document.body.appendChild(f);
+  setTimeout(() => f.style.opacity = 0, 30);
+  setTimeout(() => f.remove(), 650);
+}
+
+function save() {
+  localStorage.setItem(KEY_STREAK, streak);
+  localStorage.setItem(KEY_ENERGY, energy);
+  localStorage.setItem(KEY_ENERGY_MAX, energyMax);
+  localStorage.setItem(KEY_LAST_DATE, today);
+}
+
+function render() {
+  document.getElementById('streak').textContent = streak;
+  document.getElementById('energy').textContent = energy;
+  document.getElementById('energyBar').style.width = `${(energy / energyMax) * 100}%`;
+}
+
+// ========== 初始化系统 ==========
+const taskManager = new TaskManager();
+const progressTracker = new ProgressTracker();
+const pomodoroTimer = new PomodoroTimer();
+
+// 初始化UI
+function initUI() {
+  // 更新浮动面板
+  render();
+  
+  // 底部导航事件
+  document.querySelectorAll('.nav-item').forEach(item => {
+    item.addEventListener('click', function() {
+      // 移除所有active类
+      document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+      // 添加active类到当前项
+      this.classList.add('active');
+      
+      // 显示对应的模态窗口
+      const tab = this.getAttribute('data-tab');
+      showModal(tab);
+    });
+  });
+  
+  // 情绪变化处理
+  document.getElementById('moodSelect').addEventListener('change', () => {
+    showMessage('情绪状态已记录', 'success');
+  });
+  
+  // 快速任务按钮
+  document.getElementById('quickTaskBtn').addEventListener('click', () => {
+    const taskName = prompt('快速添加任务（2分钟内完成）:');
+    if (taskName && taskName.trim()) {
+      taskManager.addTask(taskName, 'core', 1, 5);
+      showMessage('快速任务已添加', 'success');
+    }
+  });
+  
+  // 添加快捷键支持
+  document.addEventListener('keydown', (e) => {
+    // Ctrl/Cmd + D: 完成任务
+    if ((e.ctrlKey || e.metaKey) && e.key === 'd') {
+      e.preventDefault();
+      document.getElementById('doneBtn').click();
+    }
+    
+    // Ctrl/Cmd + F: 切换专注模式
+    if ((e.ctrlKey || e.metaKey) && e.key === 'f') {
+      e.preventDefault();
+      document.getElementById('focusBtn').click();
+    }
+    
+    // Ctrl/Cmd + T: 快速任务
+    if ((e.ctrlKey || e.metaKey) && e.key === 't') {
+      e.preventDefault();
+      document.getElementById('quickTaskBtn').click();
+    }
+  });
+  
+  // 初始化一些示例任务（如果还没有任务）
+  if (taskManager.tasks.length === 0) {
+    taskManager.addTask('阅读30分钟', 'learning', 3, 15, null, null, 30);
+    taskManager.addTask('运动20分钟', 'health', 4, 20, null, null, 20);
+    taskManager.addTask('整理工作区', 'core', 2, 8, null, null, 15);
+    taskManager.addTask('学习新技能', 'learning', 3, 15, null, null, 45);
+  }
+}
+
+// 显示模态窗口
+function showModal(tab) {
+  // 如果已有模态窗口，先关闭
+  const existingModal = document.getElementById('modal');
+  if (existingModal) {
+    document.body.removeChild(existingModal);
+  }
+  
+  // 创建模态窗口
+  const modal = document.createElement('div');
+  modal.className = 'modal';
+  modal.id = 'modal';
+  
+  let content = '';
+  let title = '';
+  
+  switch(tab) {
+    case 'dashboard':
+      title = '个人仪表盘';
+      content = createDashboardContent();
+      break;
+    case 'tasks':
+      title = '任务管理';
+      content = createTasksContent();
+      break;
+    case 'pomodoro':
+      title = '专注模式';
+      content = createPomodoroContent();
+      break;
+    case 'stats':
+      title = '数据统计';
+      content = createStatsContent();
+      break;
+    case 'settings':
+      title = '系统设置';
+      content = createSettingsContent();
+      break;
+  }
+  
+  modal.innerHTML = `
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 class="modal-title">${title}</h3>
+        <button class="close-btn">&times;</button>
+      </div>
+      ${content}
+    </div>
+  `;
+  
+  document.body.appendChild(modal);
+  
+  // 关闭按钮事件
+  modal.querySelector('.close-btn').addEventListener('click', () => {
+    document.body.removeChild(modal);
+  });
+  
+  // 点击模态窗口外部关闭
+  modal.addEventListener('click', (e) => {
+    if (e.target === modal) {
+      document.body.removeChild(modal);
+    }
+  });
+  
+  // 初始化标签页（如果有）
+  if (tab === 'tasks') {
+    initTaskTabs();
+  }
+}
+
+// 创建仪表盘内容
+function createDashboardContent() {
+  const weeklyReport = progressTracker.getWeeklyReport();
+  const taskStats = taskManager.getTaskStats();
+  const upcomingTasks = taskManager.getUpcomingTasks();
+  const recommendedTasks = taskManager.getRecommendedTasks();
+  
+  return `
+    <div class="stats-container">
+      <div class="stat-card">
+        <div class="stat-label">连续天数</div>
+        <div class="stat-value">${streak}</div>
+        <div class="stat-label">能量上限: ${energyMax}</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">当前能量</div>
+        <div class="stat-value">${energy}</div>
+        <div class="progress-bar" style="margin: 8px 0;">
+          <div class="progress-fill" style="width: ${(energy / energyMax) * 100}%;"></div>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">生产力</div>
+        <div class="stat-value">${progressTracker.stats.productivityScore}</div>
+        <div class="stat-label">本周评分</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">任务完成</div>
+        <div class="stat-value">${taskStats.completionRate}%</div>
+        <div class="stat-label">${taskStats.completed}/${taskStats.total}</div>
+      </div>
+    </div>
+    
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 20px 0;">
+      <div>
+        <h4 style="margin-top: 0;">本周统计</h4>
+        <div style="font-size: 14px;">
+          <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
+            <span>有效天数:</span>
+            <span>${weeklyReport.productiveDays}/${weeklyReport.totalDays}</span>
+          </div>
+          <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
+            <span>完成任务:</span>
+            <span>${weeklyReport.totalTasks}</span>
+          </div>
+          <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
+            <span>平均能量:</span>
+            <span>${weeklyReport.avgEnergy}</span>
+          </div>
+        </div>
+      </div>
+      
+      <div>
+        <h4 style="margin-top: 0;">专注时间</h4>
+        <div style="font-size: 14px; text-align: center; padding: 10px;">
+          <div style="font-size: 18px; font-weight: bold; color: var(--primary-color);">
+            ${pomodoroTimer.getFormattedFocusTime()}
+          </div>
+          <div style="font-size: 12px; opacity: 0.7; margin-top: 4px;">
+            累计专注
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <h4>推荐任务</h4>
+    <div class="task-list">
+      ${recommendedTasks.length > 0 ? recommendedTasks.map(task => `
+        <div class="task-item priority-${task.priority === 1 ? 'low' : task.priority === 2 ? 'medium' : 'high'}">
+          <input type="checkbox" class="task-checkbox" onchange="completeTaskWithReward(${task.id})">
+          <div class="task-content">
+            <div class="task-name">${task.name}</div>
+            <div class="task-meta">
+              <span class="task-priority">
+                <span class="badge ${task.priority === 1 ? 'badge-primary' : task.priority === 2 ? 'badge-warning' : 'badge-danger'}">
+                  ${'★'.repeat(task.priority)}
+                </span>
+              </span>
+              <span class="task-energy">⚡ ${task.estimatedEnergy}</span>
+              <span class="task-category">
+                ${taskManager.categories.find(c => c.id === task.category)?.name || task.category}
+              </span>
+            </div>
+          </div>
+        </div>
+      `).join('') : '<p style="text-align: center; opacity: 0.7; padding: 20px;">暂无推荐任务</p>'}
+    </div>
+    
+    ${upcomingTasks.length > 0 ? `
+      <h4>即将到期</h4>
+      <div class="task-list">
+        ${upcomingTasks.slice(0, 3).map(task => `
+          <div class="task-item">
+            <div class="task-content">
+              <div class="task-name">${task.name}</div>
+              <div class="task-meta">
+                <span class="task-deadline">📅 ${task.deadline}</span>
+              </div>
+            </div>
+          </div>
+        `).join('')}
+      </div>
+    ` : ''}
+    
+    <div style="display: flex; gap: 10px; margin-top: 16px;">
+      <button class="btn btn-primary" style="flex: 1;" onclick="showModal('tasks')">管理任务</button>
+      <button class="btn btn-secondary" onclick="showModal('pomodoro')">开始专注</button>
+    </div>
+  `;
+}
+
+// 创建任务管理内容
+function createTasksContent() {
+  const pendingTasks = taskManager.getTasksByStatus(false);
+  const completedTasks = taskManager.getTasksByStatus(true);
+  
+  return `
+    <div class="tabs">
+      <div class="tab active" data-tab="pending">待办任务 (${pendingTasks.length})</div>
+      <div class="tab" data-tab="completed">已完成 (${completedTasks.length})</div>
+      <div class="tab" data-tab="add">添加任务</div>
+    </div>
+    
+    <div class="tab-content active" id="pending-tab">
+      <div class="task-list">
+        ${pendingTasks.length > 0 ? pendingTasks.map(task => `
+          <div class="task-item priority-${task.priority === 1 ? 'low' : task.priority === 2 ? 'medium' : 'high'}">
+            <input type="checkbox" class="task-checkbox" onchange="completeTaskWithReward(${task.id})">
+            <div class="task-content">
+              <div class="task-name">${task.name}</div>
+              <div class="task-meta">
+                <span class="task-priority">
+                  <span class="badge ${task.priority === 1 ? 'badge-primary' : task.priority === 2 ? 'badge-warning' : 'badge-danger'}">
+                    ${'★'.repeat(task.priority)}
+                  </span>
+                </span>
+                <span class="task-energy">⚡ ${task.estimatedEnergy}</span>
+                <span class="task-category">
+                  ${taskManager.categories.find(c => c.id === task.category)?.name || task.category}
+                </span>
+                ${task.deadline ? `<span class="task-deadline">📅 ${task.deadline}</span>` : ''}
+              </div>
+            </div>
+            <div class="task-actions">
+              <button class="btn btn-sm btn-secondary" onclick="editTask(${task.id})">编辑</button>
+              <button class="btn btn-sm btn-danger" onclick="deleteTask(${task.id})">删除</button>
+            </div>
+          </div>
+        `).join('') : '<p style="text-align: center; opacity: 0.7; padding: 20px;">暂无待办任务</p>'}
+      </div>
+    </div>
+    
+    <div class="tab-content" id="completed-tab">
+      <div class="task-list">
+        ${completedTasks.length > 0 ? completedTasks.slice(0, 10).map(task => `
+          <div class="task-item" style="opacity: 0.7;">
+            <div style="margin-right: 12px;">✅</div>
+            <div class="task-content">
+              <div class="task-name" style="text-decoration: line-through;">${task.name}</div>
+              <div class="task-meta">
+                <span>完成于: ${new Date(task.completedAt).toLocaleDateString()}</span>
+              </div>
+            </div>
+          </div>
+        `).join('') : '<p style="text-align: center; opacity: 0.7; padding: 20px;">暂无已完成任务</p>'}
+      </div>
+    </div>
+    
+    <div class="tab-content" id="add-tab">
+      <div class="form-group">
+        <label class="form-label">任务名称</label>
+        <input type="text" id="newTaskName" class="form-control" placeholder="输入任务名称">
+      </div>
+      
+      <div class="form-group">
+        <label class="form-label">分类</label>
+        <select id="newTaskCategory" class="form-control">
+          ${taskManager.categories.map(cat => `
+            <option value="${cat.id}">${cat.name}</option>
+          `).join('')}
+        </select>
+      </div>
+      
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+        <div class="form-group">
+          <label class="form-label">优先级</label>
+          <select id="newTaskPriority" class="form-control">
+            <option value="1">低 ★</option>
+            <option value="2" selected>中 ★★</option>
+            <option value="3">高 ★★★</option>
+          </select>
+        </div>
+        
+        <div class="form-group">
+          <label class="form-label">能量消耗</label>
+          <input type="number" id="newTaskEnergy" class="form-control" value="10" min="5" max="30">
+        </div>
+      </div>
+      
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+        <div class="form-group">
+          <label class="form-label">预计时间(分钟)</label>
+          <input type="number" id="newTaskDuration" class="form-control" value="25" min="5" max="120">
+        </div>
+        
+        <div class="form-group">
+          <label class="form-label">截止日期</label>
+          <input type="date" id="newTaskDeadline" class="form-control">
+        </div>
+      </div>
+      
+      <button class="btn btn-primary" style="width: 100%; margin-top: 10px;" onclick="addNewTask()">添加任务</button>
+    </div>
+  `;
+}
+
+// 创建专注模式内容
+function createPomodoroContent() {
+  const pendingTasks = taskManager.getTasksByStatus(false);
+  
+  return `
+    <div class="pomodoro-container">
+      <div class="pomodoro-status badge badge-primary" id="pomodoroStatus">准备开始</div>
+      <div class="pomodoro-timer" id="pomodoroTimer">25:00</div>
+      <div id="pomodoroTask" style="margin-bottom: 20px; font-size: 16px; opacity: 0.8;">选择任务开始专注</div>
+      
+      <div class="pomodoro-controls">
+        <button class="btn btn-primary" onclick="startPomodoro()">开始</button>
+        <button class="btn btn-secondary" onclick="pomodoroTimer.pause()">暂停</button>
+        <button class="btn btn-secondary" onclick="pomodoroTimer.reset()">重置</button>
+      </div>
+      
+      <div class="pomodoro-sessions">
+        <div>已完成会话: ${pomodoroTimer.sessionsCompleted}</div>
+        <div>累计专注: ${pomodoroTimer.getFormattedFocusTime()}</div>
+      </div>
+      
+      ${pendingTasks.length > 0 ? `
+        <div style="margin-top: 24px;">
+          <h4 style="margin-bottom: 12px;">选择任务</h4>
+          <div style="display: flex; flex-direction: column; gap: 8px;">
+            ${pendingTasks.slice(0, 5).map(task => `
+              <button class="btn btn-secondary" style="justify-content: flex-start; text-align: left;" 
+                      onclick="startPomodoroWithTask(${task.id})">
+                <span style="flex: 1;">${task.name}</span>
+                <span class="badge badge-primary">${task.duration}分钟</span>
+              </button>
+            `).join('')}
+          </div>
+        </div>
+      ` : ''}
+    </div>
+  `;
+}
+
+// 创建统计内容
+function createStatsContent() {
+  const weeklyReport = progressTracker.getWeeklyReport();
+  const taskStats = taskManager.getTaskStats();
+  const moodStats = progressTracker.getMoodStats();
+  
+  return `
+    <h4>本周概览</h4>
+    <div class="stats-container">
+      <div class="stat-card">
+        <div class="stat-label">有效天数</div>
+        <div class="stat-value">${weeklyReport.productiveDays}/${weeklyReport.totalDays}</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">平均能量</div>
+        <div class="stat-value">${weeklyReport.avgEnergy}</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">完成任务</div>
+        <div class="stat-value">${weeklyReport.totalTasks}</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">生产力</div>
+        <div class="stat-value">${weeklyReport.productivityScore}</div>
+      </div>
+    </div>
+    
+    <h4>任务统计</h4>
+    <div style="background: rgba(255,255,255,0.03); border-radius: 8px; padding: 16px; margin-bottom: 16px;">
+      <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+        <span>总任务数:</span>
+        <span>${taskStats.total}</span>
+      </div>
+      <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+        <span>已完成:</span>
+        <span>${taskStats.completed}</span>
+      </div>
+      <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+        <span>进行中:</span>
+        <span>${taskStats.pending}</span>
+      </div>
+      <div style="display: flex; justify-content: space-between;">
+        <span>完成率:</span>
+        <span>${taskStats.completionRate}%</span>
+      </div>
+    </div>
+    
+    <h4>情绪统计</h4>
+    <div style="background: rgba(255,255,255,0.03); border-radius: 8px; padding: 16px; margin-bottom: 16px;">
+      ${Object.entries(moodStats).length > 0 ? 
+        Object.entries(moodStats).map(([mood, count]) => `
+          <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
+            <span>${mood}</span>
+            <span>${count}天</span>
+          </div>
+        `).join('') : 
+        '<p style="text-align: center; opacity: 0.7;">暂无情绪记录</p>'
+      }
+    </div>
+    
+    <h4>数据管理</h4>
+    <div style="display: flex; flex-direction: column; gap: 10px;">
+      <button class="btn btn-primary" onclick="exportData()">📤 导出数据</button>
+      <button class="btn btn-secondary" onclick="document.getElementById('importFile').click()">📥 导入数据</button>
+      <input type="file" id="importFile" accept=".json" style="display: none;" onchange="handleFileImport(this.files[0])">
+      <button class="btn btn-danger" onclick="confirmReset()">🔄 重置数据</button>
+    </div>
+    
+    <div class="shortcuts">
+      <h4>快捷键</h4>
+      <div class="shortcut-item">
+        <span>完成任务</span>
+        <span class="shortcut-key">Ctrl/Cmd + D</span>
+      </div>
+      <div class="shortcut-item">
+        <span>专注模式</span>
+        <span class="shortcut-key">Ctrl/Cmd + F</span>
+      </div>
+      <div class="shortcut-item">
+        <span>快速任务</span>
+        <span class="shortcut-key">Ctrl/Cmd + T</span>
+      </div>
+    </div>
+  `;
+}
+
+// 创建设置内容
+function createSettingsContent() {
+  const coreValue = localStorage.getItem('core_value') || '';
+  const dailyGoal = localStorage.getItem('daily_goal') || '3';
+  const encouragements = localStorage.getItem('encouragement_messages') || '做得很好！\n继续坚持！\n每一步都很重要！';
+  
+  return `
+    <h4>个性化设置</h4>
+    <div class="form-group">
+      <label class="form-label">核心价值</label>
+      <input type="text" id="coreValue" class="form-control" value="${coreValue}" placeholder="你最想成为怎样的人？">
+    </div>
+    
+    <div class="form-group">
+      <label class="form-label">每日目标</label>
+      <input type="number" id="dailyGoal" class="form-control" value="${dailyGoal}" min="1" max="10">
+    </div>
+    
+    <div class="form-group">
+      <label class="form-label">鼓励消息 (每行一条)</label>
+      <textarea id="encouragementMessages" class="form-control" rows="4" placeholder="输入鼓励消息，每行一条">${encouragements}</textarea>
+    </div>
+    
+    <button class="btn btn-primary" style="width: 100%;" onclick="saveSettings()">保存设置</button>
+    
+    <h4 style="margin-top: 24px;">系统信息</h4>
+    <div style="background: rgba(255,255,255,0.03); border-radius: 8px; padding: 16px;">
+      <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+        <span>当前版本:</span>
+        <span>v${localStorage.getItem('self_version') || '1.0'}</span>
+      </div>
+      <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+        <span>数据大小:</span>
+        <span>${Math.round(JSON.stringify(localStorage).length / 1024)} KB</span>
+      </div>
+      <div style="display: flex; justify-content: space-between;">
+        <span>最后备份:</span>
+        <span>${localStorage.getItem('last_backup') || '从未备份'}</span>
+      </div>
+    </div>
+    
+    <div style="margin-top: 20px; font-size: 13px; opacity: 0.7; text-align: center;">
+      基于神经科学和行为心理学的习惯养成系统
+    </div>
+  `;
+}
+
+// ========== 任务相关函数 ==========
+function initTaskTabs() {
+  document.querySelectorAll('.tab').forEach(tab => {
+    tab.addEventListener('click', function() {
+      // 移除所有active类
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+      
+      // 添加active类到当前项
+      this.classList.add('active');
+      const tabId = this.getAttribute('data-tab');
+      document.getElementById(`${tabId}-tab`).classList.add('active');
+    });
+  });
+}
+
+function addNewTask() {
+  const name = document.getElementById('newTaskName').value.trim();
+  const category = document.getElementById('newTaskCategory').value;
+  const priority = parseInt(document.getElementById('newTaskPriority').value);
+  const energy = parseInt(document.getElementById('newTaskEnergy').value);
+  const duration = parseInt(document.getElementById('newTaskDuration').value);
+  const deadline = document.getElementById('newTaskDeadline').value || null;
+  
+  if (name) {
+    taskManager.addTask(name, category, priority, energy, deadline, null, duration);
+    document.getElementById('newTaskName').value = '';
+    showMessage('任务添加成功！', 'success');
+    
+    // 切换到待办任务标签
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+    document.querySelector('.tab[data-tab="pending"]').classList.add('active');
+    document.getElementById('pending-tab').classList.add('active');
+    
+    // 刷新任务列表
+    const modal = document.getElementById('modal');
+    if (modal) {
+      document.body.removeChild(modal);
+      showModal('tasks');
+    }
+  } else {
+    showMessage('请输入任务名称', 'warning');
+  }
+}
+
+function completeTaskWithReward(taskId) {
+  if (taskManager.completeTask(taskId)) {
+    flashScreen();
+    showMessage('任务完成！能量+' + (energyMax - energy), 'success');
+    
+    // 显示随机鼓励消息
+    const encouragements = localStorage.getItem('encouragement_messages');
+    if (encouragements) {
+      const messages = encouragements.split('\n').filter(msg => msg.trim());
+      if (messages.length > 0) {
+        const randomMessage = messages[Math.floor(Math.random() * messages.length)];
+        setTimeout(() => showMessage(randomMessage, 'info'), 1000);
+      }
+    }
+    
+    // 刷新任务列表
+    const modal = document.getElementById('modal');
+    if (modal && modal.querySelector('.modal-title').textContent === '任务管理') {
+      document.body.removeChild(modal);
+      showModal('tasks');
+    }
+  }
+}
+
+function deleteTask(taskId) {
+  if (confirm('确定要删除这个任务吗？')) {
+    taskManager.deleteTask(taskId);
+    showMessage('任务已删除', 'success');
+    
+    // 刷新任务列表
+    const modal = document.getElementById('modal');
+    if (modal) {
+      document.body.removeChild(modal);
+      showModal('tasks');
+    }
+  }
+}
+
+function editTask(taskId) {
+  const task = taskManager.tasks.find(t => t.id === taskId);
+  if (task) {
+    const newName = prompt('编辑任务名称:', task.name);
+    if (newName !== null && newName.trim()) {
+      taskManager.updateTask(taskId, { name: newName.trim() });
+      showMessage('任务已更新', 'success');
+      
+      // 刷新任务列表
+      const modal = document.getElementById('modal');
+      if (modal) {
+        document.body.removeChild(modal);
+        showModal('tasks');
+      }
+    }
+  }
+}
+
+// ========== 专注模式函数 ==========
+function startPomodoro() {
+  pomodoroTimer.start();
+  showMessage('专注时间开始！', 'success');
+}
+
+function startPomodoroWithTask(taskId) {
+  const task = taskManager.tasks.find(t => t.id === taskId);
+  if (task) {
+    pomodoroTimer.start(task);
+    showMessage(`开始专注: ${task.name}`, 'success');
+  }
+}
+
+// ========== 设置相关函数 ==========
+function saveSettings() {
+  const coreValue = document.getElementById('coreValue').value;
+  const dailyGoal = document.getElementById('dailyGoal').value;
+  const encouragements = document.getElementById('encouragementMessages').value;
+  
+  if (coreValue) {
+    localStorage.setItem('core_value', coreValue);
+  }
+  
+  if (dailyGoal) {
+    localStorage.setItem('daily_goal', dailyGoal);
+  }
+  
+  if (encouragements) {
+    localStorage.setItem('encouragement_messages', encouragements);
+  }
+  
+  showMessage('设置已保存！', 'success');
+}
+
+function handleFileImport(file) {
+  if (file) {
+    importData(file);
+  }
+}
+
+function confirmReset() {
+  if (confirm('确定要重置所有数据吗？此操作不可逆！')) {
+    localStorage.clear();
+    location.reload();
+  }
+}
+
+// ========== 初始化 ==========
+document.addEventListener('DOMContentLoaded', function() {
+  initUI();
+  progressTracker.recordDailyStats();
+  
+  // 初始化番茄钟显示
+  pomodoroTimer.updateDisplay();
+  
+  // 完成任务处理
+  document.getElementById('doneBtn').addEventListener('click', () => {
+    streak++;
+    energy = Math.max(0, energy - 10);
+    flashScreen();
+    save();
+    render();
+    progressTracker.recordDailyStats();
+    showMessage('每日任务完成！', 'success');
+  });
+  
+  // 沉浸模式切换
+  let focus = false;
+  document.getElementById('focusBtn').addEventListener('click', () => {
+    focus = !focus;
+    document.body.style.filter = focus ? 'blur(2px) brightness(0.8)' : 'none';
+    document.getElementById('focusBtn').textContent = focus ? '🔔 退出专注' : '🎧 专注模式';
+    document.getElementById('focusBtn').className = focus ? 'btn btn-warning' : 'btn btn-secondary';
+    
+    if (focus) {
+      showMessage('专注模式已开启', 'success');
+    }
+  });
+  
+  // 夜间提醒
+  function nightReminder() {
+    const hour = new Date().getHours();
+    if (hour >= 23) {
+      showMessage('🌙 温柔提示：充足睡眠 = 明天更强的你', 'info');
+    }
+  }
+  setInterval(nightReminder, 3600000);
+});
+
+// ========== 身份树可视化 ==========
+(function(){
+  const c = document.getElementById('identityTree');
+  if(!c) return;
+  const ctx = c.getContext('2d');
+  function resizeCanvas(){
+    c.width = c.clientWidth * (window.devicePixelRatio||1);
+    c.height = c.clientHeight * (window.devicePixelRatio||1);
+    ctx.setTransform(window.devicePixelRatio||1,0,0,window.devicePixelRatio||1,0,0);
+  }
+  window.addEventListener('resize', resizeCanvas);
+  resizeCanvas();
+
+  function drawIdentityTree(){
+    const w = c.clientWidth, h = c.clientHeight;
+    ctx.clearRect(0,0,w,h);
+    // background subtle
+    ctx.fillStyle = 'rgba(255,255,255,0.01)'; 
+    ctx.fillRect(0,0,w,h);
+
+    // parameters
+    const core = (localStorage.getItem('core_value')||'你的价值') ;
+    const s = Math.min(1, (streak||0) / 30);
+
+    // root
+    ctx.fillStyle = '#9fc7ff';
+    ctx.beginPath(); 
+    ctx.ellipse(w*0.12,h*0.85,18,10,0,0,Math.PI*2); 
+    ctx.fill();
+    ctx.fillStyle = '#cfe9ff'; 
+    ctx.font = '12px 微软雅黑'; 
+    ctx.fillText('行为', w*0.06, h*0.85+26);
+
+    // trunk
+    ctx.strokeStyle = '#7ab8ff'; 
+    ctx.lineWidth = 3;
+    ctx.beginPath(); 
+    ctx.moveTo(w*0.12,h*0.83); 
+    ctx.lineTo(w*0.12,h*0.5); 
+    ctx.stroke();
+
+    // habits (branching)
+    const branches = Math.max(3, Math.round(3 + s*6));
+    for(let i=0;i<branches;i++){
+      const angle = -Math.PI/2 + (i - (branches-1)/2) * 0.35;
+      const bx = w*0.12 + Math.cos(angle)* (60 + s*160);
+      const by = h*0.5 + Math.sin(angle)* (40 + s*100);
+      ctx.beginPath(); 
+      ctx.moveTo(w*0.12,h*0.55); 
+      ctx.quadraticCurveTo(w*0.2, h*0.45, bx, by); 
+      ctx.stroke();
+      // leaf (habit)
+      ctx.fillStyle = '#ffd6f5'; 
+      ctx.beginPath(); 
+      ctx.arc(bx,by,8 + s*6,0,Math.PI*2); 
+      ctx.fill();
+    }
+
+    // crown (identity) - outer expansion based on s
+    const crownR = 36 + s*90;
+    ctx.fillStyle = 'rgba(123,184,255,0.08)';
+    ctx.beginPath(); 
+    ctx.arc(w*0.12, h*0.3, crownR, 0, Math.PI*2); 
+    ctx.fill();
+    ctx.fillStyle = '#7ab8ff'; 
+    ctx.font = '14px 微软雅黑'; 
+    ctx.fillText(core, w*0.12 - ctx.measureText(core).width/2, h*0.3);
+
+    // identity label
+    ctx.fillStyle = '#cfe9ff'; 
+    ctx.font = '12px 微软雅黑'; 
+    ctx.fillText('身份', w*0.12 - 14, h*0.3 - crownR - 8);
+  }
+  drawIdentityTree();
+  setInterval(drawIdentityTree, 2000);
+})();
+
+// ========== 未来人格对话 ==========
+(function(){
+  function gentleMessage(days){
+    const stored = JSON.parse(localStorage.getItem('futureMsgTemplates')||'{}');
+    if(stored && stored[days]) return stored[days];
+    const tone = {
+      pre: '温柔提示：',
+      body30: `30天后的你会感谢现在的每一点坚持。保持小步前进，别忘了留意休息。`, 
+      body90: `90天后，你将看到行为开始堆积成形——那是身份的轮廓。温柔地对自己耐心一点。`, 
+      body365: `一年后，你会以一种全新的节奏呼吸。别急，今天的每次选择都在写那张票。`
+    };
+    if(days===30) return tone.pre + tone.body30;
+    if(days===90) return tone.pre + tone.body90;
+    return tone.pre + tone.body365;
+  }
+  
+  // 小按钮
+  const pane = document.createElement('div');
+  pane.style.position='fixed'; 
+  pane.style.left='20px'; 
+  pane.style.bottom='90px';
+  pane.style.backdropFilter='blur(6px)'; 
+  pane.style.background='rgba(255,255,255,0.04)';
+  pane.style.padding='10px 12px'; 
+  pane.style.borderRadius='10px'; 
+  pane.style.zIndex=9999;
+  pane.style.border = '1px solid rgba(255,255,255,0.1)';
+  pane.innerHTML = `
+    <div style="font-size:13px;margin-bottom:6px;color:#cfe9ff; font-weight: 500;">未来人格</div>
+    <div style="display: flex; gap: 6px;">
+      <button id='f30' class='btn btn-sm btn-secondary'>30天</button>
+      <button id='f90' class='btn btn-sm btn-secondary'>90天</button>
+      <button id='f365' class='btn btn-sm btn-secondary'>365天</button>
+    </div>
+  `;
+  document.body.appendChild(pane);
+
+  function showMessage(text){
+    const modal = document.createElement('div');
+    modal.className = 'modal';
+    modal.innerHTML = `
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3 class="modal-title">来自未来的温柔</h3>
+          <button class="close-btn">&times;</button>
+        </div>
+        <div style='line-height:1.6; font-size: 15px;'>${text}</div>
+        <div style='text-align:right;margin-top:16px;'>
+          <button class="btn btn-primary" id='closeFuture'>知道了</button>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(modal);
+    
+    modal.querySelector('.close-btn').addEventListener('click', () => {
+      document.body.removeChild(modal);
+    });
+    
+    modal.querySelector('#closeFuture').addEventListener('click', () => {
+      document.body.removeChild(modal);
+    });
+    
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) {
+        document.body.removeChild(modal);
+      }
+    });
+  }
+  
+  document.getElementById('f30').addEventListener('click', () => showMessage(gentleMessage(30)));
+  document.getElementById('f90').addEventListener('click', () => showMessage(gentleMessage(90)));
+  document.getElementById('f365').addEventListener('click', () => showMessage(gentleMessage(365)));
+})();
+
+// ========== 行为概率分布渲染器 ==========
+(function(){
+  // 创建画布并插入在 identityTree 右侧（浮动）
+  const probe = document.createElement('canvas');
+  probe.id = 'probCloud';
+  probe.width = 420; 
+  probe.height = 220;
+  probe.style.position = 'fixed'; 
+  probe.style.right = '20px'; 
+  probe.style.top = '80px';
+  probe.style.borderRadius = '10px'; 
+  probe.style.background = 'rgba(255,255,255,0.02)';
+  probe.style.boxShadow = '0 6px 20px rgba(0,0,0,0.5)';
+  probe.style.zIndex = 9998;
+  probe.style.border = '1px solid rgba(255,255,255,0.1)';
+  document.body.appendChild(probe);
+
+  // ---- 可拖拽 + 本地记忆 ----
+  let dragging = false;
+  let offsetX = 0, offsetY = 0;
+
+  // 从 localStorage 恢复位置
+  const savedPos = JSON.parse(localStorage.getItem('probCloudPos')||'{}');
+  if(savedPos.x){ probe.style.right = 'auto'; probe.style.left = savedPos.x + 'px'; }
+  if(savedPos.y){ probe.style.top = savedPos.y + 'px'; }
+
+  probe.addEventListener('mousedown', e=>{
+    dragging = true;
+    offsetX = e.clientX - probe.offsetLeft;
+    offsetY = e.clientY - probe.offsetTop;
+  });
+  document.addEventListener('mousemove', e=>{
+    if(!dragging) return;
+    probe.style.left = (e.clientX - offsetX) + 'px';
+    probe.style.top = (e.clientY - offsetY) + 'px';
+  });
+  document.addEventListener('mouseup', ()=>{
+    if(!dragging) return;
+    dragging = false;
+    localStorage.setItem('probCloudPos', JSON.stringify({x: probe.offsetLeft, y: probe.offsetTop}));
+  });
+  const pc = probe.getContext('2d');
+
+  function calcProbabilities(){
+    // 简易概率模型：engage / maintain / drop
+    const pEngage = Math.min(1, (streak/60) + (energy/150));
+    const pMaintain = Math.min(1, 0.3 + (streak/100) + (energy/300));
+    const pDrop = Math.max(0, 1 - (pEngage*0.7 + pMaintain*0.25));
+    return {engage:pEngage, maintain:pMaintain, drop:pDrop};
+  }
+
+  // 粒子云
+  const particles = [];
+  function seedParticles(){
+    particles.length = 0;
+    const probs = calcProbabilities();
+    const total = 120; // 总粒子数
+    for(let i=0;i<total;i++){
+      // assign to cluster by probability
+      const r = Math.random();
+      let type='maintain';
+      if(r < probs.engage) type='engage';
+      else if(r > 1 - probs.drop) type='drop';
+      particles.push({
+        x: Math.random()*probe.width, 
+        y: Math.random()*probe.height, 
+        vx:(Math.random()-0.5)*0.3, 
+        vy:(Math.random()-0.5)*0.3, 
+        type
+      });
+    }
+  }
+  seedParticles();
+
+  function drawCloud(){
+    pc.clearRect(0,0,probe.width,probe.height);
+    // header
+    pc.fillStyle = '#9fc7ff'; 
+    pc.font='13px 微软雅黑'; 
+    pc.fillText('行为概率云（未来倾向）',12,18);
+    const probs = calcProbabilities();
+    pc.fillStyle='rgba(255,255,255,0.06)'; 
+    pc.fillRect(8,26,probe.width-16,probe.height-34);
+
+    particles.forEach(p=>{
+      // velocity
+      p.x += p.vx * (1 + Math.random()*0.6);
+      p.y += p.vy * (1 + Math.random()*0.6);
+      if(p.x < 8) p.x = probe.width-8; 
+      if(p.x > probe.width-8) p.x = 8;
+      if(p.y < 28) p.y = probe.height-6; 
+      if(p.y > probe.height-6) p.y = 28;
+
+      // color by type
+      let col='rgba(127,200,255,0.9)'; 
+      let r=3;
+      if(p.type==='engage'){ 
+        col='rgba(255,195,200,0.95)'; 
+        r=3.6 + Math.random()*2; 
+      }
+      if(p.type==='maintain'){ 
+        col='rgba(255,230,180,0.9)'; 
+        r=2.4 + Math.random()*1.4; 
+      }
+      if(p.type==='drop'){ 
+        col='rgba(180,190,255,0.85)'; 
+        r=1.8 + Math.random()*1.2; 
+      }
+      pc.fillStyle = col; 
+      pc.beginPath(); 
+      pc.arc(p.x,p.y,r,0,Math.PI*2); 
+      pc.fill();
+    });
+
+    // legend & numbers
+    pc.fillStyle='#cfe9ff'; 
+    pc.font='12px 微软雅黑';
+    pc.fillText(`参与: ${(probs.engage*100).toFixed(0)}%`, 12, probe.height-8);
+    pc.fillText(`维持: ${(probs.maintain*100).toFixed(0)}%`, 150, probe.height-8);
+    pc.fillText(`流失: ${(probs.drop*100).toFixed(0)}%`, 320, probe.height-8);
+  }
+
+  setInterval(()=>{
+    // periodically reseed to reflect state changes
+    seedParticles(); 
+    drawCloud();
+  }, 2200);
+
+  // initial draw
+  drawCloud();
+})();
+</script>
+</body>
+</html>

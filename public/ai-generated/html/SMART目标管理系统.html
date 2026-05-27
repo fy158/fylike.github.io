@@ -1,0 +1,3353 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SMART+ 目标管理系统 | 完整目标管理闭环</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --specific: #4361ee;
+            --measurable: #4cc9f0;
+            --achievable: #7209b7;
+            --relevant: #3f37c9;
+            --timebound: #f72585;
+            --task: #4CAF50;
+            --progress: #FF9800;
+            --risk: #F44336;
+            --collaboration: #9C27B0;
+            --light: #f8f9fa;
+            --dark: #212529;
+            --gray: #6c757d;
+            --card-shadow: 0 10px 20px rgba(0,0,0,0.08);
+            --transition: all 0.3s ease;
+            
+            /* 主题变量 */
+            --bg-primary: #f5f7fa;
+            --bg-secondary: #ffffff;
+            --text-primary: #212529;
+            --text-secondary: #6c757d;
+            --border-color: #e9ecef;
+        }
+
+        /* 深色主题 */
+        body.theme-dark {
+            --bg-primary: #1a1d23;
+            --bg-secondary: #252a33;
+            --text-primary: #e9ecef;
+            --text-secondary: #adb5bd;
+            --border-color: #495057;
+        }
+
+        /* 绿色主题 */
+        body.theme-green {
+            --specific: #2e7d32;
+            --measurable: #4caf50;
+            --achievable: #8bc34a;
+            --relevant: #66bb6a;
+            --timebound: #aed581;
+            --bg-primary: #f1f8e9;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+        }
+        
+        body {
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            min-height: 100vh;
+            padding: 20px;
+            transition: background-color 0.3s, color 0.3s;
+        }
+        
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+        
+        /* 顶部导航栏 */
+        .top-nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding: 15px 20px;
+            background: var(--bg-secondary);
+            border-radius: 16px;
+            box-shadow: var(--card-shadow);
+        }
+        
+        .nav-controls {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+        
+        .theme-selector {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .theme-btn {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            border: 2px solid var(--border-color);
+            cursor: pointer;
+            transition: var(--transition);
+        }
+        
+        .theme-btn.active {
+            border-color: var(--specific);
+        }
+        
+        .theme-light {
+            background: #f8f9fa;
+        }
+        
+        .theme-dark {
+            background: #252a33;
+        }
+        
+        .theme-green {
+            background: #4caf50;
+        }
+        
+        /* 今日待办区域 */
+        .today-tasks {
+            background: var(--bg-secondary);
+            padding: 20px;
+            border-radius: 16px;
+            box-shadow: var(--card-shadow);
+            margin-bottom: 20px;
+            border-left: 5px solid var(--progress);
+        }
+        
+        .today-tasks h2 {
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: var(--text-primary);
+        }
+        
+        .task-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        
+        .today-task {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 12px 15px;
+            background: var(--bg-primary);
+            border-radius: 10px;
+            transition: var(--transition);
+        }
+        
+        .today-task:hover {
+            transform: translateX(5px);
+        }
+        
+        .today-task input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+        }
+        
+        .task-info {
+            flex: 1;
+        }
+        
+        .task-title {
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+        
+        .task-goal {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+        
+        /* 头部区域 */
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding: 30px;
+            background: var(--bg-secondary);
+            border-radius: 16px;
+            color: var(--text-primary);
+            box-shadow: var(--card-shadow);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            font-weight: 700;
+            position: relative;
+            background: linear-gradient(135deg, var(--specific) 0%, var(--measurable) 20%, var(--achievable) 40%, var(--relevant) 60%, var(--timebound) 80%, var(--task) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .tagline {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            max-width: 700px;
+            margin: 0 auto 20px;
+            color: var(--text-secondary);
+        }
+        
+        .smart-intro {
+            max-width: 800px;
+            margin: 0 auto 30px;
+            font-size: 1.1rem;
+            color: var(--text-secondary);
+        }
+        
+        .smart-principles {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 20px;
+            margin-top: 30px;
+            position: relative;
+        }
+        
+        .principle {
+            background: var(--bg-primary);
+            padding: 20px;
+            border-radius: 12px;
+            width: 180px;
+            text-align: center;
+            transition: var(--transition);
+            box-shadow: var(--card-shadow);
+            border-top: 4px solid;
+        }
+        
+        .principle.specific {
+            border-top-color: var(--specific);
+        }
+        
+        .principle.measurable {
+            border-top-color: var(--measurable);
+        }
+        
+        .principle.achievable {
+            border-top-color: var(--achievable);
+        }
+        
+        .principle.relevant {
+            border-top-color: var(--relevant);
+        }
+        
+        .principle.timebound {
+            border-top-color: var(--timebound);
+        }
+        
+        .principle.task {
+            border-top-color: var(--task);
+        }
+        
+        .principle.progress {
+            border-top-color: var(--progress);
+        }
+        
+        .principle.risk {
+            border-top-color: var(--risk);
+        }
+        
+        .principle.collaboration {
+            border-top-color: var(--collaboration);
+        }
+        
+        .principle:hover {
+            transform: translateY(-5px);
+        }
+        
+        .principle i {
+            font-size: 2rem;
+            margin-bottom: 15px;
+            display: block;
+        }
+        
+        .principle.specific i {
+            color: var(--specific);
+        }
+        
+        .principle.measurable i {
+            color: var(--measurable);
+        }
+        
+        .principle.achievable i {
+            color: var(--achievable);
+        }
+        
+        .principle.relevant i {
+            color: var(--relevant);
+        }
+        
+        .principle.timebound i {
+            color: var(--timebound);
+        }
+        
+        .principle.task i {
+            color: var(--task);
+        }
+        
+        .principle.progress i {
+            color: var(--progress);
+        }
+        
+        .principle.risk i {
+            color: var(--risk);
+        }
+        
+        .principle.collaboration i {
+            color: var(--collaboration);
+        }
+        
+        .principle h3 {
+            font-size: 1.1rem;
+            margin-bottom: 8px;
+        }
+        
+        .principle p {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+        
+        /* 应用容器 */
+        .app-container {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 30px;
+        }
+        
+        @media (max-width: 1100px) {
+            .app-container {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        /* 目标表单 */
+        .goal-form {
+            background: var(--bg-secondary);
+            padding: 30px;
+            border-radius: 16px;
+            box-shadow: var(--card-shadow);
+            position: sticky;
+            top: 20px;
+        }
+        
+        .section-title {
+            font-size: 1.5rem;
+            margin-bottom: 25px;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .section-title i {
+            color: var(--specific);
+        }
+        
+        .form-group {
+            margin-bottom: 25px;
+        }
+        
+        .smart-input-group {
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-left: 5px solid;
+            background: var(--bg-primary);
+            transition: var(--transition);
+        }
+        
+        .smart-input-group:hover {
+            transform: translateX(5px);
+        }
+        
+        .smart-input-group.specific {
+            border-left-color: var(--specific);
+        }
+        
+        .smart-input-group.measurable {
+            border-left-color: var(--measurable);
+        }
+        
+        .smart-input-group.achievable {
+            border-left-color: var(--achievable);
+        }
+        
+        .smart-input-group.relevant {
+            border-left-color: var(--relevant);
+        }
+        
+        .smart-input-group.timebound {
+            border-left-color: var(--timebound);
+        }
+        
+        .smart-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        
+        .smart-header i {
+            font-size: 1.2rem;
+        }
+        
+        .smart-header.specific i {
+            color: var(--specific);
+        }
+        
+        .smart-header.measurable i {
+            color: var(--measurable);
+        }
+        
+        .smart-header.achievable i {
+            color: var(--achievable);
+        }
+        
+        .smart-header.relevant i {
+            color: var(--relevant);
+        }
+        
+        .smart-header.timebound i {
+            color: var(--timebound);
+        }
+        
+        .smart-header h3 {
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        input, textarea, select {
+            width: 100%;
+            padding: 14px;
+            border: 2px solid var(--border-color);
+            border-radius: 10px;
+            font-size: 1rem;
+            transition: var(--transition);
+            background: var(--bg-primary);
+            color: var(--text-primary);
+        }
+        
+        input:focus, textarea:focus, select:focus {
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.15);
+        }
+        
+        .smart-input-group.specific input:focus,
+        .smart-input-group.specific textarea:focus {
+            border-color: var(--specific);
+        }
+        
+        .smart-input-group.measurable input:focus,
+        .smart-input-group.measurable textarea:focus {
+            border-color: var(--measurable);
+        }
+        
+        .smart-input-group.achievable input:focus,
+        .smart-input-group.achievable textarea:focus {
+            border-color: var(--achievable);
+        }
+        
+        .smart-input-group.relevant input:focus,
+        .smart-input-group.relevant textarea:focus {
+            border-color: var(--relevant);
+        }
+        
+        .smart-input-group.timebound input:focus,
+        .smart-input-group.timebound textarea:focus {
+            border-color: var(--timebound);
+        }
+        
+        textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+        
+        button {
+            background: linear-gradient(135deg, var(--specific) 0%, var(--measurable) 100%);
+            color: white;
+            border: none;
+            padding: 14px 25px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            width: 100%;
+            justify-content: center;
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(67, 97, 238, 0.3);
+        }
+        
+        /* 目标区域 */
+        .goals-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 25px;
+        }
+        
+        @media (max-width: 768px) {
+            .goals-container {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .goals-stats {
+            grid-column: 1 / -1;
+            background: var(--bg-secondary);
+            padding: 25px;
+            border-radius: 16px;
+            box-shadow: var(--card-shadow);
+            margin-bottom: 20px;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+        }
+        
+        .stat-card {
+            text-align: center;
+            padding: 20px;
+            border-radius: 12px;
+            background: var(--bg-primary);
+        }
+        
+        .stat-value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+        
+        .stat-label {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+        
+        .goal-card {
+            background: var(--bg-secondary);
+            padding: 25px;
+            border-radius: 16px;
+            box-shadow: var(--card-shadow);
+            transition: var(--transition);
+            border-top: 4px solid var(--specific);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        /* 紧急目标样式 */
+        .goal-card.urgent {
+            border-left: 5px solid var(--risk);
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(244, 67, 54, 0.4); }
+            70% { box-shadow: 0 0 0 10px rgba(244, 67, 54, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(244, 67, 54, 0); }
+        }
+        
+        .goal-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(0,0,0,0.1);
+        }
+        
+        .goal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 15px;
+        }
+        
+        .goal-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 5px;
+        }
+        
+        .goal-deadline {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .goal-smart-details {
+            margin: 20px 0;
+        }
+        
+        .smart-detail {
+            margin-bottom: 15px;
+            padding: 15px;
+            border-radius: 8px;
+            background: var(--bg-primary);
+            transition: var(--transition);
+        }
+        
+        .smart-detail:hover {
+            transform: translateX(5px);
+        }
+        
+        .smart-detail.specific {
+            border-left: 4px solid var(--specific);
+        }
+        
+        .smart-detail.measurable {
+            border-left: 4px solid var(--measurable);
+        }
+        
+        .smart-detail.achievable {
+            border-left: 4px solid var(--achievable);
+        }
+        
+        .smart-detail.relevant {
+            border-left: 4px solid var(--relevant);
+        }
+        
+        .smart-detail.timebound {
+            border-left: 4px solid var(--timebound);
+        }
+        
+        .smart-detail h4 {
+            margin-bottom: 8px;
+            font-size: 0.95rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .smart-detail.specific h4 {
+            color: var(--specific);
+        }
+        
+        .smart-detail.measurable h4 {
+            color: var(--measurable);
+        }
+        
+        .smart-detail.achievable h4 {
+            color: var(--achievable);
+        }
+        
+        .smart-detail.relevant h4 {
+            color: var(--relevant);
+        }
+        
+        .smart-detail.timebound h4 {
+            color: var(--timebound);
+        }
+        
+        .smart-detail p {
+            font-size: 0.9rem;
+            color: var(--text-primary);
+            line-height: 1.5;
+        }
+        
+        .goal-progress {
+            margin-top: 20px;
+        }
+        
+        .progress-info {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+        }
+        
+        .progress-bar {
+            height: 10px;
+            background-color: var(--border-color);
+            border-radius: 5px;
+            overflow: hidden;
+        }
+        
+        .progress {
+            height: 100%;
+            background: linear-gradient(90deg, var(--specific) 0%, var(--measurable) 100%);
+            border-radius: 5px;
+            width: 0%;
+            transition: width 0.8s ease;
+        }
+        
+        .goal-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        
+        .btn-edit {
+            background: linear-gradient(135deg, #f8961e 0%, #f9c74f 100%);
+        }
+        
+        .btn-delete {
+            background: linear-gradient(135deg, #f72585 0%, #f56a8d 100%);
+        }
+        
+        .btn-task {
+            background: linear-gradient(135deg, var(--task) 0%, #66BB6A 100%);
+        }
+        
+        .btn-risk {
+            background: linear-gradient(135deg, var(--risk) 0%, #EF5350 100%);
+        }
+        
+        .btn-collaboration {
+            background: linear-gradient(135deg, var(--collaboration) 0%, #BA68C8 100%);
+        }
+        
+        .btn-small {
+            padding: 10px 15px;
+            font-size: 0.9rem;
+            width: auto;
+        }
+        
+        .empty-state {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--text-secondary);
+        }
+        
+        .empty-state i {
+            font-size: 5rem;
+            margin-bottom: 20px;
+            opacity: 0.3;
+        }
+        
+        .empty-state h3 {
+            font-size: 1.5rem;
+            margin-bottom: 10px;
+            color: var(--text-primary);
+        }
+        
+        .tabs {
+            display: flex;
+            margin-bottom: 25px;
+            background: var(--bg-primary);
+            border-radius: 12px;
+            padding: 5px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        
+        .tab {
+            flex: 1;
+            padding: 12px 20px;
+            text-align: center;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: var(--transition);
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+        
+        .tab.active {
+            background: linear-gradient(135deg, var(--specific) 0%, var(--measurable) 100%);
+            color: white;
+        }
+        
+        .completion-badge {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: var(--measurable);
+            color: white;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+        
+        .priority-indicator {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 5px;
+        }
+        
+        .priority-high {
+            background-color: var(--timebound);
+        }
+        
+        .priority-medium {
+            background-color: #f8961e;
+        }
+        
+        .priority-low {
+            background-color: var(--measurable);
+        }
+        
+        .smart-score {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid var(--border-color);
+        }
+        
+        .score-item {
+            text-align: center;
+            flex: 1;
+        }
+        
+        .score-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+        
+        .score-label {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+        
+        .score-item.specific .score-value {
+            color: var(--specific);
+        }
+        
+        .score-item.measurable .score-value {
+            color: var(--measurable);
+        }
+        
+        .score-item.achievable .score-value {
+            color: var(--achievable);
+        }
+        
+        .score-item.relevant .score-value {
+            color: var(--relevant);
+        }
+        
+        .score-item.timebound .score-value {
+            color: var(--timebound);
+        }
+
+        /* 悬浮通知组件样式 */
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 16px 24px;
+            border-radius: 12px;
+            color: white;
+            font-weight: 600;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            z-index: 9999;
+            transform: translateX(120%);
+            transition: transform 0.3s ease;
+        }
+        .notification.success {
+            background: linear-gradient(135deg, #4361ee 0%, #3a0ca3 100%);
+        }
+        .notification.info {
+            background: linear-gradient(135deg, #4cc9f0 0%, #4361ee 100%);
+        }
+        .notification.warning {
+            background: linear-gradient(135deg, #f8961e 0%, #f9c74f 100%);
+        }
+        .notification.show {
+            transform: translateX(0);
+        }
+        
+        /* SMART分析图表容器 */
+        .smart-analysis {
+            background: var(--bg-secondary);
+            padding: 25px;
+            border-radius: 16px;
+            box-shadow: var(--card-shadow);
+            margin-bottom: 20px;
+            grid-column: 1 / -1;
+        }
+        
+        .chart-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-top: 20px;
+        }
+        
+        @media (max-width: 768px) {
+            .chart-container {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .chart-item {
+            height: 300px;
+            position: relative;
+        }
+        
+        /* 目标详情模态框 */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+        
+        .modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        .modal {
+            background: var(--bg-secondary);
+            border-radius: 16px;
+            width: 90%;
+            max-width: 800px;
+            max-height: 90vh;
+            overflow-y: auto;
+            transform: translateY(20px);
+            transition: transform 0.3s ease;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+        }
+        
+        .modal-overlay.active .modal {
+            transform: translateY(0);
+        }
+        
+        .modal-header {
+            padding: 20px 25px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .modal-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+        
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            color: var(--text-secondary);
+            cursor: pointer;
+            width: auto;
+            padding: 5px;
+        }
+        
+        .modal-body {
+            padding: 25px;
+        }
+        
+        /* 目标分析按钮 */
+        .btn-analyze {
+            background: linear-gradient(135deg, var(--relevant) 0%, var(--achievable) 100%);
+        }
+        
+        /* 目标执行工具区域 */
+        .execution-tools {
+            background: var(--bg-secondary);
+            padding: 25px;
+            border-radius: 16px;
+            box-shadow: var(--card-shadow);
+            margin-bottom: 20px;
+            grid-column: 1 / -1;
+        }
+        
+        .tools-tabs {
+            display: flex;
+            margin-bottom: 25px;
+            background: var(--bg-primary);
+            border-radius: 12px;
+            padding: 5px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        
+        .tool-tab {
+            flex: 1;
+            padding: 12px 20px;
+            text-align: center;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: var(--transition);
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+        
+        .tool-tab.active {
+            background: linear-gradient(135deg, var(--task) 0%, var(--progress) 50%, var(--risk) 100%);
+            color: white;
+        }
+        
+        .tool-content {
+            display: none;
+        }
+        
+        .tool-content.active {
+            display: block;
+        }
+        
+        .task-item, .risk-item {
+            background: var(--bg-primary);
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            border-left: 4px solid;
+        }
+        
+        .task-item {
+            border-left-color: var(--task);
+        }
+        
+        .risk-item {
+            border-left-color: var(--risk);
+        }
+        
+        .task-header, .risk-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+        
+        .task-title, .risk-title {
+            font-weight: 600;
+        }
+        
+        .task-priority {
+            padding: 4px 8px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+        
+        .priority-important-urgent {
+            background-color: var(--timebound);
+            color: white;
+        }
+        
+        .priority-important-noturgent {
+            background-color: var(--relevant);
+            color: white;
+        }
+        
+        .priority-notimportant-urgent {
+            background-color: var(--measurable);
+            color: white;
+        }
+        
+        .priority-notimportant-noturgent {
+            background-color: var(--text-secondary);
+            color: white;
+        }
+        
+        .task-deadline, .risk-probability {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            margin-bottom: 10px;
+        }
+        
+        .task-actions, .risk-actions {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .btn-complete {
+            background: var(--task);
+        }
+        
+        .btn-mitigate {
+            background: var(--risk);
+        }
+        
+        .quadrant-matrix {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            grid-template-rows: 1fr 1fr;
+            gap: 15px;
+            height: 400px;
+        }
+        
+        @media (max-width: 768px) {
+            .quadrant-matrix {
+                grid-template-columns: 1fr;
+                grid-template-rows: repeat(4, 1fr);
+                height: auto;
+            }
+        }
+        
+        .quadrant {
+            border-radius: 12px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .quadrant-header {
+            font-weight: 700;
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .quadrant-important-urgent {
+            background: rgba(247, 37, 133, 0.1);
+            border: 2px solid var(--timebound);
+        }
+        
+        .quadrant-important-noturgent {
+            background: rgba(63, 55, 201, 0.1);
+            border: 2px solid var(--relevant);
+        }
+        
+        .quadrant-notimportant-urgent {
+            background: rgba(76, 201, 240, 0.1);
+            border: 2px solid var(--measurable);
+        }
+        
+        .quadrant-notimportant-noturgent {
+            background: rgba(108, 117, 125, 0.1);
+            border: 2px solid var(--text-secondary);
+        }
+        
+        .quadrant-tasks {
+            flex: 1;
+            overflow-y: auto;
+        }
+        
+        .quadrant-task {
+            background: var(--bg-secondary);
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .task-checkbox {
+            margin-right: 10px;
+        }
+        
+        .gantt-chart {
+            background: var(--bg-primary);
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+        
+        .gantt-bar {
+            height: 30px;
+            background: var(--progress);
+            border-radius: 5px;
+            margin-bottom: 10px;
+            position: relative;
+        }
+        
+        .gantt-label {
+            position: absolute;
+            left: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: white;
+            font-weight: 600;
+        }
+        
+        .collaboration-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 20px;
+        }
+        
+        @media (max-width: 768px) {
+            .collaboration-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .collaborator-card {
+            background: var(--bg-primary);
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+            border-left: 4px solid var(--collaboration);
+        }
+        
+        .collaborator-name {
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+        
+        .collaborator-role {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            margin-bottom: 15px;
+        }
+        
+        .collaborator-tasks {
+            font-size: 0.9rem;
+        }
+        
+        /* 风险预警 */
+        .risk-warning {
+            background: rgba(244, 67, 54, 0.1);
+            border: 1px solid var(--risk);
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .risk-warning i {
+            color: var(--risk);
+            font-size: 1.5rem;
+        }
+        
+        /* 复盘报告 */
+        .report-section {
+            background: var(--bg-secondary);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: var(--card-shadow);
+        }
+        
+        .report-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .report-metrics {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .metric-card {
+            background: var(--bg-primary);
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+        }
+        
+        .metric-value {
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+        
+        .metric-label {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+        
+        /* 协作功能 */
+        .collaboration-invite {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        @media (max-width: 768px) {
+            .collaboration-invite {
+                flex-direction: column;
+            }
+        }
+        
+        .invite-link {
+            flex: 1;
+            padding: 12px 15px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+        }
+        
+        /* 常用任务库 */
+        .template-library {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+        
+        @media (max-width: 768px) {
+            .template-library {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .template-card {
+            background: var(--bg-primary);
+            padding: 15px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: var(--transition);
+            border: 1px solid var(--border-color);
+        }
+        
+        .template-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--card-shadow);
+        }
+        
+        /* 工具提示 */
+        .tooltip {
+            position: relative;
+            display: inline-block;
+        }
+        
+        .tooltip .tooltiptext {
+            visibility: hidden;
+            width: 200px;
+            background-color: var(--bg-secondary);
+            color: var(--text-primary);
+            text-align: center;
+            border-radius: 6px;
+            padding: 10px;
+            position: absolute;
+            z-index: 1;
+            bottom: 125%;
+            left: 50%;
+            transform: translateX(-50%);
+            opacity: 0;
+            transition: opacity 0.3s;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            font-size: 0.85rem;
+            border: 1px solid var(--border-color);
+        }
+        
+        .tooltip:hover .tooltiptext {
+            visibility: visible;
+            opacity: 1;
+        }
+        
+        /* 新手引导 */
+        .guide-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+        
+        .guide-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        .guide-modal {
+            background: var(--bg-secondary);
+            border-radius: 16px;
+            width: 90%;
+            max-width: 500px;
+            padding: 30px;
+            position: relative;
+            transform: translateY(20px);
+            transition: transform 0.3s ease;
+        }
+        
+        .guide-overlay.active .guide-modal {
+            transform: translateY(0);
+        }
+        
+        .guide-step {
+            display: none;
+        }
+        
+        .guide-step.active {
+            display: block;
+        }
+        
+        .guide-nav {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 25px;
+        }
+        
+        /* 数据管理 */
+        .data-management {
+            display: flex;
+            gap: 10px;
+        }
+        
+        @media (max-width: 768px) {
+            .data-management {
+                flex-direction: column;
+            }
+        }
+        
+        /* 移动端分步表单 */
+        .form-step {
+            display: none;
+        }
+        
+        .form-step.active {
+            display: block;
+        }
+        
+        .form-navigation {
+            display: none;
+            justify-content: space-between;
+            margin-top: 20px;
+        }
+        
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            .goal-form {
+                position: static;
+            }
+            
+            /* 移动端分步表单显示 */
+            .form-navigation {
+                display: flex;
+            }
+            
+            #desktopSubmit {
+                display: none !important;
+            }
+            
+            .goal-actions {
+                flex-wrap: wrap;
+            }
+            
+            .goal-actions button {
+                flex: 1;
+                min-width: 120px;
+            }
+            
+            .smart-principles {
+                gap: 10px;
+            }
+            
+            .principle {
+                width: calc(50% - 10px);
+            }
+            
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            /* 移动端表单优化 */
+            .smart-input-group {
+                padding: 15px;
+            }
+            
+            button {
+                padding: 16px 20px;
+                font-size: 1.1rem;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .principle {
+                width: 100%;
+            }
+            
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .goal-actions button {
+                min-width: 100%;
+            }
+        }
+    </style>
+</head>
+<body class="theme-light">
+    <div class="container">
+        <!-- 顶部导航栏 -->
+        <div class="top-nav">
+            <h1><i class="fas fa-bullseye"></i> SMART+ 目标管理系统</h1>
+            <div class="nav-controls">
+                <div class="data-management">
+                    <button class="btn-small" onclick="exportData()"><i class="fas fa-download"></i> 导出数据</button>
+                    <button class="btn-small" onclick="importData()"><i class="fas fa-upload"></i> 导入数据</button>
+                </div>
+                <div class="theme-selector">
+                    <div class="theme-btn theme-light active" data-theme="light" title="浅色主题"></div>
+                    <div class="theme-btn theme-dark" data-theme="dark" title="深色主题"></div>
+                    <div class="theme-btn theme-green" data-theme="green" title="绿色主题"></div>
+                </div>
+                <button class="btn-small" onclick="showGuide()"><i class="fas fa-question-circle"></i> 使用指南</button>
+            </div>
+        </div>
+        
+        <!-- 今日待办区域 -->
+        <div class="today-tasks" id="todayTasks">
+            <h2><i class="fas fa-calendar-day"></i> 今日待办</h2>
+            <div class="task-list" id="todayTaskList">
+                <!-- 今日任务将通过JavaScript动态生成 -->
+            </div>
+        </div>
+        
+        <!-- 风险预警 -->
+        <div class="risk-warning" id="riskWarning" style="display: none;">
+            <i class="fas fa-exclamation-triangle"></i>
+            <div>
+                <h3>风险预警</h3>
+                <p id="riskMessage">您有目标进度落后或即将到期，请及时关注</p>
+            </div>
+        </div>
+        
+        <!-- 头部区域 -->
+        <header>
+            <p class="tagline">定目标-拆任务-跟进度-解问题的完整目标管理闭环</p>
+            <p class="smart-intro">SMART原则是目标管理的起点，结合任务拆解、进度跟踪和风险应对，形成完整的目标管理闭环，大幅提升目标实现成功率。</p>
+            
+            <div class="smart-principles">
+                <div class="principle specific">
+                    <i class="fas fa-bullseye"></i>
+                    <h3>S - 具体</h3>
+                    <p>目标必须明确具体，不能模棱两可</p>
+                </div>
+                <div class="principle measurable">
+                    <i class="fas fa-ruler"></i>
+                    <h3>M - 可衡量</h3>
+                    <p>目标需要量化，以便跟踪进度</p>
+                </div>
+                <div class="principle achievable">
+                    <i class="fas fa-mountain"></i>
+                    <h3>A - 可实现</h3>
+                    <p>目标应该在能力范围内，具有挑战性但可实现</p>
+                </div>
+                <div class="principle relevant">
+                    <i class="fas fa-link"></i>
+                    <h3>R - 相关性</h3>
+                    <p>目标应与您的其他目标或价值观相关</p>
+                </div>
+                <div class="principle timebound">
+                    <i class="fas fa-clock"></i>
+                    <h3>T - 时限性</h3>
+                    <p>目标应该有明确的截止日期</p>
+                </div>
+                <div class="principle task">
+                    <i class="fas fa-tasks"></i>
+                    <h3>任务拆解</h3>
+                    <p>将大目标分解为可执行的小任务</p>
+                </div>
+                <div class="principle progress">
+                    <i class="fas fa-chart-line"></i>
+                    <h3>进度跟踪</h3>
+                    <p>实时监控目标进展，及时调整策略</p>
+                </div>
+                <div class="principle risk">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <h3>风险应对</h3>
+                    <p>预判潜在障碍，制定应对方案</p>
+                </div>
+            </div>
+        </header>
+        
+        <div class="app-container">
+            <!-- 目标表单 -->
+            <div class="goal-form">
+                <h2 class="section-title"><i class="fas fa-plus-circle"></i> 创建新目标</h2>
+                <form id="goalForm">
+                    <!-- 分步表单步骤1：基础信息 -->
+                    <div class="form-step active" id="step1">
+                        <div class="form-group">
+                            <label for="goalTitle"><i class="fas fa-heading"></i> 目标标题</label>
+                            <input type="text" id="goalTitle" placeholder="例如：提高英语水平" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="goalCategory"><i class="fas fa-tags"></i> 目标分类</label>
+                            <div style="display: flex; gap: 10px;">
+                                <select id="goalCategory" required style="flex: 1;">
+                                    <option value="">选择分类</option>
+                                    <option value="career">职业发展</option>
+                                    <option value="education">学习成长</option>
+                                    <option value="health">健康生活</option>
+                                    <option value="finance">财务管理</option>
+                                    <option value="relationship">人际关系</option>
+                                    <option value="hobby">兴趣爱好</option>
+                                    <option value="custom">自定义分类</option>
+                                </select>
+                                <input type="text" id="customCategory" placeholder="输入自定义分类" style="flex: 1; display: none;">
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="goalPriority"><i class="fas fa-flag"></i> 优先级</label>
+                            <select id="goalPriority" required>
+                                <option value="">选择优先级</option>
+                                <option value="high">高优先级</option>
+                                <option value="medium">中优先级</option>
+                                <option value="low">低优先级</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- 分步表单步骤2：SMART-S/M -->
+                    <div class="form-step" id="step2">
+                        <div class="smart-input-group specific">
+                            <div class="smart-header specific">
+                                <i class="fas fa-bullseye"></i>
+                                <h3>具体 (Specific)</h3>
+                            </div>
+                            <textarea id="goalSpecific" placeholder="具体描述你的目标，例如：通过每天学习30分钟，在6个月内达到商务英语水平" required></textarea>
+                        </div>
+                        
+                        <div class="smart-input-group measurable">
+                            <div class="smart-header measurable">
+                                <i class="fas fa-ruler"></i>
+                                <h3>可衡量 (Measurable)</h3>
+                            </div>
+                            <textarea id="goalMeasurable" placeholder="如何衡量目标的完成情况？例如：通过BEC中级考试，或能够流利进行商务会议" required></textarea>
+                        </div>
+                    </div>
+
+                    <!-- 分步表单步骤3：SMART-A/R/T + 进度 -->
+                    <div class="form-step" id="step3">
+                        <div class="smart-input-group achievable">
+                            <div class="smart-header achievable">
+                                <i class="fas fa-mountain"></i>
+                                <h3>可实现 (Achievable)</h3>
+                            </div>
+                            <textarea id="goalAchievable" placeholder="说明这个目标为什么是可以实现的，例如：每天有固定学习时间，可以参加在线课程" required></textarea>
+                        </div>
+                        
+                        <div class="smart-input-group relevant">
+                            <div class="smart-header relevant">
+                                <i class="fas fa-link"></i>
+                                <h3>相关性 (Relevant)</h3>
+                            </div>
+                            <textarea id="goalRelevant" placeholder="这个目标与你的其他目标或价值观有何关联？例如：有助于职业发展，开拓国际市场" required></textarea>
+                        </div>
+                        
+                        <div class="smart-input-group timebound">
+                            <div class="smart-header timebound">
+                                <i class="fas fa-clock"></i>
+                                <h3>时间限制 (Time-bound)</h3>
+                            </div>
+                            <input type="date" id="goalTimeBound" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="goalProgress"><i class="fas fa-chart-line"></i> 当前进度 (%)</label>
+                            <input type="range" id="goalProgress" min="0" max="100" value="0">
+                            <div class="progress-info">
+                                <span>0%</span>
+                                <span id="progressValue">0%</span>
+                                <span>100%</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 移动端分步导航按钮 -->
+                    <div class="form-navigation">
+                        <button type="button" class="btn-small" id="prevStep">上一步</button>
+                        <button type="button" class="btn-small" id="nextStep">下一步</button>
+                        <button type="submit" class="btn-small" id="submitForm" style="display: none;">保存目标</button>
+                    </div>
+                    
+                    <!-- 桌面端提交按钮 -->
+                    <button type="submit" id="desktopSubmit"><i class="fas fa-save"></i> 保存目标</button>
+                </form>
+            </div>
+            
+            <div class="goals-section">
+                <div class="tabs">
+                    <div class="tab active" data-filter="all">全部目标</div>
+                    <div class="tab" data-filter="active">进行中</div>
+                    <div class="tab" data-filter="completed">已完成</div>
+                </div>
+                
+                <div class="goals-stats">
+                    <h2 class="section-title"><i class="fas fa-chart-pie"></i> 目标统计</h2>
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-value" id="totalGoals">0</div>
+                            <div class="stat-label">总目标数</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value" id="activeGoals">0</div>
+                            <div class="stat-label">进行中</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value" id="completedGoals">0</div>
+                            <div class="stat-label">已完成</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value" id="avgProgress">0%</div>
+                            <div class="stat-label">平均进度</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 目标执行工具区域 -->
+                <div class="execution-tools">
+                    <h2 class="section-title"><i class="fas fa-tools"></i> 目标执行工具</h2>
+                    <div class="tools-tabs">
+                        <div class="tool-tab active" data-tool="tasks">任务拆解</div>
+                        <div class="tool-tab" data-tool="progress">进度跟踪</div>
+                        <div class="tool-tab" data-tool="risks">风险应对</div>
+                        <div class="tool-tab" data-tool="collaboration">协作管理</div>
+                    </div>
+                    
+                    <div class="tool-content active" id="tasks-content">
+                        <h3><i class="fas fa-tasks" style="color: var(--task);"></i> 任务拆解 (WBS工作分解)</h3>
+                        <p>将大目标分解为可执行的小任务，使用四象限法确定优先级</p>
+                        
+                        <div class="quadrant-matrix">
+                            <div class="quadrant quadrant-important-urgent">
+                                <div class="quadrant-header">
+                                    <span>重要且紧急</span>
+                                    <span class="priority-indicator priority-high"></span>
+                                </div>
+                                <div class="quadrant-tasks" id="important-urgent-tasks">
+                                    <!-- 重要且紧急任务将通过JavaScript动态生成 -->
+                                </div>
+                            </div>
+                            <div class="quadrant quadrant-important-noturgent">
+                                <div class="quadrant-header">
+                                    <span>重要不紧急</span>
+                                    <span class="priority-indicator priority-medium"></span>
+                                </div>
+                                <div class="quadrant-tasks" id="important-noturgent-tasks">
+                                    <!-- 重要不紧急任务将通过JavaScript动态生成 -->
+                                </div>
+                            </div>
+                            <div class="quadrant quadrant-notimportant-urgent">
+                                <div class="quadrant-header">
+                                    <span>紧急不重要</span>
+                                    <span class="priority-indicator priority-medium"></span>
+                                </div>
+                                <div class="quadrant-tasks" id="notimportant-urgent-tasks">
+                                    <!-- 紧急不重要任务将通过JavaScript动态生成 -->
+                                </div>
+                            </div>
+                            <div class="quadrant quadrant-notimportant-noturgent">
+                                <div class="quadrant-header">
+                                    <span>不紧急不重要</span>
+                                    <span class="priority-indicator priority-low"></span>
+                                </div>
+                                <div class="quadrant-tasks" id="notimportant-noturgent-tasks">
+                                    <!-- 不紧急不重要任务将通过JavaScript动态生成 -->
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div style="margin-top: 20px;">
+                            <h4>添加新任务</h4>
+                            <div style="display: grid; grid-template-columns: 2fr 1fr 1fr auto; gap: 10px; margin-top: 10px;">
+                                <input type="text" id="newTaskTitle" placeholder="任务描述">
+                                <select id="newTaskPriority">
+                                    <option value="important-urgent">重要且紧急</option>
+                                    <option value="important-noturgent">重要不紧急</option>
+                                    <option value="notimportant-urgent">紧急不重要</option>
+                                    <option value="notimportant-noturgent">不紧急不重要</option>
+                                </select>
+                                <input type="date" id="newTaskDeadline">
+                                <button class="btn-task btn-small" onclick="addNewTask()"><i class="fas fa-plus"></i> 添加</button>
+                            </div>
+                        </div>
+                        
+                        <!-- 常用任务库 -->
+                        <div style="margin-top: 30px;">
+                            <h4>常用任务模板</h4>
+                            <div class="template-library" id="taskTemplateLibrary">
+                                <!-- 模板将通过JS动态生成 -->
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="tool-content" id="progress-content">
+                        <h3><i class="fas fa-chart-line" style="color: var(--progress);"></i> 进度跟踪</h3>
+                        <p>使用甘特图和时间线跟踪目标进度，设置定期复盘节点</p>
+                        
+                        <div class="gantt-chart">
+                            <h4>目标时间线</h4>
+                            <div id="gantt-container">
+                                <!-- 甘特图将通过JavaScript动态生成 -->
+                            </div>
+                        </div>
+                        
+                        <div style="margin-top: 20px;">
+                            <h4>定期复盘</h4>
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                                <div>
+                                    <h5>本周复盘问题</h5>
+                                    <ul>
+                                        <li>进度是否达标？未达标的原因是什么？</li>
+                                        <li>哪些方法有效？下次如何优化？</li>
+                                        <li>遇到了什么障碍？如何解决？</li>
+                                    </ul>
+                                </div>
+                                <div>
+                                    <h5>复盘记录</h5>
+                                    <textarea placeholder="记录本周复盘内容..." style="height: 120px;"></textarea>
+                                    <button class="btn-small" style="margin-top: 10px;"><i class="fas fa-save"></i> 保存复盘</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="tool-content" id="risks-content">
+                        <h3><i class="fas fa-exclamation-triangle" style="color: var(--risk);"></i> 风险应对</h3>
+                        <p>预判潜在障碍并制定应对方案，降低目标失败风险</p>
+                        
+                        <div id="risks-container">
+                            <!-- 风险列表将通过JavaScript动态生成 -->
+                        </div>
+                        
+                        <div style="margin-top: 20px;">
+                            <h4>识别新风险</h4>
+                            <div style="display: grid; grid-template-columns: 2fr 1fr 1fr auto; gap: 10px; margin-top: 10px;">
+                                <input type="text" id="newRiskTitle" placeholder="风险描述">
+                                <select id="newRiskProbability">
+                                    <option value="high">高概率</option>
+                                    <option value="medium">中概率</option>
+                                    <option value="low">低概率</option>
+                                </select>
+                                <input type="text" id="newRiskImpact" placeholder="影响程度">
+                                <button class="btn-risk btn-small" onclick="addNewRisk()"><i class="fas fa-plus"></i> 添加</button>
+                            </div>
+                            <div style="margin-top: 10px;">
+                                <textarea id="newRiskResponse" placeholder="应对措施" style="width: 100%; height: 80px;"></textarea>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="tool-content" id="collaboration-content">
+                        <h3><i class="fas fa-users" style="color: var(--collaboration);"></i> 协作管理</h3>
+                        <p>多人协作目标的责任分配与进度同步</p>
+                        
+                        <div class="collaboration-invite">
+                            <input type="text" class="invite-link" placeholder="协作链接（复制分享给成员）">
+                            <button class="btn-small"><i class="fas fa-copy"></i> 复制</button>
+                        </div>
+                        
+                        <div class="collaboration-grid">
+                            <div class="collaborator-card">
+                                <div class="collaborator-name">张三</div>
+                                <div class="collaborator-role">负责人 (Accountable)</div>
+                                <div class="collaborator-tasks">
+                                    <p>负责目标整体进展</p>
+                                    <p>审批关键决策</p>
+                                </div>
+                            </div>
+                            <div class="collaborator-card">
+                                <div class="collaborator-name">李四</div>
+                                <div class="collaborator-role">执行人 (Responsible)</div>
+                                <div class="collaborator-tasks">
+                                    <p>执行具体任务</p>
+                                    <p>每周汇报进展</p>
+                                </div>
+                            </div>
+                            <div class="collaborator-card">
+                                <div class="collaborator-name">王五</div>
+                                <div class="collaborator-role">咨询人 (Consulted)</div>
+                                <div class="collaborator-tasks">
+                                    <p>提供专业建议</p>
+                                    <p>参与方案评审</p>
+                                </div>
+                            </div>
+                            <div class="collaborator-card">
+                                <div class="collaborator-name">赵六</div>
+                                <div class="collaborator-role">知情人 (Informed)</div>
+                                <div class="collaborator-tasks">
+                                    <p>接收进度更新</p>
+                                    <p>了解最终结果</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div style="margin-top: 20px;">
+                            <h4>添加协作者</h4>
+                            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr auto; gap: 10px; margin-top: 10px;">
+                                <input type="text" placeholder="姓名">
+                                <select>
+                                    <option value="responsible">执行人 (R)</option>
+                                    <option value="accountable">负责人 (A)</option>
+                                    <option value="consulted">咨询人 (C)</option>
+                                    <option value="informed">知情人 (I)</option>
+                                </select>
+                                <input type="text" placeholder="职责描述">
+                                <button class="btn-collaboration btn-small"><i class="fas fa-plus"></i> 添加</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- SMART分析图表 -->
+                <div class="smart-analysis" id="smartAnalysis" style="display: none;">
+                    <h2 class="section-title"><i class="fas fa-chart-bar"></i> SMART分析</h2>
+                    <div class="chart-container">
+                        <div class="chart-item">
+                            <canvas id="smartRadarChart"></canvas>
+                        </div>
+                        <div class="chart-item">
+                            <canvas id="progressChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 目标列表容器 -->
+                <div class="goals-container" id="goalsContainer">
+                    <!-- 目标列表将通过JavaScript动态生成 -->
+                    <div class="empty-state">
+                        <i class="fas fa-bullseye"></i>
+                        <h3>还没有目标</h3>
+                        <p>使用左侧表单创建您的第一个SMART目标</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 目标详情模态框 -->
+    <div class="modal-overlay" id="goalDetailModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2 class="modal-title" id="modalGoalTitle">目标详情</h2>
+                <button class="modal-close" id="modalClose">&times;</button>
+            </div>
+            <div class="modal-body" id="modalBody">
+                <!-- 模态框内容将通过JavaScript动态生成 -->
+            </div>
+        </div>
+    </div>
+
+    <!-- 新手引导 -->
+    <div class="guide-overlay" id="guideOverlay">
+        <div class="guide-modal">
+            <div class="guide-step active" id="step1">
+                <h2>欢迎使用 SMART+ 目标管理系统</h2>
+                <p>这是一个完整的"定目标-拆任务-跟进度-解问题"目标管理工具，帮助您更高效地实现目标。</p>
+                <div class="guide-nav">
+                    <button class="btn-small" onclick="closeGuide()">跳过</button>
+                    <button class="btn-small" onclick="nextGuideStep(2)">下一步</button>
+                </div>
+            </div>
+            
+            <div class="guide-step" id="step2">
+                <h2>创建 SMART 目标</h2>
+                <p>使用左侧表单创建您的第一个目标，确保目标符合SMART原则：</p>
+                <ul>
+                    <li><strong>具体</strong> - 目标明确不模糊</li>
+                    <li><strong>可衡量</strong> - 有明确的完成标准</li>
+                    <li><strong>可实现</strong> - 目标在能力范围内</li>
+                    <li><strong>相关性</strong> - 与您的其他目标相关</li>
+                    <li><strong>时限性</strong> - 有明确的截止日期</li>
+                </ul>
+                <div class="guide-nav">
+                    <button class="btn-small" onclick="prevGuideStep(1)">上一步</button>
+                    <button class="btn-small" onclick="nextGuideStep(3)">下一步</button>
+                </div>
+            </div>
+            
+            <div class="guide-step" id="step3">
+                <h2>拆解任务与跟踪进度</h2>
+                <p>创建目标后，使用"执行工具"区域：</p>
+                <ul>
+                    <li><strong>任务拆解</strong> - 将大目标分解为可执行的小任务</li>
+                    <li><strong>进度跟踪</strong> - 使用甘特图和复盘功能监控进度</li>
+                    <li><strong>风险应对</strong> - 预判潜在问题并制定应对方案</li>
+                    <li><strong>协作管理</strong> - 与团队成员协作完成目标</li>
+                </ul>
+                <div class="guide-nav">
+                    <button class="btn-small" onclick="prevGuideStep(2)">上一步</button>
+                    <button class="btn-small" onclick="closeGuide()">开始使用</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 示例数据
+        let goals = JSON.parse(localStorage.getItem('smartGoals')) || [
+            {
+                id: 1,
+                title: "提高英语水平",
+                category: "education",
+                priority: "high",
+                specific: "通过每天学习30分钟，在6个月内达到商务英语水平",
+                measurable: "通过BEC中级考试，或能够流利进行商务会议",
+                achievable: "每天有固定学习时间，可以参加在线课程",
+                relevant: "有助于职业发展，开拓国际市场",
+                timeBound: "2023-12-31",
+                progress: 40,
+                createdAt: "2023-06-15",
+                smartScore: {
+                    specific: 9,
+                    measurable: 8,
+                    achievable: 7,
+                    relevant: 9,
+                    timebound: 8
+                },
+                tasks: [
+                    { id: 1, title: "制定学习计划", priority: "important-urgent", deadline: "2023-06-20", completed: true },
+                    { id: 2, title: "每天学习30分钟", priority: "important-noturgent", deadline: "2023-12-31", completed: false, recurring: true },
+                    { id: 3, title: "每周参加英语角", priority: "important-noturgent", deadline: "2023-12-31", completed: false, recurring: true },
+                    { id: 4, title: "报名BEC考试", priority: "notimportant-urgent", deadline: "2023-09-30", completed: false },
+                    { id: 5, title: "购买英语教材", priority: "notimportant-noturgent", deadline: "2023-07-15", completed: true }
+                ],
+                risks: [
+                    { id: 1, title: "学习时间不足", probability: "high", impact: "中等", response: "调整作息，利用碎片时间学习" },
+                    { id: 2, title: "缺乏学习动力", probability: "medium", impact: "高", response: "加入学习小组，设置奖励机制" },
+                    { id: 3, title: "考试难度大", probability: "low", impact: "高", response: "提前模拟考试，针对性强化训练" }
+                ]
+            },
+            {
+                id: 2,
+                title: "完成马拉松训练",
+                category: "health",
+                priority: "medium",
+                specific: "完成全程马拉松训练并在年底前参加比赛",
+                measurable: "能够在4小时内完成42.195公里",
+                achievable: "有跑步基础，可以逐步增加训练量",
+                relevant: "提升健康水平，实现个人挑战",
+                timeBound: "2023-11-15",
+                progress: 65,
+                createdAt: "2023-05-20",
+                smartScore: {
+                    specific: 8,
+                    measurable: 9,
+                    achievable: 7,
+                    relevant: 8,
+                    timebound: 8
+                },
+                tasks: [
+                    { id: 1, title: "制定训练计划", priority: "important-urgent", deadline: "2023-05-25", completed: true },
+                    { id: 2, title: "每周跑步3次", priority: "important-noturgent", deadline: "2023-11-15", completed: false, recurring: true },
+                    { id: 3, title: "每月增加跑量10%", priority: "important-noturgent", deadline: "2023-11-15", completed: false },
+                    { id: 4, title: "购买跑鞋和装备", priority: "notimportant-urgent", deadline: "2023-06-10", completed: true }
+                ],
+                risks: [
+                    { id: 1, title: "运动损伤", probability: "medium", impact: "高", response: "做好热身和拉伸，注意跑姿" },
+                    { id: 2, title: "天气不佳影响训练", probability: "high", impact: "中等", response: "准备室内训练方案" }
+                ]
+            }
+        ];
+
+        // 常用任务模板
+        const taskTemplates = [
+            { title: "每日背50个单词", category: "education", recurring: true },
+            { title: "每周写1篇总结", category: "education", recurring: true },
+            { title: "每日喝2000ml水", category: "health", recurring: true },
+            { title: "每周3次运动", category: "health", recurring: true },
+            { title: "客户方案初稿撰写", category: "career" },
+            { title: "项目进度汇报", category: "career", recurring: true }
+        ];
+
+        // DOM元素
+        const goalForm = document.getElementById('goalForm');
+        const goalsContainer = document.getElementById('goalsContainer');
+        const progressValue = document.getElementById('progressValue');
+        const progressSlider = document.getElementById('goalProgress');
+        const tabs = document.querySelectorAll('.tab');
+        const toolTabs = document.querySelectorAll('.tool-tab');
+        const totalGoalsEl = document.getElementById('totalGoals');
+        const activeGoalsEl = document.getElementById('activeGoals');
+        const completedGoalsEl = document.getElementById('completedGoals');
+        const avgProgressEl = document.getElementById('avgProgress');
+        const goalCategory = document.getElementById('goalCategory');
+        const customCategory = document.getElementById('customCategory');
+        const smartAnalysis = document.getElementById('smartAnalysis');
+        const goalDetailModal = document.getElementById('goalDetailModal');
+        const modalClose = document.getElementById('modalClose');
+        const modalBody = document.getElementById('modalBody');
+        const modalGoalTitle = document.getElementById('modalGoalTitle');
+        const prevStepBtn = document.getElementById('prevStep');
+        const nextStepBtn = document.getElementById('nextStep');
+        const submitFormBtn = document.getElementById('submitForm');
+        const desktopSubmitBtn = document.getElementById('desktopSubmit');
+
+        // 当前选中的目标ID
+        let currentGoalId = null;
+
+        // 当前表单步骤
+        let currentStep = 1;
+
+        // 图表实例
+        let smartRadarChart = null;
+        let progressChart = null;
+
+        // 保存到本地存储
+        function saveGoalsToLocalStorage() {
+            localStorage.setItem('smartGoals', JSON.stringify(goals));
+        }
+
+        // 初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            // 检查是否首次使用
+            if (!localStorage.getItem('smartGoals')) {
+                setTimeout(showGuide, 1000);
+            }
+            
+            // 初始化主题
+            initTheme();
+            
+            // 初始化今日待办
+            updateTodayTasks();
+            
+            // 初始化风险预警
+            checkRisks();
+            
+            // 初始化主题选择器
+            initThemeSelector();
+            
+            // 初始化任务模板
+            initTaskTemplates();
+            
+            // 初始化表单步骤导航
+            initFormSteps();
+            
+            // 原有初始化代码
+            renderGoals();
+            updateStats();
+            updateCharts();
+        });
+
+        // 初始化主题
+        function initTheme() {
+            const savedTheme = localStorage.getItem('smartTheme') || 'light';
+            setTheme(savedTheme);
+        }
+
+        // 设置主题
+        function setTheme(theme) {
+            document.body.className = `theme-${theme}`;
+            localStorage.setItem('smartTheme', theme);
+            
+            // 更新主题选择器状态
+            document.querySelectorAll('.theme-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            document.querySelector(`.theme-btn[data-theme="${theme}"]`).classList.add('active');
+        }
+
+        // 初始化主题选择器
+        function initThemeSelector() {
+            document.querySelectorAll('.theme-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const theme = this.getAttribute('data-theme');
+                    setTheme(theme);
+                });
+            });
+        }
+
+        // 初始化任务模板
+        function initTaskTemplates() {
+            const templateLibrary = document.getElementById('taskTemplateLibrary');
+            templateLibrary.innerHTML = '';
+            
+            taskTemplates.forEach(template => {
+                const templateElement = document.createElement('div');
+                templateElement.className = 'template-card';
+                templateElement.innerHTML = `
+                    <div class="task-title">${template.title}</div>
+                    <div class="task-goal">${template.category === 'education' ? '学习类' : 
+                                           template.category === 'health' ? '健康类' : '工作类'}</div>
+                `;
+                templateElement.addEventListener('click', () => {
+                    document.getElementById('newTaskTitle').value = template.title;
+                    if (template.recurring) {
+                        // 如果是重复任务，设置截止日期为今天
+                        const today = new Date().toISOString().split('T')[0];
+                        document.getElementById('newTaskDeadline').value = today;
+                    }
+                });
+                templateLibrary.appendChild(templateElement);
+            });
+        }
+
+        // 初始化表单步骤
+        function initFormSteps() {
+            // 如果是移动设备，显示分步表单
+            if (window.innerWidth <= 768) {
+                showFormStep(1);
+                prevStepBtn.style.display = 'none';
+                submitFormBtn.style.display = 'none';
+                desktopSubmitBtn.style.display = 'none';
+            } else {
+                // 桌面设备，显示完整表单
+                document.querySelectorAll('.form-step').forEach(step => {
+                    step.style.display = 'block';
+                });
+                document.querySelector('.form-navigation').style.display = 'none';
+            }
+            
+            // 下一步按钮事件
+            nextStepBtn.addEventListener('click', function() {
+                if (validateCurrentStep()) {
+                    currentStep++;
+                    showFormStep(currentStep);
+                }
+            });
+            
+            // 上一步按钮事件
+            prevStepBtn.addEventListener('click', function() {
+                currentStep--;
+                showFormStep(currentStep);
+            });
+            
+            // 表单提交事件
+            goalForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                if (validateCurrentStep()) {
+                    submitGoalForm();
+                }
+            });
+        }
+
+        // 显示表单步骤
+        function showFormStep(step) {
+            // 隐藏所有步骤
+            document.querySelectorAll('.form-step').forEach(el => {
+                el.style.display = 'none';
+            });
+            
+            // 显示当前步骤
+            document.getElementById(`step${step}`).style.display = 'block';
+            
+            // 更新导航按钮状态
+            prevStepBtn.style.display = step > 1 ? 'block' : 'none';
+            
+            if (step < 3) {
+                nextStepBtn.style.display = 'block';
+                submitFormBtn.style.display = 'none';
+            } else {
+                nextStepBtn.style.display = 'none';
+                submitFormBtn.style.display = 'block';
+            }
+        }
+
+        // 验证当前步骤
+        function validateCurrentStep() {
+            const currentStepEl = document.getElementById(`step${currentStep}`);
+            const inputs = currentStepEl.querySelectorAll('input[required], textarea[required], select[required]');
+            
+            for (let input of inputs) {
+                if (!input.value.trim()) {
+                    showNotification(`请填写${input.previousElementSibling.textContent}`, 'warning');
+                    input.focus();
+                    return false;
+                }
+            }
+            
+            return true;
+        }
+
+        // 提交目标表单
+        function submitGoalForm() {
+            // 处理分类值（优先取自定义分类）
+            let finalCategory = goalCategory.value;
+            if (finalCategory === 'custom') {
+                finalCategory = customCategory.value;
+            }
+            
+            // 计算SMART评分
+            const smartScore = calculateSmartScore(
+                document.getElementById('goalSpecific').value,
+                document.getElementById('goalMeasurable').value,
+                document.getElementById('goalAchievable').value,
+                document.getElementById('goalRelevant').value,
+                document.getElementById('goalTimeBound').value
+            );
+            
+            const newGoal = {
+                id: goals.length > 0 ? Math.max(...goals.map(g => g.id)) + 1 : 1,
+                title: document.getElementById('goalTitle').value,
+                category: finalCategory,
+                priority: document.getElementById('goalPriority').value,
+                specific: document.getElementById('goalSpecific').value,
+                measurable: document.getElementById('goalMeasurable').value,
+                achievable: document.getElementById('goalAchievable').value,
+                relevant: document.getElementById('goalRelevant').value,
+                timeBound: document.getElementById('goalTimeBound').value,
+                progress: parseInt(document.getElementById('goalProgress').value),
+                createdAt: new Date().toISOString().split('T')[0],
+                smartScore: smartScore,
+                tasks: [],
+                risks: []
+            };
+            
+            goals.push(newGoal);
+            saveGoalsToLocalStorage();
+            renderGoals();
+            updateStats();
+            updateCharts();
+            goalForm.reset();
+            progressValue.textContent = '0%';
+            progressSlider.value = 0;
+            customCategory.style.display = 'none';
+            
+            // 重置表单步骤
+            currentStep = 1;
+            if (window.innerWidth <= 768) {
+                showFormStep(1);
+            }
+            
+            showNotification('目标已成功创建！', 'success');
+        }
+
+        // 更新今日待办
+        function updateTodayTasks() {
+            const todayTaskList = document.getElementById('todayTaskList');
+            todayTaskList.innerHTML = '';
+            
+            let hasTasks = false;
+            
+            goals.forEach(goal => {
+                goal.tasks.forEach(task => {
+                    // 检查是否是今日需要完成的任务
+                    if (isTodayTask(task, goal)) {
+                        hasTasks = true;
+                        const taskElement = document.createElement('div');
+                        taskElement.className = 'today-task';
+                        taskElement.innerHTML = `
+                            <input type="checkbox" ${task.completed ? 'checked' : ''} 
+                                onchange="toggleTodayTask(${goal.id}, ${task.id})">
+                            <div class="task-info">
+                                <div class="task-title">${task.title}</div>
+                                <div class="task-goal">来自: ${goal.title}</div>
+                            </div>
+                            <div class="task-actions">
+                                <button class="btn-small" onclick="viewGoal(${goal.id})">
+                                    <i class="fas fa-external-link-alt"></i>
+                                </button>
+                            </div>
+                        `;
+                        todayTaskList.appendChild(taskElement);
+                    }
+                });
+            });
+            
+            // 如果没有任务，显示提示
+            if (!hasTasks) {
+                todayTaskList.innerHTML = `
+                    <div style="text-align: center; padding: 20px; color: var(--text-secondary);">
+                        <i class="fas fa-check-circle" style="font-size: 2rem; margin-bottom: 10px;"></i>
+                        <p>今日没有待办任务，休息一下或创建新目标</p>
+                    </div>
+                `;
+            }
+        }
+
+        // 检查是否是今日任务
+        function isTodayTask(task, goal) {
+            // 如果是已完成的任务，不显示
+            if (task.completed) return false;
+            
+            // 如果是每日重复任务，显示
+            if (task.recurring) return true;
+            
+            // 如果任务截止日期是今天，显示
+            const today = new Date().toISOString().split('T')[0];
+            if (task.deadline === today) return true;
+            
+            // 如果目标即将到期（3天内），显示目标中的任务
+            const goalDeadline = new Date(goal.timeBound);
+            const todayDate = new Date();
+            const daysUntilDeadline = Math.ceil((goalDeadline - todayDate) / (1000 * 60 * 60 * 24));
+            
+            return daysUntilDeadline <= 3;
+        }
+
+        // 切换今日任务完成状态
+        function toggleTodayTask(goalId, taskId) {
+            const goal = goals.find(g => g.id === goalId);
+            if (goal) {
+                const task = goal.tasks.find(t => t.id === taskId);
+                if (task) {
+                    task.completed = !task.completed;
+                    saveGoalsToLocalStorage();
+                    updateTodayTasks();
+                    
+                    // 如果是重复任务，重置完成状态（模拟第二天的新任务）
+                    if (task.recurring && task.completed) {
+                        setTimeout(() => {
+                            task.completed = false;
+                            saveGoalsToLocalStorage();
+                            updateTodayTasks();
+                        }, 1000);
+                    }
+                    
+                    // 更新目标进度
+                    updateGoalProgress(goalId);
+                }
+            }
+        }
+
+        // 检查风险
+        function checkRisks() {
+            const riskWarning = document.getElementById('riskWarning');
+            const riskMessage = document.getElementById('riskMessage');
+            
+            let riskMessages = [];
+            
+            goals.forEach(goal => {
+                // 检查进度落后
+                const expectedProgress = calculateExpectedProgress(goal);
+                if (goal.progress < expectedProgress - 20) {
+                    riskMessages.push(`"${goal.title}"进度落后${expectedProgress - goal.progress}%`);
+                }
+                
+                // 检查即将到期
+                const goalDeadline = new Date(goal.timeBound);
+                const today = new Date();
+                const daysUntilDeadline = Math.ceil((goalDeadline - today) / (1000 * 60 * 60 * 24));
+                
+                if (daysUntilDeadline <= 3 && goal.progress < 100) {
+                    riskMessages.push(`"${goal.title}"还有${daysUntilDeadline}天到期`);
+                    
+                    // 标记目标为紧急
+                    const goalElements = document.querySelectorAll('.goal-card');
+                    goalElements.forEach(el => {
+                        if (parseInt(el.dataset.goalId) === goal.id) {
+                            el.classList.add('urgent');
+                        }
+                    });
+                }
+                
+                // 检查连续未完成任务
+                const incompleteTasks = goal.tasks.filter(t => !t.completed && t.recurring);
+                if (incompleteTasks.length >= 3) {
+                    riskMessages.push(`"${goal.title}"有${incompleteTasks.length}个重复任务未完成`);
+                }
+            });
+            
+            if (riskMessages.length > 0) {
+                riskWarning.style.display = 'flex';
+                riskMessage.textContent = riskMessages.join('；');
+            } else {
+                riskWarning.style.display = 'none';
+            }
+        }
+
+        // 计算预期进度
+        function calculateExpectedProgress(goal) {
+            const startDate = new Date(goal.createdAt);
+            const endDate = new Date(goal.timeBound);
+            const today = new Date();
+            
+            const totalDays = Math.ceil((endDate - startDate) / (1000 * 60 * 60 * 24));
+            const daysPassed = Math.ceil((today - startDate) / (1000 * 60 * 60 * 24));
+            
+            return Math.min(100, Math.round((daysPassed / totalDays) * 100));
+        }
+
+        // 导出数据
+        function exportData() {
+            const dataStr = JSON.stringify(goals, null, 2);
+            const dataBlob = new Blob([dataStr], {type: 'application/json'});
+            
+            const date = new Date();
+            const dateStr = `${date.getFullYear()}${(date.getMonth()+1).toString().padStart(2, '0')}${date.getDate().toString().padStart(2, '0')}`;
+            
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(dataBlob);
+            link.download = `SMART目标_${dateStr}.json`;
+            link.click();
+            
+            showNotification('数据已导出', 'success');
+        }
+
+        // 导入数据
+        function importData() {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = '.json';
+            
+            input.onchange = e => {
+                const file = e.target.files[0];
+                const reader = new FileReader();
+                
+                reader.onload = event => {
+                    try {
+                        const importedData = JSON.parse(event.target.result);
+                        
+                        if (confirm('导入数据将覆盖当前所有目标，确定要继续吗？')) {
+                            goals = importedData;
+                            saveGoalsToLocalStorage();
+                            
+                            // 重新初始化界面
+                            renderGoals();
+                            updateStats();
+                            updateCharts();
+                            updateTodayTasks();
+                            checkRisks();
+                            
+                            showNotification('数据导入成功', 'success');
+                        }
+                    } catch (error) {
+                        showNotification('文件格式错误，请选择有效的JSON文件', 'warning');
+                    }
+                };
+                
+                reader.readAsText(file);
+            };
+            
+            input.click();
+        }
+
+        // 显示新手引导
+        function showGuide() {
+            document.getElementById('guideOverlay').classList.add('active');
+        }
+
+        // 关闭新手引导
+        function closeGuide() {
+            document.getElementById('guideOverlay').classList.remove('active');
+            localStorage.setItem('smartGuideShown', 'true');
+        }
+
+        // 下一步引导
+        function nextGuideStep(step) {
+            document.querySelectorAll('.guide-step').forEach(el => {
+                el.classList.remove('active');
+            });
+            document.getElementById(`step${step}`).classList.add('active');
+        }
+
+        // 上一步引导
+        function prevGuideStep(step) {
+            document.querySelectorAll('.guide-step').forEach(el => {
+                el.classList.remove('active');
+            });
+            document.getElementById(`step${step}`).classList.add('active');
+        }
+
+        // 查看目标
+        function viewGoal(goalId) {
+            // 实现查看目标的逻辑
+            showNotification(`正在查看目标 #${goalId}`, 'info');
+        }
+
+        // 显示通知
+        function showNotification(message, type) {
+            // 创建通知元素
+            let notificationEl = document.querySelector('.notification');
+            if (!notificationEl) {
+                notificationEl = document.createElement('div');
+                notificationEl.className = 'notification';
+                document.body.appendChild(notificationEl);
+            }
+
+            notificationEl.textContent = message;
+            notificationEl.className = `notification ${type}`;
+            notificationEl.classList.add('show');
+
+            setTimeout(() => {
+                notificationEl.classList.remove('show');
+            }, 3000);
+        }
+
+        // 更新目标进度
+        function updateGoalProgress(goalId) {
+            const goal = goals.find(g => g.id === goalId);
+            if (goal) {
+                const completedTasks = goal.tasks.filter(t => t.completed).length;
+                const totalTasks = goal.tasks.length;
+                const newProgress = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : goal.progress;
+                
+                if (newProgress !== goal.progress) {
+                    goal.progress = newProgress;
+                    saveGoalsToLocalStorage();
+                    renderGoals();
+                    updateStats();
+                    updateCharts();
+                    checkRisks();
+                }
+            }
+        }
+
+        // 计算SMART评分
+        function calculateSmartScore(specific, measurable, achievable, relevant, timeBound) {
+            const specificScore = Math.min(10, Math.floor(specific.length / 10));
+            const measurableScore = Math.min(10, Math.floor(measurable.length / 8));
+            const achievableScore = Math.min(10, Math.floor(achievable.length / 8));
+            const relevantScore = Math.min(10, Math.floor(relevant.length / 8));
+            
+            // 检查时间限制是否合理
+            const timeBoundDate = new Date(timeBound);
+            const today = new Date();
+            const daysDiff = Math.ceil((timeBoundDate - today) / (1000 * 60 * 60 * 24));
+            const timeboundScore = daysDiff > 0 ? Math.min(10, Math.floor(daysDiff / 7)) : 3;
+            
+            return {
+                specific: Math.max(1, specificScore),
+                measurable: Math.max(1, measurableScore),
+                achievable: Math.max(1, achievableScore),
+                relevant: Math.max(1, relevantScore),
+                timebound: Math.max(1, timeboundScore)
+            };
+        }
+
+        // 渲染目标列表
+        function renderGoals(filter = 'all') {
+            goalsContainer.innerHTML = '';
+            
+            let filteredGoals = goals;
+            
+            if (filter === 'active') {
+                filteredGoals = goals.filter(goal => goal.progress < 100);
+            } else if (filter === 'completed') {
+                filteredGoals = goals.filter(goal => goal.progress === 100);
+            }
+            
+            if (filteredGoals.length === 0) {
+                goalsContainer.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-search"></i>
+                        <h3>没有找到目标</h3>
+                        <p>尝试创建新目标或更改筛选条件</p>
+                    </div>
+                `;
+                smartAnalysis.style.display = 'none';
+                return;
+            }
+            
+            // 如果有目标，显示分析图表
+            smartAnalysis.style.display = 'block';
+            
+            filteredGoals.forEach(goal => {
+                const priorityClass = `priority-${goal.priority}`;
+                
+                // 分类图标映射
+                const categoryIcons = {
+                    'career': 'fas fa-briefcase',
+                    'education': 'fas fa-graduation-cap',
+                    'health': 'fas fa-heartbeat',
+                    'finance': 'fas fa-money-bill-wave',
+                    'relationship': 'fas fa-users',
+                    'hobby': 'fas fa-paint-brush',
+                    'default': 'fas fa-star'
+                };
+                
+                const categoryIcon = categoryIcons[goal.category] || categoryIcons['default'];
+                
+                const goalElement = document.createElement('div');
+                goalElement.className = 'goal-card';
+                goalElement.dataset.goalId = goal.id;
+                goalElement.innerHTML = `
+                    ${goal.progress === 100 ? '<div class="completion-badge"><i class="fas fa-check"></i> 已完成</div>' : ''}
+                    
+                    <div class="goal-header">
+                        <div>
+                            <div class="goal-title">
+                                <i class="${categoryIcon}"></i> ${goal.title}
+                                <span class="priority-indicator ${priorityClass}"></span>
+                            </div>
+                            <div class="goal-deadline">
+                                <i class="far fa-calendar-alt"></i> 截止日期: ${formatDate(goal.timeBound)}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="goal-smart-details">
+                        <div class="smart-detail specific">
+                            <h4><i class="fas fa-bullseye"></i> 具体 (S)</h4>
+                            <p>${goal.specific}</p>
+                        </div>
+                        <div class="smart-detail measurable">
+                            <h4><i class="fas fa-ruler"></i> 可衡量 (M)</h4>
+                            <p>${goal.measurable}</p>
+                        </div>
+                        <div class="smart-detail achievable">
+                            <h4><i class="fas fa-mountain"></i> 可实现 (A)</h4>
+                            <p>${goal.achievable}</p>
+                        </div>
+                        <div class="smart-detail relevant">
+                            <h4><i class="fas fa-link"></i> 相关性 (R)</h4>
+                            <p>${goal.relevant}</p>
+                        </div>
+                        <div class="smart-detail timebound">
+                            <h4><i class="fas fa-clock"></i> 时间限制 (T)</h4>
+                            <p>截止日期: ${formatDate(goal.timeBound)}</p>
+                        </div>
+                    </div>
+                    
+                    <div class="smart-score">
+                        <div class="score-item specific">
+                            <div class="score-value">${goal.smartScore.specific}</div>
+                            <div class="score-label">具体性</div>
+                        </div>
+                        <div class="score-item measurable">
+                            <div class="score-value">${goal.smartScore.measurable}</div>
+                            <div class="score-label">可衡量</div>
+                        </div>
+                        <div class="score-item achievable">
+                            <div class="score-value">${goal.smartScore.achievable}</div>
+                            <div class="score-label">可实现</div>
+                        </div>
+                        <div class="score-item relevant">
+                            <div class="score-value">${goal.smartScore.relevant}</div>
+                            <div class="score-label">相关性</div>
+                        </div>
+                        <div class="score-item timebound">
+                            <div class="score-value">${goal.smartScore.timebound}</div>
+                            <div class="score-label">时限性</div>
+                        </div>
+                    </div>
+                    
+                    <div class="goal-progress">
+                        <div class="progress-info">
+                            <span>进度</span>
+                            <span>${goal.progress}%</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress" style="width: ${goal.progress}%"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="goal-actions">
+                        <button class="btn-edit btn-small" onclick="editGoal(${goal.id})">
+                            <i class="fas fa-edit"></i> 编辑
+                        </button>
+                        <button class="btn-delete btn-small" onclick="deleteGoal(${goal.id})">
+                            <i class="fas fa-trash"></i> 删除
+                        </button>
+                        <button class="btn-small" onclick="updateProgress(${goal.id}, ${goal.progress + 10})" ${goal.progress === 100 ? 'disabled' : ''}>
+                            <i class="fas fa-plus"></i> 更新进度
+                        </button>
+                        <button class="btn-analyze btn-small" onclick="showGoalDetails(${goal.id})">
+                            <i class="fas fa-chart-bar"></i> 分析
+                        </button>
+                        <button class="btn-task btn-small" onclick="setCurrentGoal(${goal.id})">
+                            <i class="fas fa-tasks"></i> 执行
+                        </button>
+                    </div>
+                `;
+                
+                goalsContainer.appendChild(goalElement);
+            });
+        }
+
+        // 设置当前目标
+        function setCurrentGoal(id) {
+            currentGoalId = id;
+            updateExecutionTools();
+            showNotification('已切换到该目标的执行工具', 'info');
+        }
+
+        // 更新执行工具区域
+        function updateExecutionTools() {
+            if (!currentGoalId) return;
+            
+            const goal = goals.find(g => g.id === currentGoalId);
+            if (!goal) return;
+            
+            // 更新任务四象限
+            updateTaskQuadrants(goal);
+            
+            // 更新风险列表
+            updateRisksList(goal);
+            
+            // 更新甘特图
+            updateGanttChart(goal);
+        }
+
+        // 更新任务四象限
+        function updateTaskQuadrants(goal) {
+            // 清空所有象限
+            document.getElementById('important-urgent-tasks').innerHTML = '';
+            document.getElementById('important-noturgent-tasks').innerHTML = '';
+            document.getElementById('notimportant-urgent-tasks').innerHTML = '';
+            document.getElementById('notimportant-noturgent-tasks').innerHTML = '';
+            
+            // 按优先级分组任务
+            goal.tasks.forEach(task => {
+                const quadrantId = `${task.priority}-tasks`;
+                const quadrant = document.getElementById(quadrantId);
+                
+                if (quadrant) {
+                    const taskElement = document.createElement('div');
+                    taskElement.className = 'quadrant-task';
+                    taskElement.innerHTML = `
+                        <div>
+                            <input type="checkbox" class="task-checkbox" ${task.completed ? 'checked' : ''} onchange="toggleTaskCompletion(${goal.id}, ${task.id})">
+                            <span style="${task.completed ? 'text-decoration: line-through;' : ''}">${task.title}</span>
+                        </div>
+                        <div>${formatDate(task.deadline)}</div>
+                    `;
+                    quadrant.appendChild(taskElement);
+                }
+            });
+        }
+
+        // 更新风险列表
+        function updateRisksList(goal) {
+            const risksContainer = document.getElementById('risks-container');
+            risksContainer.innerHTML = '';
+            
+            goal.risks.forEach(risk => {
+                const riskElement = document.createElement('div');
+                riskElement.className = 'risk-item';
+                riskElement.innerHTML = `
+                    <div class="risk-header">
+                        <div class="risk-title">${risk.title}</div>
+                        <div class="task-priority priority-${risk.probability}">${risk.probability === 'high' ? '高概率' : risk.probability === 'medium' ? '中概率' : '低概率'}</div>
+                    </div>
+                    <div class="risk-probability">影响程度: ${risk.impact}</div>
+                    <div class="risk-description">应对措施: ${risk.response}</div>
+                    <div class="risk-actions">
+                        <button class="btn-mitigate btn-small"><i class="fas fa-shield-alt"></i> 应对</button>
+                        <button class="btn-delete btn-small" onclick="deleteRisk(${goal.id}, ${risk.id})"><i class="fas fa-trash"></i> 删除</button>
+                    </div>
+                `;
+                risksContainer.appendChild(riskElement);
+            });
+        }
+
+        // 更新甘特图
+        function updateGanttChart(goal) {
+            const ganttContainer = document.getElementById('gantt-container');
+            ganttContainer.innerHTML = '';
+            
+            // 计算目标总天数
+            const startDate = new Date(goal.createdAt);
+            const endDate = new Date(goal.timeBound);
+            const totalDays = Math.ceil((endDate - startDate) / (1000 * 60 * 60 * 24));
+            const elapsedDays = Math.ceil((new Date() - startDate) / (1000 * 60 * 60 * 24));
+            
+            // 创建甘特图
+            const ganttBar = document.createElement('div');
+            ganttBar.className = 'gantt-bar';
+            ganttBar.style.width = `${Math.min(100, (elapsedDays / totalDays) * 100)}%`;
+            ganttBar.innerHTML = `<div class="gantt-label">${goal.title} (${goal.progress}%)</div>`;
+            ganttContainer.appendChild(ganttBar);
+            
+            // 添加任务到甘特图
+            goal.tasks.forEach(task => {
+                const taskStart = new Date(goal.createdAt);
+                const taskEnd = new Date(task.deadline);
+                const taskDays = Math.ceil((taskEnd - taskStart) / (1000 * 60 * 60 * 24));
+                const taskWidth = Math.min(100, (taskDays / totalDays) * 100);
+                
+                const taskBar = document.createElement('div');
+                taskBar.className = 'gantt-bar';
+                taskBar.style.width = `${taskWidth}%`;
+                taskBar.style.background = task.completed ? 'var(--task)' : 'var(--progress)';
+                taskBar.style.opacity = '0.7';
+                taskBar.innerHTML = `<div class="gantt-label">${task.title}</div>`;
+                ganttContainer.appendChild(taskBar);
+            });
+        }
+
+        // 添加新任务
+        function addNewTask() {
+            if (!currentGoalId) {
+                showNotification('请先选择一个目标', 'warning');
+                return;
+            }
+            
+            const title = document.getElementById('newTaskTitle').value;
+            const priority = document.getElementById('newTaskPriority').value;
+            const deadline = document.getElementById('newTaskDeadline').value;
+            
+            if (!title) {
+                showNotification('请输入任务描述', 'warning');
+                return;
+            }
+            
+            const goal = goals.find(g => g.id === currentGoalId);
+            if (goal) {
+                const newTask = {
+                    id: goal.tasks.length > 0 ? Math.max(...goal.tasks.map(t => t.id)) + 1 : 1,
+                    title: title,
+                    priority: priority,
+                    deadline: deadline,
+                    completed: false
+                };
+                
+                goal.tasks.push(newTask);
+                saveGoalsToLocalStorage();
+                updateExecutionTools();
+                
+                // 清空输入框
+                document.getElementById('newTaskTitle').value = '';
+                document.getElementById('newTaskDeadline').value = '';
+                
+                showNotification('任务已添加', 'success');
+            }
+        }
+
+        // 添加新风险
+        function addNewRisk() {
+            if (!currentGoalId) {
+                showNotification('请先选择一个目标', 'warning');
+                return;
+            }
+            
+            const title = document.getElementById('newRiskTitle').value;
+            const probability = document.getElementById('newRiskProbability').value;
+            const impact = document.getElementById('newRiskImpact').value;
+            const response = document.getElementById('newRiskResponse').value;
+            
+            if (!title || !response) {
+                showNotification('请填写风险描述和应对措施', 'warning');
+                return;
+            }
+            
+            const goal = goals.find(g => g.id === currentGoalId);
+            if (goal) {
+                const newRisk = {
+                    id: goal.risks.length > 0 ? Math.max(...goal.risks.map(r => r.id)) + 1 : 1,
+                    title: title,
+                    probability: probability,
+                    impact: impact,
+                    response: response
+                };
+                
+                goal.risks.push(newRisk);
+                saveGoalsToLocalStorage();
+                updateExecutionTools();
+                
+                // 清空输入框
+                document.getElementById('newRiskTitle').value = '';
+                document.getElementById('newRiskImpact').value = '';
+                document.getElementById('newRiskResponse').value = '';
+                
+                showNotification('风险已添加', 'success');
+            }
+        }
+
+        // 切换任务完成状态
+        function toggleTaskCompletion(goalId, taskId) {
+            const goal = goals.find(g => g.id === goalId);
+            if (goal) {
+                const task = goal.tasks.find(t => t.id === taskId);
+                if (task) {
+                    task.completed = !task.completed;
+                    saveGoalsToLocalStorage();
+                    updateExecutionTools();
+                    
+                    // 更新目标进度
+                    const completedTasks = goal.tasks.filter(t => t.completed).length;
+                    const totalTasks = goal.tasks.length;
+                    const newProgress = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : goal.progress;
+                    
+                    if (newProgress !== goal.progress) {
+                        goal.progress = newProgress;
+                        saveGoalsToLocalStorage();
+                        renderGoals();
+                        updateStats();
+                        updateCharts();
+                    }
+                }
+            }
+        }
+
+        // 删除风险
+        function deleteRisk(goalId, riskId) {
+            const goal = goals.find(g => g.id === goalId);
+            if (goal) {
+                goal.risks = goal.risks.filter(r => r.id !== riskId);
+                saveGoalsToLocalStorage();
+                updateExecutionTools();
+                showNotification('风险已删除', 'info');
+            }
+        }
+
+        // 更新统计信息
+        function updateStats() {
+            totalGoalsEl.textContent = goals.length;
+            
+            const activeGoals = goals.filter(goal => goal.progress < 100).length;
+            activeGoalsEl.textContent = activeGoals;
+            
+            const completedGoals = goals.filter(goal => goal.progress === 100).length;
+            completedGoalsEl.textContent = completedGoals;
+            
+            const totalProgress = goals.reduce((sum, goal) => sum + goal.progress, 0);
+            const avgProgress = goals.length > 0 ? Math.round(totalProgress / goals.length) : 0;
+            avgProgressEl.textContent = `${avgProgress}%`;
+        }
+
+        // 更新图表
+        function updateCharts() {
+            // 销毁现有图表
+            if (smartRadarChart) {
+                smartRadarChart.destroy();
+            }
+            if (progressChart) {
+                progressChart.destroy();
+            }
+            
+            // 如果没有目标，不显示图表
+            if (goals.length === 0) {
+                return;
+            }
+            
+            // 计算平均SMART评分
+            const avgScores = {
+                specific: Math.round(goals.reduce((sum, goal) => sum + goal.smartScore.specific, 0) / goals.length),
+                measurable: Math.round(goals.reduce((sum, goal) => sum + goal.smartScore.measurable, 0) / goals.length),
+                achievable: Math.round(goals.reduce((sum, goal) => sum + goal.smartScore.achievable, 0) / goals.length),
+                relevant: Math.round(goals.reduce((sum, goal) => sum + goal.smartScore.relevant, 0) / goals.length),
+                timebound: Math.round(goals.reduce((sum, goal) => sum + goal.smartScore.timebound, 0) / goals.length)
+            };
+            
+            // 创建雷达图
+            const radarCtx = document.getElementById('smartRadarChart').getContext('2d');
+            smartRadarChart = new Chart(radarCtx, {
+                type: 'radar',
+                data: {
+                    labels: ['具体性', '可衡量', '可实现', '相关性', '时限性'],
+                    datasets: [{
+                        label: 'SMART评分',
+                        data: [
+                            avgScores.specific,
+                            avgScores.measurable,
+                            avgScores.achievable,
+                            avgScores.relevant,
+                            avgScores.timebound
+                        ],
+                        backgroundColor: 'rgba(67, 97, 238, 0.2)',
+                        borderColor: 'rgba(67, 97, 238, 1)',
+                        borderWidth: 2,
+                        pointBackgroundColor: [
+                            'rgba(67, 97, 238, 1)',
+                            'rgba(76, 201, 240, 1)',
+                            'rgba(114, 9, 183, 1)',
+                            'rgba(63, 55, 201, 1)',
+                            'rgba(247, 37, 133, 1)'
+                        ]
+                    }]
+                },
+                options: {
+                    scales: {
+                        r: {
+                            angleLines: {
+                                display: true
+                            },
+                            suggestedMin: 0,
+                            suggestedMax: 10
+                        }
+                    }
+                }
+            });
+            
+            // 创建进度图表
+            const progressCtx = document.getElementById('progressChart').getContext('2d');
+            progressChart = new Chart(progressCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['已完成', '进行中'],
+                    datasets: [{
+                        data: [
+                            goals.filter(goal => goal.progress === 100).length,
+                            goals.filter(goal => goal.progress < 100).length
+                        ],
+                        backgroundColor: [
+                            'rgba(76, 201, 240, 0.7)',
+                            'rgba(67, 97, 238, 0.7)'
+                        ],
+                        borderColor: [
+                            'rgba(76, 201, 240, 1)',
+                            'rgba(67, 97, 238, 1)'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const label = context.label || '';
+                                    const value = context.raw || 0;
+                                    const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                    const percentage = Math.round((value / total) * 100);
+                                    return `${label}: ${value} (${percentage}%)`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // 日期格式化
+        function formatDate(dateString) {
+            const options = { year: 'numeric', month: 'long', day: 'numeric' };
+            return new Date(dateString).toLocaleDateString('zh-CN', options);
+        }
+
+        // 编辑目标
+        function editGoal(id) {
+            const goal = goals.find(g => g.id === id);
+            if (goal) {
+                document.getElementById('goalTitle').value = goal.title;
+                document.getElementById('goalPriority').value = goal.priority;
+                document.getElementById('goalSpecific').value = goal.specific;
+                document.getElementById('goalMeasurable').value = goal.measurable;
+                document.getElementById('goalAchievable').value = goal.achievable;
+                document.getElementById('goalRelevant').value = goal.relevant;
+                document.getElementById('goalTimeBound').value = goal.timeBound;
+                document.getElementById('goalProgress').value = goal.progress;
+                progressValue.textContent = goal.progress + '%';
+                
+                // 分类回显
+                const fixedCategories = ['career', 'education', 'health', 'finance', 'relationship', 'hobby'];
+                if (fixedCategories.includes(goal.category)) {
+                    goalCategory.value = goal.category;
+                    customCategory.style.display = 'none';
+                    customCategory.required = false;
+                } else {
+                    goalCategory.value = 'custom';
+                    customCategory.style.display = 'block';
+                    customCategory.required = true;
+                    customCategory.value = goal.category;
+                }
+                
+                // 删除原目标
+                deleteGoal(id, false);
+                
+                // 滚动到表单
+                document.querySelector('.goal-form').scrollIntoView({ behavior: 'smooth' });
+                
+                showNotification('目标已加载到表单中，请修改后保存', 'info');
+            }
+        }
+
+        // 删除目标
+        function deleteGoal(id, showNotification = true) {
+            goals = goals.filter(goal => goal.id !== id);
+            saveGoalsToLocalStorage();
+            renderGoals();
+            updateStats();
+            updateCharts();
+            
+            if (showNotification) {
+                showNotification('目标已删除', 'warning');
+            }
+        }
+
+        // 更新进度
+        function updateProgress(id, newProgress) {
+            if (newProgress > 100) newProgress = 100;
+            
+            const goalIndex = goals.findIndex(goal => goal.id === id);
+            if (goalIndex !== -1) {
+                goals[goalIndex].progress = newProgress;
+                saveGoalsToLocalStorage();
+                renderGoals();
+                updateStats();
+                updateCharts();
+                
+                if (newProgress === 100) {
+                    showNotification('恭喜！目标已完成！', 'success');
+                } else {
+                    showNotification('进度已更新', 'info');
+                }
+            }
+        }
+
+        // 显示目标详情
+        function showGoalDetails(id) {
+            const goal = goals.find(g => g.id === id);
+            if (goal) {
+                modalGoalTitle.textContent = goal.title;
+                
+                // 分类图标映射
+                const categoryIcons = {
+                    'career': 'fas fa-briefcase',
+                    'education': 'fas fa-graduation-cap',
+                    'health': 'fas fa-heartbeat',
+                    'finance': 'fas fa-money-bill-wave',
+                    'relationship': 'fas fa-users',
+                    'hobby': 'fas fa-paint-brush',
+                    'default': 'fas fa-star'
+                };
+                
+                const categoryIcon = categoryIcons[goal.category] || categoryIcons['default'];
+                
+                modalBody.innerHTML = `
+                    <div class="goal-header">
+                        <div>
+                            <div class="goal-title">
+                                <i class="${categoryIcon}"></i> ${goal.title}
+                                <span class="priority-indicator priority-${goal.priority}"></span>
+                            </div>
+                            <div class="goal-deadline">
+                                <i class="far fa-calendar-alt"></i> 截止日期: ${formatDate(goal.timeBound)}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="goal-smart-details">
+                        <div class="smart-detail specific">
+                            <h4><i class="fas fa-bullseye"></i> 具体 (S)</h4>
+                            <p>${goal.specific}</p>
+                        </div>
+                        <div class="smart-detail measurable">
+                            <h4><i class="fas fa-ruler"></i> 可衡量 (M)</h4>
+                            <p>${goal.measurable}</p>
+                        </div>
+                        <div class="smart-detail achievable">
+                            <h4><i class="fas fa-mountain"></i> 可实现 (A)</h4>
+                            <p>${goal.achievable}</p>
+                        </div>
+                        <div class="smart-detail relevant">
+                            <h4><i class="fas fa-link"></i> 相关性 (R)</h4>
+                            <p>${goal.relevant}</p>
+                        </div>
+                        <div class="smart-detail timebound">
+                            <h4><i class="fas fa-clock"></i> 时间限制 (T)</h4>
+                            <p>截止日期: ${formatDate(goal.timeBound)}</p>
+                        </div>
+                    </div>
+                    
+                    <div class="smart-score">
+                        <div class="score-item specific">
+                            <div class="score-value">${goal.smartScore.specific}</div>
+                            <div class="score-label">具体性</div>
+                        </div>
+                        <div class="score-item measurable">
+                            <div class="score-value">${goal.smartScore.measurable}</div>
+                            <div class="score-label">可衡量</div>
+                        </div>
+                        <div class="score-item achievable">
+                            <div class="score-value">${goal.smartScore.achievable}</div>
+                            <div class="score-label">可实现</div>
+                        </div>
+                        <div class="score-item relevant">
+                            <div class="score-value">${goal.smartScore.relevant}</div>
+                            <div class="score-label">相关性</div>
+                        </div>
+                        <div class="score-item timebound">
+                            <div class="score-value">${goal.smartScore.timebound}</div>
+                            <div class="score-label">时限性</div>
+                        </div>
+                    </div>
+                    
+                    <div class="goal-progress">
+                        <div class="progress-info">
+                            <span>进度</span>
+                            <span>${goal.progress}%</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress" style="width: ${goal.progress}%"></div>
+                        </div>
+                    </div>
+                    
+                    <div style="margin-top: 20px; text-align: center;">
+                        <button class="btn-edit btn-small" onclick="editGoal(${goal.id}); goalDetailModal.classList.remove('active');">
+                            <i class="fas fa-edit"></i> 编辑目标
+                        </button>
+                    </div>
+                `;
+                
+                goalDetailModal.classList.add('active');
+            }
+        }
+
+        // 添加目标分类切换事件
+        goalCategory.addEventListener('change', function() {
+            if (this.value === 'custom') {
+                customCategory.style.display = 'block';
+                customCategory.required = true;
+            } else {
+                customCategory.style.display = 'none';
+                customCategory.required = false;
+            }
+        });
+
+        // 添加进度滑块事件
+        progressSlider.addEventListener('input', function() {
+            progressValue.textContent = this.value + '%';
+        });
+
+        // 添加标签页切换事件
+        tabs.forEach(tab => {
+            tab.addEventListener('click', function() {
+                tabs.forEach(t => t.classList.remove('active'));
+                this.classList.add('active');
+                renderGoals(this.dataset.filter);
+            });
+        });
+
+        // 添加工具标签页切换事件
+        toolTabs.forEach(tab => {
+            tab.addEventListener('click', function() {
+                toolTabs.forEach(t => t.classList.remove('active'));
+                this.classList.add('active');
+                
+                const tool = this.dataset.tool;
+                document.querySelectorAll('.tool-content').forEach(content => {
+                    content.classList.remove('active');
+                });
+                document.getElementById(`${tool}-content`).classList.add('active');
+            });
+        });
+
+        // 添加模态框关闭事件
+        modalClose.addEventListener('click', function() {
+            goalDetailModal.classList.remove('active');
+        });
+        
+        // 点击模态框外部关闭
+        goalDetailModal.addEventListener('click', function(e) {
+            if (e.target === goalDetailModal) {
+                goalDetailModal.classList.remove('active');
+            }
+        });
+
+        // 默认选中第一个目标
+        if (goals.length > 0) {
+            currentGoalId = goals[0].id;
+            updateExecutionTools();
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,1363 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>学力派 - 游戏化学习助手</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #4A6CF7;
+            --secondary: #6C757D;
+            --success: #28A745;
+            --warning: #FFC107;
+            --danger: #DC3545;
+            --light: #F8F9FA;
+            --dark: #343A40;
+            --gradient: linear-gradient(135deg, #4A6CF7, #6F42C1);
+            --bronze: #CD7F32;
+            --silver: #C0C0C0;
+            --gold: #FFD700;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #f5f7fb;
+            color: #333;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+        
+        header {
+            background: var(--gradient);
+            color: white;
+            padding: 20px 0;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logo {
+            font-size: 24px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+        }
+        
+        .logo i {
+            margin-right: 10px;
+            font-size: 28px;
+        }
+        
+        nav ul {
+            display: flex;
+            list-style: none;
+        }
+        
+        nav li {
+            margin-left: 25px;
+        }
+        
+        nav a {
+            color: white;
+            text-decoration: none;
+            font-weight: 500;
+            transition: opacity 0.3s;
+        }
+        
+        nav a:hover {
+            opacity: 0.8;
+        }
+        
+        .user-actions {
+            display: flex;
+            align-items: center;
+        }
+        
+        .user-info {
+            display: flex;
+            align-items: center;
+            margin-right: 15px;
+        }
+        
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: white;
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 10px;
+            font-weight: bold;
+            border: 2px solid rgba(255,255,255,0.5);
+        }
+        
+        .user-level {
+            background: var(--warning);
+            color: var(--dark);
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            margin-top: 2px;
+        }
+        
+        .btn {
+            padding: 10px 20px;
+            border-radius: 50px;
+            border: none;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .btn-primary {
+            background-color: white;
+            color: var(--primary);
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        .btn-outline {
+            background: transparent;
+            border: 2px solid white;
+            color: white;
+            margin-right: 15px;
+        }
+        
+        .hero {
+            padding: 80px 0;
+            text-align: center;
+            background: linear-gradient(rgba(255,255,255,0.9), rgba(255,255,255,0.9)), url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><rect width="100" height="100" fill="%234A6CF7" opacity="0.05"/></svg>');
+        }
+        
+        .hero h1 {
+            font-size: 3rem;
+            margin-bottom: 20px;
+            background: var(--gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .hero p {
+            font-size: 1.2rem;
+            max-width: 700px;
+            margin: 0 auto 30px;
+            color: var(--secondary);
+        }
+        
+        .dashboard {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 30px;
+            margin-bottom: 50px;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            margin-bottom: 30px;
+        }
+        
+        .card h2 {
+            margin-bottom: 20px;
+            color: var(--dark);
+            display: flex;
+            align-items: center;
+        }
+        
+        .card h2 i {
+            margin-right: 10px;
+            color: var(--primary);
+        }
+        
+        .progress-container {
+            margin-bottom: 30px;
+        }
+        
+        .progress-info {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+        
+        .progress-bar {
+            height: 12px;
+            background-color: #e9ecef;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        
+        .progress {
+            height: 100%;
+            background: var(--gradient);
+            border-radius: 10px;
+            transition: width 0.5s ease;
+        }
+        
+        /* 等级体系样式 */
+        .level-system {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .level-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: var(--gradient);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            margin-right: 15px;
+            font-size: 1.5rem;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        
+        .level-info {
+            flex: 1;
+        }
+        
+        .level-title {
+            font-weight: 600;
+            font-size: 1.1rem;
+            margin-bottom: 5px;
+        }
+        
+        .level-description {
+            font-size: 0.9rem;
+            color: var(--secondary);
+        }
+        
+        .level-progress {
+            display: flex;
+            align-items: center;
+            margin-top: 5px;
+        }
+        
+        .level-progress .progress-bar {
+            flex: 1;
+            margin-right: 10px;
+        }
+        
+        /* 成就徽章样式 */
+        .badges-container {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .badge {
+            text-align: center;
+            padding: 15px 10px;
+            border-radius: 10px;
+            background: #f8f9fa;
+            transition: transform 0.3s;
+        }
+        
+        .badge:hover {
+            transform: translateY(-5px);
+        }
+        
+        .badge-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 10px;
+            color: white;
+            font-size: 1.2rem;
+        }
+        
+        .badge.bronze .badge-icon {
+            background: var(--bronze);
+        }
+        
+        .badge.silver .badge-icon {
+            background: var(--silver);
+        }
+        
+        .badge.gold .badge-icon {
+            background: var(--gold);
+        }
+        
+        .badge-title {
+            font-weight: 600;
+            font-size: 0.9rem;
+            margin-bottom: 5px;
+        }
+        
+        .badge-description {
+            font-size: 0.8rem;
+            color: var(--secondary);
+        }
+        
+        .badge.locked {
+            opacity: 0.5;
+        }
+        
+        .badge.locked .badge-icon {
+            background: var(--secondary);
+        }
+        
+        /* 任务列表样式 */
+        .task-list {
+            list-style: none;
+        }
+        
+        .task-item {
+            display: flex;
+            align-items: center;
+            padding: 15px 0;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .task-item:last-child {
+            border-bottom: none;
+        }
+        
+        .task-checkbox {
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            border: 2px solid #ddd;
+            margin-right: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .task-checkbox.checked {
+            background: var(--success);
+            border-color: var(--success);
+            color: white;
+        }
+        
+        .task-content {
+            flex: 1;
+        }
+        
+        .task-title {
+            font-weight: 500;
+            margin-bottom: 5px;
+        }
+        
+        .task-description {
+            font-size: 0.9rem;
+            color: var(--secondary);
+        }
+        
+        .task-tag {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            margin-right: 5px;
+        }
+        
+        .task-tag.daily {
+            background: #E7F5FF;
+            color: #1C7ED6;
+        }
+        
+        .task-tag.challenge {
+            background: #FFF9DB;
+            color: #F59F00;
+        }
+        
+        .task-tag.team {
+            background: #E6FCF5;
+            color: #0CA678;
+        }
+        
+        .task-points {
+            background: var(--warning);
+            color: var(--dark);
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+        
+        /* 奖励盲盒样式 */
+        .reward-box {
+            text-align: center;
+            padding: 20px;
+            background: linear-gradient(135deg, #FFD700, #FFA500);
+            border-radius: 10px;
+            color: white;
+            margin-top: 20px;
+            cursor: pointer;
+            transition: transform 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .reward-box:hover {
+            transform: scale(1.05);
+        }
+        
+        .reward-box i {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+        
+        .reward-box.open {
+            background: linear-gradient(135deg, #4A6CF7, #6F42C1);
+        }
+        
+        .reward-box.open::after {
+            content: "";
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.8) 0%, transparent 70%);
+            animation: shine 1.5s ease-out;
+        }
+        
+        @keyframes shine {
+            0% { transform: translate(-100%, -100%) rotate(0deg); }
+            100% { transform: translate(100%, 100%) rotate(360deg); }
+        }
+        
+        /* 社交动态样式 */
+        .social-feed {
+            margin-top: 30px;
+        }
+        
+        .feed-item {
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            margin-bottom: 15px;
+        }
+        
+        .avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--primary);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 15px;
+            font-weight: bold;
+        }
+        
+        .feed-content {
+            flex: 1;
+        }
+        
+        .feed-action {
+            color: var(--primary);
+            font-weight: 500;
+        }
+        
+        /* 排行榜样式 */
+        .ranking-list {
+            list-style: none;
+        }
+        
+        .ranking-item {
+            display: flex;
+            align-items: center;
+            padding: 15px 0;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .ranking-item:last-child {
+            border-bottom: none;
+        }
+        
+        .rank {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 15px;
+            font-weight: bold;
+            color: white;
+        }
+        
+        .rank-1 {
+            background: var(--gold);
+        }
+        
+        .rank-2 {
+            background: var(--silver);
+        }
+        
+        .rank-3 {
+            background: var(--bronze);
+        }
+        
+        .rank-other {
+            background: var(--secondary);
+        }
+        
+        .ranking-user {
+            flex: 1;
+        }
+        
+        .ranking-points {
+            font-weight: 600;
+            color: var(--primary);
+        }
+        
+        /* 助力进度样式 */
+        .assist-progress {
+            margin-top: 20px;
+            padding: 15px;
+            background: #E7F5FF;
+            border-radius: 10px;
+        }
+        
+        .assist-title {
+            font-weight: 600;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .assist-title i {
+            margin-right: 8px;
+            color: var(--primary);
+        }
+        
+        .assist-progress-bar {
+            height: 10px;
+            background-color: #D0EBFF;
+            border-radius: 5px;
+            overflow: hidden;
+            margin-bottom: 10px;
+        }
+        
+        .assist-progress-value {
+            height: 100%;
+            background: var(--primary);
+            border-radius: 5px;
+        }
+        
+        .assist-info {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.9rem;
+            color: var(--secondary);
+        }
+        
+        /* 组队样式 */
+        .team-container {
+            margin-top: 20px;
+        }
+        
+        .team-card {
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            background: #E6FCF5;
+            border-radius: 10px;
+            margin-bottom: 15px;
+        }
+        
+        .team-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: var(--success);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 15px;
+            font-weight: bold;
+            font-size: 1.2rem;
+        }
+        
+        .team-info {
+            flex: 1;
+        }
+        
+        .team-name {
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+        
+        .team-progress {
+            font-size: 0.9rem;
+            color: var(--secondary);
+        }
+        
+        .team-actions {
+            display: flex;
+        }
+        
+        .team-btn {
+            padding: 8px 15px;
+            border-radius: 20px;
+            border: none;
+            font-weight: 600;
+            cursor: pointer;
+            margin-left: 10px;
+            font-size: 0.8rem;
+        }
+        
+        .team-join {
+            background: var(--success);
+            color: white;
+        }
+        
+        .team-view {
+            background: transparent;
+            border: 1px solid var(--success);
+            color: var(--success);
+        }
+        
+        /* 积分动画 */
+        @keyframes pointPop {
+            0% { transform: translateY(0) scale(1); opacity: 1; }
+            100% { transform: translateY(-30px) scale(1.5); opacity: 0; }
+        }
+        
+        .point-pop {
+            position: absolute;
+            color: var(--success);
+            font-weight: bold;
+            pointer-events: none;
+            animation: pointPop 1s ease-out forwards;
+        }
+        
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            .dashboard {
+                grid-template-columns: 1fr;
+            }
+            
+            .header-content {
+                flex-direction: column;
+                text-align: center;
+            }
+            
+            nav ul {
+                margin-top: 20px;
+                justify-content: center;
+            }
+            
+            .user-actions {
+                margin-top: 20px;
+            }
+            
+            .hero h1 {
+                font-size: 2.2rem;
+            }
+            
+            .badges-container {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+        
+        /* 功能标签样式 */
+        .feature-tabs {
+            display: flex;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .feature-tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            font-weight: 500;
+            border-bottom: 2px solid transparent;
+            transition: all 0.3s;
+        }
+        
+        .feature-tab.active {
+            color: var(--primary);
+            border-bottom: 2px solid var(--primary);
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .section-title {
+            text-align: center;
+            margin: 60px 0 30px;
+            color: var(--dark);
+        }
+        
+        .features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            margin-bottom: 60px;
+        }
+        
+        .feature-card {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            transition: transform 0.3s;
+        }
+        
+        .feature-card:hover {
+            transform: translateY(-10px);
+        }
+        
+        .feature-icon {
+            width: 70px;
+            height: 70px;
+            background: var(--gradient);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            color: white;
+            font-size: 1.8rem;
+        }
+        
+        .feature-card h3 {
+            margin-bottom: 15px;
+            color: var(--dark);
+        }
+        
+        footer {
+            background: var(--dark);
+            color: white;
+            padding: 50px 0 20px;
+            margin-top: 50px;
+        }
+        
+        .footer-content {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 40px;
+            margin-bottom: 40px;
+        }
+        
+        .footer-column h3 {
+            margin-bottom: 20px;
+            font-size: 1.2rem;
+        }
+        
+        .footer-column ul {
+            list-style: none;
+        }
+        
+        .footer-column li {
+            margin-bottom: 10px;
+        }
+        
+        .footer-column a {
+            color: #adb5bd;
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+        
+        .footer-column a:hover {
+            color: white;
+        }
+        
+        .copyright {
+            text-align: center;
+            padding-top: 20px;
+            border-top: 1px solid #495057;
+            color: #adb5bd;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">
+                    <i class="fas fa-graduation-cap"></i>
+                    <span>学力派</span>
+                </div>
+                <nav>
+                    <ul>
+                        <li><a href="#">首页</a></li>
+                        <li><a href="#">学习任务</a></li>
+                        <li><a href="#">进度中心</a></li>
+                        <li><a href="#">社交圈</a></li>
+                        <li><a href="#">奖励商城</a></li>
+                    </ul>
+                </nav>
+                <div class="user-actions">
+                    <div class="user-info">
+                        <div class="user-avatar">张</div>
+                        <div>
+                            <div>张小智</div>
+                            <div class="user-level">进阶 Lv.2</div>
+                        </div>
+                    </div>
+                    <button class="btn btn-outline">通知 <span class="notification-badge">3</span></button>
+                    <button class="btn btn-primary">我的成就</button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <section class="hero">
+        <div class="container">
+            <h1>让学习像游戏一样上瘾</h1>
+            <p>基于拼多多助力机制的游戏化学习平台，通过可视化进度、社交激励和随机奖励，让你的学习之路充满动力与乐趣</p>
+            <button class="btn btn-primary" style="padding: 12px 30px; font-size: 1.1rem;">
+                <i class="fas fa-rocket"></i> 开始学习之旅
+            </button>
+        </div>
+    </section>
+
+    <div class="container">
+        <div class="dashboard">
+            <div class="left-column">
+                <!-- 用户等级卡片 -->
+                <div class="card">
+                    <h2><i class="fas fa-trophy"></i> 我的等级</h2>
+                    <div class="level-system">
+                        <div class="level-icon">2</div>
+                        <div class="level-info">
+                            <div class="level-title">进阶学者</div>
+                            <div class="level-description">解锁限时挑战任务 +20%积分</div>
+                            <div class="level-progress">
+                                <div class="progress-bar">
+                                    <div class="progress" style="width: 60%;"></div>
+                                </div>
+                                <span>60/300</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="level-privileges">
+                        <h3>当前特权</h3>
+                        <ul>
+                            <li>✓ 解锁限时挑战任务</li>
+                            <li>✓ 盲盒奖励概率提升5%</li>
+                            <li class="locked">✗ 自定义任务权限 (Lv.3解锁)</li>
+                            <li class="locked">✗ 好友助力翻倍 (Lv.4解锁)</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <!-- 成就徽章卡片 -->
+                <div class="card">
+                    <h2><i class="fas fa-medal"></i> 我的成就</h2>
+                    <div class="badges-container">
+                        <div class="badge bronze">
+                            <div class="badge-icon">
+                                <i class="fas fa-fire"></i>
+                            </div>
+                            <div class="badge-title">坚持3天</div>
+                            <div class="badge-description">连续学习3天</div>
+                        </div>
+                        <div class="badge silver">
+                            <div class="badge-icon">
+                                <i class="fas fa-tasks"></i>
+                            </div>
+                            <div class="badge-title">任务达人</div>
+                            <div class="badge-description">单日完成5个任务</div>
+                        </div>
+                        <div class="badge gold">
+                            <div class="badge-icon">
+                                <i class="fas fa-handshake"></i>
+                            </div>
+                            <div class="badge-title">社交之星</div>
+                            <div class="badge-description">帮助5位好友助力</div>
+                        </div>
+                        <div class="badge locked">
+                            <div class="badge-icon">
+                                <i class="fas fa-calendar"></i>
+                            </div>
+                            <div class="badge-title">坚持7天</div>
+                            <div class="badge-description">连续学习7天</div>
+                        </div>
+                        <div class="badge locked">
+                            <div class="badge-icon">
+                                <i class="fas fa-star"></i>
+                            </div>
+                            <div class="badge-title">挑战之王</div>
+                            <div class="badge-description">挑战任务正确率100%</div>
+                        </div>
+                        <div class="badge locked">
+                            <div class="badge-icon">
+                                <i class="fas fa-users"></i>
+                            </div>
+                            <div class="badge-title">团队精英</div>
+                            <div class="badge-description">组队完成10次任务</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 奖励盲盒卡片 -->
+                <div class="card">
+                    <h2><i class="fas fa-gift"></i> 奖励盲盒</h2>
+                    <p>完成3个任务即可开启盲盒，惊喜奖励等你拿！</p>
+                    <div class="reward-box" id="rewardBox">
+                        <i class="fas fa-gift"></i>
+                        <h3>开启惊喜盲盒</h3>
+                        <p>还需完成 1 个任务</p>
+                    </div>
+                </div>
+                
+                <!-- 助力进度卡片 -->
+                <div class="card">
+                    <h2><i class="fas fa-hands-helping"></i> 目标助力</h2>
+                    <div class="assist-progress">
+                        <div class="assist-title">
+                            <i class="fas fa-bullseye"></i> 解锁Python高级课程
+                        </div>
+                        <div class="assist-progress-bar">
+                            <div class="assist-progress-value" style="width: 30%;"></div>
+                        </div>
+                        <div class="assist-info">
+                            <span>3/10 人助力</span>
+                            <span>1助力值=5学力值</span>
+                        </div>
+                    </div>
+                    <button class="btn btn-primary" style="width: 100%; margin-top: 15px;">
+                        <i class="fas fa-share-alt"></i> 分享求助好友
+                    </button>
+                </div>
+            </div>
+            
+            <div class="right-column">
+                <!-- 任务卡片 -->
+                <div class="card">
+                    <h2><i class="fas fa-tasks"></i> 今日任务</h2>
+                    
+                    <div class="feature-tabs">
+                        <div class="feature-tab active" data-tab="daily">日常任务</div>
+                        <div class="feature-tab" data-tab="challenge">挑战任务</div>
+                        <div class="feature-tab" data-tab="team">组队任务</div>
+                    </div>
+                    
+                    <div class="tab-content active" id="daily-tab">
+                        <ul class="task-list">
+                            <li class="task-item">
+                                <div class="task-checkbox checked">
+                                    <i class="fas fa-check"></i>
+                                </div>
+                                <div class="task-content">
+                                    <div class="task-title">完成Python函数章节学习</div>
+                                    <div class="task-description">
+                                        <span class="task-tag daily">日常</span>
+                                        预计用时: 45分钟
+                                    </div>
+                                </div>
+                                <div class="task-points">+15 学力值</div>
+                            </li>
+                            <li class="task-item">
+                                <div class="task-checkbox checked">
+                                    <i class="fas fa-check"></i>
+                                </div>
+                                <div class="task-content">
+                                    <div class="task-title">背诵30个英语单词</div>
+                                    <div class="task-description">
+                                        <span class="task-tag daily">日常</span>
+                                        已完成: 30/30
+                                    </div>
+                                </div>
+                                <div class="task-points">+10 学力值</div>
+                            </li>
+                            <li class="task-item">
+                                <div class="task-checkbox">
+                                    <i class="fas fa-plus"></i>
+                                </div>
+                                <div class="task-content">
+                                    <div class="task-title">完成机器学习练习题</div>
+                                    <div class="task-description">
+                                        <span class="task-tag daily">日常</span>
+                                        预计用时: 60分钟
+                                    </div>
+                                </div>
+                                <div class="task-points">+20 学力值</div>
+                            </li>
+                        </ul>
+                    </div>
+                    
+                    <div class="tab-content" id="challenge-tab">
+                        <ul class="task-list">
+                            <li class="task-item">
+                                <div class="task-checkbox">
+                                    <i class="fas fa-plus"></i>
+                                </div>
+                                <div class="task-content">
+                                    <div class="task-title">1小时攻克Python难点</div>
+                                    <div class="task-description">
+                                        <span class="task-tag challenge">挑战</span>
+                                        限时挑战，完成后额外获得挑战币
+                                    </div>
+                                </div>
+                                <div class="task-points">+25 学力值</div>
+                            </li>
+                            <li class="task-item">
+                                <div class="task-checkbox">
+                                    <i class="fas fa-plus"></i>
+                                </div>
+                                <div class="task-content">
+                                    <div class="task-title">算法解题挑战</div>
+                                    <div class="task-description">
+                                        <span class="task-tag challenge">挑战</span>
+                                        解决3道中等难度算法题
+                                    </div>
+                                </div>
+                                <div class="task-points">+30 学力值</div>
+                            </li>
+                        </ul>
+                    </div>
+                    
+                    <div class="tab-content" id="team-tab">
+                        <ul class="task-list">
+                            <li class="task-item">
+                                <div class="task-checkbox">
+                                    <i class="fas fa-plus"></i>
+                                </div>
+                                <div class="task-content">
+                                    <div class="task-title">小组共同整理学习笔记</div>
+                                    <div class="task-description">
+                                        <span class="task-tag team">组队</span>
+                                        与队友共同完成知识梳理
+                                    </div>
+                                </div>
+                                <div class="task-points">+30 学力值</div>
+                            </li>
+                        </ul>
+                        
+                        <div class="team-container">
+                            <div class="team-card">
+                                <div class="team-avatar">
+                                    <i class="fas fa-users"></i>
+                                </div>
+                                <div class="team-info">
+                                    <div class="team-name">Python学习小队</div>
+                                    <div class="team-progress">本周已完成 35/50 个任务</div>
+                                </div>
+                                <div class="team-actions">
+                                    <button class="team-btn team-join">加入</button>
+                                    <button class="team-btn team-view">查看</button>
+                                </div>
+                            </div>
+                            
+                            <div class="team-card">
+                                <div class="team-avatar">
+                                    <i class="fas fa-users"></i>
+                                </div>
+                                <div class="team-info">
+                                    <div class="team-name">英语进阶联盟</div>
+                                    <div class="team-progress">本周已完成 42/50 个任务</div>
+                                </div>
+                                <div class="team-actions">
+                                    <button class="team-btn team-join">加入</button>
+                                    <button class="team-btn team-view">查看</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 社交圈卡片 -->
+                <div class="card">
+                    <h2><i class="fas fa-users"></i> 学习社交圈</h2>
+                    <div class="social-feed">
+                        <div class="feed-item">
+                            <div class="avatar">张</div>
+                            <div class="feed-content">
+                                <p><span class="feed-action">张小智</span> 刚刚完成了"数据结构与算法"挑战</p>
+                                <small>10分钟前</small>
+                            </div>
+                        </div>
+                        <div class="feed-item">
+                            <div class="avatar">李</div>
+                            <div class="feed-content">
+                                <p><span class="feed-action">李思思</span> 请求助力她的"英语口语"目标</p>
+                                <small>25分钟前</small>
+                            </div>
+                            <button class="btn btn-primary" style="padding: 5px 15px; font-size: 0.8rem;">助力</button>
+                        </div>
+                        <div class="feed-item">
+                            <div class="avatar">王</div>
+                            <div class="feed-content">
+                                <p><span class="feed-action">王明远</span> 刚刚解锁了"连续学习7天"成就</p>
+                                <small>1小时前</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 排行榜卡片 -->
+                <div class="card">
+                    <h2><i class="fas fa-trophy"></i> 好友排行榜</h2>
+                    <ul class="ranking-list">
+                        <li class="ranking-item">
+                            <div class="rank rank-1">1</div>
+                            <div class="ranking-user">李思思</div>
+                            <div class="ranking-points">245 学力值</div>
+                        </li>
+                        <li class="ranking-item">
+                            <div class="rank rank-2">2</div>
+                            <div class="ranking-user">张小智</div>
+                            <div class="ranking-points">210 学力值</div>
+                        </li>
+                        <li class="ranking-item">
+                            <div class="rank rank-3">3</div>
+                            <div class="ranking-user">王明远</div>
+                            <div class="ranking-points">195 学力值</div>
+                        </li>
+                        <li class="ranking-item">
+                            <div class="rank rank-other">4</div>
+                            <div class="ranking-user">刘小华</div>
+                            <div class="ranking-points">180 学力值</div>
+                        </li>
+                        <li class="ranking-item">
+                            <div class="rank rank-other">5</div>
+                            <div class="ranking-user">陈小美</div>
+                            <div class="ranking-points">165 学力值</div>
+                        </li>
+                        <li class="ranking-item">
+                            <div class="rank rank-other">6</div>
+                            <div class="ranking-user">您</div>
+                            <div class="ranking-points">150 学力值</div>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        
+        <h2 class="section-title">学力派如何帮你坚持学习</h2>
+        
+        <div class="features">
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-chart-line"></i>
+                </div>
+                <h3>可视化进度</h3>
+                <p>清晰的学习进度条，让你随时了解自己的进展，每一点进步都看得见，激发持续学习的动力。</p>
+            </div>
+            
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-gamepad"></i>
+                </div>
+                <h3>游戏化任务</h3>
+                <p>将学习任务设计成游戏关卡，完成挑战获得积分和奖励，让学习过程充满乐趣和成就感。</p>
+            </div>
+            
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-users"></i>
+                </div>
+                <h3>社交助力</h3>
+                <p>与好友组队学习，互相监督助力，分享进步喜悦，让学习不再孤单，利用同辈压力促进坚持。</p>
+            </div>
+            
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-gift"></i>
+                </div>
+                <h3>随机奖励</h3>
+                <p>完成任务后开启惊喜盲盒，不确定的奖励刺激多巴胺分泌，让学习像抽奖一样令人期待。</p>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-column">
+                    <h3>学力派</h3>
+                    <p>让学习像游戏一样上瘾的创新平台，基于行为设计学原理，帮助你建立持久的学习习惯。</p>
+                </div>
+                
+                <div class="footer-column">
+                    <h3>快速链接</h3>
+                    <ul>
+                        <li><a href="#">首页</a></li>
+                        <li><a href="#">学习任务</a></li>
+                        <li><a href="#">进度中心</a></li>
+                        <li><a href="#">社交圈</a></li>
+                        <li><a href="#">奖励商城</a></li>
+                    </ul>
+                </div>
+                
+                <div class="footer-column">
+                    <h3>学习资源</h3>
+                    <ul>
+                        <li><a href="#">编程课程</a></li>
+                        <li><a href="#">语言学习</a></li>
+                        <li><a href="#">职业技能</a></li>
+                        <li><a href="#">学术考试</a></li>
+                        <li><a href="#">兴趣爱好</a></li>
+                    </ul>
+                </div>
+                
+                <div class="footer-column">
+                    <h3>联系我们</h3>
+                    <ul>
+                        <li><a href="#">帮助中心</a></li>
+                        <li><a href="#">用户反馈</a></li>
+                        <li><a href="#">商务合作</a></li>
+                        <li><a href="#">加入我们</a></li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="copyright">
+                &copy; 2023 学力派 - 游戏化学习助手. 保留所有权利.
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // 任务完成交互
+        document.querySelectorAll('.task-checkbox').forEach(checkbox => {
+            checkbox.addEventListener('click', function() {
+                if (this.classList.contains('checked')) {
+                    this.classList.remove('checked');
+                    this.innerHTML = '<i class="fas fa-plus"></i>';
+                } else {
+                    this.classList.add('checked');
+                    this.innerHTML = '<i class="fas fa-check"></i>';
+                    
+                    // 创建积分跳动动画
+                    const points = this.parentElement.querySelector('.task-points').textContent;
+                    const pointValue = points.match(/\d+/)[0];
+                    
+                    const pointPop = document.createElement('div');
+                    pointPop.className = 'point-pop';
+                    pointPop.textContent = `+${pointValue}`;
+                    pointPop.style.left = `${this.getBoundingClientRect().left}px`;
+                    pointPop.style.top = `${this.getBoundingClientRect().top}px`;
+                    
+                    document.body.appendChild(pointPop);
+                    
+                    // 动画结束后移除元素
+                    setTimeout(() => {
+                        pointPop.remove();
+                    }, 1000);
+                    
+                    // 更新进度条（简化版）
+                    const progressBars = document.querySelectorAll('.progress');
+                    progressBars.forEach(bar => {
+                        const currentWidth = parseInt(bar.style.width);
+                        if (currentWidth < 100) {
+                            bar.style.width = (currentWidth + 5) + '%';
+                        }
+                    });
+                    
+                    // 更新等级进度
+                    const levelProgress = document.querySelector('.level-progress span');
+                    const currentProgress = levelProgress.textContent.split('/');
+                    const newValue = parseInt(currentProgress[0]) + parseInt(pointValue);
+                    levelProgress.textContent = `${newValue}/${currentProgress[1]}`;
+                    
+                    // 更新奖励盲盒状态
+                    const rewardBox = document.querySelector('.reward-box p');
+                    if (rewardBox.textContent.includes('还需完成')) {
+                        const tasksLeft = parseInt(rewardBox.textContent.match(/\d+/)[0]) - 1;
+                        if (tasksLeft <= 0) {
+                            rewardBox.textContent = '点击开启盲盒！';
+                        } else {
+                            rewardBox.textContent = `还需完成 ${tasksLeft} 个任务`;
+                        }
+                    }
+                }
+            });
+        });
+        
+        // 奖励盲盒交互
+        document.getElementById('rewardBox').addEventListener('click', function() {
+            const rewards = [
+                '获得15分钟休息时间！',
+                '获得自定义学习背景！',
+                '获得双倍积分卡！',
+                '获得专属学习徽章！',
+                '获得好友助力加速！'
+            ];
+            
+            const randomReward = rewards[Math.floor(Math.random() * rewards.length)];
+            this.querySelector('p').textContent = randomReward;
+            this.classList.add('open');
+            
+            // 3秒后恢复盲盒状态
+            setTimeout(() => {
+                this.classList.remove('open');
+                this.querySelector('p').textContent = '还需完成 3 个任务';
+            }, 3000);
+        });
+        
+        // 标签切换功能
+        document.querySelectorAll('.feature-tab').forEach(tab => {
+            tab.addEventListener('click', function() {
+                // 移除所有active类
+                document.querySelectorAll('.feature-tab').forEach(t => {
+                    t.classList.remove('active');
+                });
+                document.querySelectorAll('.tab-content').forEach(c => {
+                    c.classList.remove('active');
+                });
+                
+                // 添加active类到当前标签
+                this.classList.add('active');
+                const tabId = this.getAttribute('data-tab');
+                document.getElementById(`${tabId}-tab`).classList.add('active');
+            });
+        });
+        
+        // 加入队伍按钮交互
+        document.querySelectorAll('.team-join').forEach(button => {
+            button.addEventListener('click', function() {
+                const teamName = this.closest('.team-card').querySelector('.team-name').textContent;
+                alert(`已申请加入 ${teamName}，等待队长确认中...`);
+                this.textContent = '已申请';
+                this.disabled = true;
+                this.style.backgroundColor = '#6C757D';
+            });
+        });
+    </script>
+</body>
+</html>

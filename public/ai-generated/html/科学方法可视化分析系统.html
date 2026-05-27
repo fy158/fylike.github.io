@@ -1,0 +1,4106 @@
+<!DOCTYPE html>
+<html lang="zh-CN" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>科学方法可视化分析系统</title>
+    <!-- 引入外部资源 -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.8/dist/chart.umd.min.js"></script>
+    
+    <!-- Tailwind配置 -->
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {
+                            50: '#eff6ff',
+                            100: '#dbeafe',
+                            500: '#3b82f6',
+                            600: '#2563eb',
+                            700: '#1d4ed8',
+                            900: '#1e3a8a'
+                        },
+                        secondary: {
+                            50: '#f8fafc',
+                            100: '#f1f5f9',
+                            500: '#64748b',
+                            600: '#475569',
+                            700: '#334155',
+                            900: '#0f172a'
+                        },
+                        accent: {
+                            50: '#f0f9ff',
+                            100: '#e0f2fe',
+                            500: '#0ea5e9',
+                            600: '#0284c7',
+                            700: '#0369a1'
+                        },
+                        success: {
+                            50: '#f0fdf4',
+                            100: '#dcfce7',
+                            500: '#22c55e',
+                            600: '#16a34a',
+                            700: '#15803d'
+                        },
+                        warning: {
+                            50: '#fffbeb',
+                            100: '#fef3c7',
+                            500: '#f59e0b',
+                            600: '#d97706',
+                            700: '#b45309'
+                        },
+                        danger: {
+                            50: '#fef2f2',
+                            100: '#fee2e2',
+                            500: '#ef4444',
+                            600: '#dc2626',
+                            700: '#b91c1c'
+                        },
+                        purple: {
+                            50: '#faf5ff',
+                            100: '#f3e8ff',
+                            500: '#a855f7',
+                            600: '#9333ea',
+                            700: '#7c3aed'
+                        },
+                        pink: {
+                            50: '#fdf2f8',
+                            100: '#fce7f3',
+                            500: '#ec4899',
+                            600: '#db2777',
+                            700: '#be185d'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                    },
+                    animation: {
+                        'float': 'float 6s ease-in-out infinite',
+                        'glow': 'glow 2s ease-in-out infinite alternate',
+                        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                        'bounce-slow': 'bounce 3s infinite',
+                        'slide-in': 'slideIn 0.5s ease-out',
+                    },
+                    keyframes: {
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0px)' },
+                            '50%': { transform: 'translateY(-10px)' },
+                        },
+                        glow: {
+                            '0%': { boxShadow: '0 0 5px rgba(59, 130, 246, 0.5)' },
+                            '100%': { boxShadow: '0 0 20px rgba(59, 130, 246, 0.8)' },
+                        },
+                        slideIn: {
+                            '0%': { opacity: '0', transform: 'translateY(20px)' },
+                            '100%': { opacity: '1', transform: 'translateY(0)' },
+                        }
+                    },
+                    backgroundImage: {
+                        'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
+                        'gradient-conic': 'conic-gradient(from 180deg at 50% 50%, var(--tw-gradient-stops))',
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .content-auto {
+                content-visibility: auto;
+            }
+            .card-shadow {
+                box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            }
+            .card-shadow-lg {
+                box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            }
+            .nav-shadow {
+                box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+            }
+            .tab-active {
+                @apply bg-gradient-to-r from-primary-600 to-accent-500 text-white shadow-md;
+            }
+            .tab-inactive {
+                @apply bg-white text-gray-700 hover:bg-gray-50 transition-all duration-300 border border-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700;
+            }
+            .form-input-focus {
+                @apply focus:ring-2 focus:ring-primary-500/50 focus:border-primary-500 transition-all duration-200;
+            }
+            .glass-effect {
+                background: rgba(255, 255, 255, 0.7);
+                backdrop-filter: blur(10px);
+                border: 1px solid rgba(255, 255, 255, 0.2);
+            }
+            .dark .glass-effect {
+                background: rgba(30, 41, 59, 0.7);
+                border: 1px solid rgba(51, 65, 85, 0.3);
+            }
+            .gradient-text {
+                @apply bg-gradient-to-r from-primary-600 to-purple-600 bg-clip-text text-transparent;
+            }
+        }
+    </style>
+    
+    <style>
+        /* 自定义动画与样式 */
+        .module-content {
+            display: none;
+            animation: fadeIn 0.5s ease forwards;
+        }
+        .module-content.active {
+            display: block;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .mermaid-container {
+            min-height: 400px;
+            border: 1px solid #e2e8f0;
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+            transition: all 0.3s ease;
+        }
+        .mermaid-container:hover {
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+        }
+        .principle-card {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .principle-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+        .analysis-result {
+            border-left: 4px solid #2563eb;
+            transition: all 0.3s ease;
+        }
+        .analysis-result:hover {
+            transform: translateX(5px);
+        }
+        /* 平滑滚动 */
+        html {
+            scroll-behavior: smooth;
+        }
+        /* 隐藏滚动条但保留功能 */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        /* 加载动画 */
+        .loader {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #3498db;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 2s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        /* 任务项样式 */
+        .task-item {
+            transition: all 0.3s ease;
+        }
+        .task-item:hover {
+            background-color: #f8fafc;
+        }
+        /* 成功提示 */
+        .toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 12px 20px;
+            background-color: #10b981;
+            color: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+            transform: translateX(150%);
+            transition: transform 0.3s ease;
+        }
+        .toast.show {
+            transform: translateX(0);
+        }
+        .toast.error {
+            background-color: #ef4444;
+        }
+        .toast.warning {
+            background-color: #f59e0b;
+        }
+
+        /* 成就系统样式 */
+        .achievement-badge {
+            display: inline-flex;
+            align-items: center;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 20px;
+            padding: 4px 12px;
+            font-size: 0.75rem;
+            margin: 2px;
+            animation: pulse-slow 2s infinite;
+        }
+
+        /* 进度条样式 */
+        .progress-bar {
+            height: 8px;
+            border-radius: 4px;
+            background-color: #e5e7eb;
+            overflow: hidden;
+        }
+        .progress-fill {
+            height: 100%;
+            border-radius: 4px;
+            background: linear-gradient(90deg, #3b82f6, #8b5cf6);
+            transition: width 0.5s ease;
+        }
+
+        /* 渐变背景动画 */
+        .gradient-bg {
+            background: linear-gradient(-45deg, #ee7752, #e73c7e, #23a6d5, #23d5ab);
+            background-size: 400% 400%;
+            animation: gradient 15s ease infinite;
+        }
+        @keyframes gradient {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* 暗色模式支持 */
+        .dark {
+            color-scheme: dark;
+        }
+        .dark .card-shadow {
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3), 0 4px 6px -2px rgba(0, 0, 0, 0.2);
+        }
+
+        /* 习惯追踪样式 */
+        .habit-tracker {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 8px;
+            margin-top: 16px;
+        }
+        .habit-day {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .habit-day.completed {
+            background: linear-gradient(135deg, #10b981, #34d399);
+            color: white;
+        }
+        .habit-day.missed {
+            background-color: #fef2f2;
+            color: #ef4444;
+        }
+        .habit-day.future {
+            background-color: #f3f4f6;
+            color: #9ca3af;
+        }
+        .habit-day.today {
+            border: 2px solid #3b82f6;
+        }
+
+        /* 知识卡片翻转效果 */
+        .knowledge-card {
+            perspective: 1000px;
+            height: 200px;
+        }
+        .knowledge-card-inner {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            text-align: center;
+            transition: transform 0.6s;
+            transform-style: preserve-3d;
+        }
+        .knowledge-card:hover .knowledge-card-inner {
+            transform: rotateY(180deg);
+        }
+        .knowledge-card-front, .knowledge-card-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            -webkit-backface-visibility: hidden;
+            backface-visibility: hidden;
+            border-radius: 12px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+        .knowledge-card-front {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        .knowledge-card-back {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            transform: rotateY(180deg);
+        }
+
+        /* 多巴胺进度条 */
+        .dopamine-progress {
+            height: 12px;
+            border-radius: 6px;
+            background: linear-gradient(90deg, #fbbf24, #f59e0b, #ef4444, #ec4899, #a855f7, #3b82f6);
+            background-size: 600% 100%;
+            animation: dopamine-gradient 3s ease infinite;
+        }
+        @keyframes dopamine-gradient {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* 科学原理卡片 */
+        .science-card {
+            background: linear-gradient(135deg, #fdfcfb 0%, #e2d1c3 100%);
+            border-radius: 12px;
+            padding: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+        .science-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: linear-gradient(90deg, #3b82f6, #8b5cf6, #ec4899);
+        }
+        .dark .science-card {
+            background: linear-gradient(135deg, #334155 0%, #1e293b 100%);
+        }
+
+        /* 番茄钟样式 */
+        .pomodoro-timer {
+            width: 300px;
+            height: 300px;
+            border-radius: 50%;
+            background: conic-gradient(#3b82f6 0%, #e5e7eb 0%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            margin: 0 auto;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        }
+        .pomodoro-inner {
+            width: 260px;
+            height: 260px;
+            border-radius: 50%;
+            background: white;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        .pomodoro-time {
+            font-size: 3rem;
+            font-weight: bold;
+            color: #1f2937;
+        }
+        .pomodoro-status {
+            font-size: 1.2rem;
+            color: #6b7280;
+            margin-top: 10px;
+        }
+        .pomodoro-controls {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        .dark .pomodoro-inner {
+            background: #374151;
+        }
+        .dark .pomodoro-time {
+            color: #f9fafb;
+        }
+
+        /* 间隔重复卡片样式 */
+        .spaced-repetition-card {
+            min-height: 200px;
+            border-radius: 12px;
+            padding: 20px;
+            background: white;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .spaced-repetition-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
+        }
+        .dark .spaced-repetition-card {
+            background: #374151;
+        }
+
+        /* 学习分析图表容器 */
+        .learning-chart-container {
+            height: 300px;
+            position: relative;
+        }
+
+        /* 响应式设计改进 */
+        @media (max-width: 768px) {
+            .mobile-card {
+                margin-bottom: 16px;
+            }
+            .mobile-flex-col {
+                flex-direction: column;
+            }
+            .pomodoro-timer {
+                width: 250px;
+                height: 250px;
+            }
+            .pomodoro-inner {
+                width: 210px;
+                height: 210px;
+            }
+            .pomodoro-time {
+                font-size: 2.5rem;
+            }
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 font-sans text-gray-800 dark:text-gray-200 min-h-screen">
+    <!-- 主题切换按钮 -->
+    <button id="theme-toggle" class="fixed top-4 right-4 z-50 p-3 bg-white dark:bg-gray-800 rounded-full shadow-lg hover:shadow-xl transition-all duration-300">
+        <i class="fa fa-moon text-gray-700 dark:text-yellow-300 text-lg" id="theme-icon"></i>
+    </button>
+
+    <!-- 成功提示 -->
+    <div id="toast" class="toast">
+        <span id="toast-message">操作成功</span>
+    </div>
+
+    <!-- 成就提示 -->
+    <div id="achievement-toast" class="toast hidden" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+        <div class="flex items-center">
+            <i class="fa fa-trophy mr-2"></i>
+            <span id="achievement-message">成就已解锁！</span>
+        </div>
+    </div>
+
+    <!-- 页面头部：标题与说明 -->
+    <header class="relative overflow-hidden py-12 px-4 md:px-8">
+        <div class="absolute inset-0 bg-gradient-to-r from-primary-500/20 to-purple-500/20"></div>
+        <div class="max-w-7xl mx-auto relative z-10">
+            <div class="flex flex-col md:flex-row items-center justify-between gap-6">
+                <div class="text-center md:text-left">
+                    <h1 class="text-4xl md:text-5xl font-bold gradient-text flex items-center justify-center md:justify-start mb-4">
+                        <i class="fa fa-lightbulb-o mr-3 text-yellow-400 animate-pulse"></i>
+                        科学方法可视化分析系统
+                    </h1>
+                    <p class="text-xl text-gray-600 dark:text-gray-300 max-w-2xl mb-6">
+                        基于认知科学、行为心理学与多巴胺理论，助您高效学习、养成习惯、实现目标
+                    </p>
+                    <div class="flex flex-wrap gap-3 justify-center md:justify-start">
+                        <span class="px-3 py-1 bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300 rounded-full text-sm">认知科学</span>
+                        <span class="px-3 py-1 bg-success-100 dark:bg-success-900/30 text-success-700 dark:text-success-300 rounded-full text-sm">行为心理学</span>
+                        <span class="px-3 py-1 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 rounded-full text-sm">多巴胺理论</span>
+                        <span class="px-3 py-1 bg-pink-100 dark:bg-pink-900/30 text-pink-700 dark:text-pink-300 rounded-full text-sm">费曼技巧</span>
+                    </div>
+                </div>
+                <div class="flex flex-wrap gap-3 justify-center mt-6 md:mt-0">
+                    <div class="bg-white/70 dark:bg-gray-800/70 backdrop-blur-sm px-4 py-3 rounded-xl shadow-md flex items-center">
+                        <i class="fa fa-star mr-2 text-yellow-500"></i>
+                        <span class="font-bold text-lg" id="user-points">0</span>
+                        <span class="ml-1 text-gray-600 dark:text-gray-400">积分</span>
+                    </div>
+                    <button id="export-data" class="bg-white/70 dark:bg-gray-800/70 backdrop-blur-sm px-4 py-3 rounded-xl shadow-md flex items-center hover:shadow-lg transition-all duration-300">
+                        <i class="fa fa-download mr-2 text-primary-600"></i>
+                        <span>导出数据</span>
+                    </button>
+                    <button id="import-data" class="bg-white/70 dark:bg-gray-800/70 backdrop-blur-sm px-4 py-3 rounded-xl shadow-md flex items-center hover:shadow-lg transition-all duration-300">
+                        <i class="fa fa-upload mr-2 text-accent-600"></i>
+                        <span>导入数据</span>
+                    </button>
+                    <input type="file" id="import-file" class="hidden" accept=".json">
+                </div>
+            </div>
+        </div>
+        
+        <!-- 浮动元素装饰 -->
+        <div class="absolute top-10 left-10 w-20 h-20 bg-primary-300/30 rounded-full animate-float"></div>
+        <div class="absolute bottom-10 right-10 w-16 h-16 bg-purple-300/30 rounded-full animate-float" style="animation-delay: 2s;"></div>
+        <div class="absolute top-20 right-20 w-12 h-12 bg-pink-300/30 rounded-full animate-float" style="animation-delay: 4s;"></div>
+        <div class="absolute bottom-20 left-20 w-14 h-14 bg-accent-300/30 rounded-full animate-float" style="animation-delay: 1s;"></div>
+    </header>
+
+    <!-- 用户成就展示 -->
+    <div class="bg-white/70 dark:bg-gray-800/70 backdrop-blur-sm border-b border-gray-200 dark:border-gray-700 py-3 px-4 sticky top-0 z-30">
+        <div class="max-w-7xl mx-auto">
+            <div class="flex items-center justify-between">
+                <div class="flex overflow-x-auto gap-2 no-scrollbar py-1 flex-1" id="achievement-container">
+                    <!-- 成就徽章将通过JS动态生成 -->
+                </div>
+                <div class="text-sm text-gray-500 dark:text-gray-400 ml-4 whitespace-nowrap">
+                    <i class="fa fa-fire text-orange-500 mr-1"></i>
+                    <span id="streak-count">0</span> 天连续记录
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 导航栏：模块切换 -->
+    <nav class="bg-white/70 dark:bg-gray-800/70 backdrop-blur-sm nav-shadow sticky top-12 z-20">
+        <div class="max-w-7xl mx-auto px-4 md:px-8">
+            <div class="flex overflow-x-auto py-4 space-x-2 md:space-x-4 no-scrollbar">
+                <button class="module-tab whitespace-nowrap px-5 py-3 rounded-xl tab-active" data-target="record-things">
+                    <i class="fa fa-list-alt mr-2"></i>记录事情
+                </button>
+                <button class="module-tab whitespace-nowrap px-5 py-3 rounded-xl tab-inactive" data-target="analyze-problem">
+                    <i class="fa fa-search mr-2"></i>分析问题
+                </button>
+                <button class="module-tab whitespace-nowrap px-5 py-3 rounded-xl tab-inactive" data-target="record-learning">
+                    <i class="fa fa-graduation-cap mr-2"></i>高效学习
+                </button>
+                <button class="module-tab whitespace-nowrap px-5 py-3 rounded-xl tab-inactive" data-target="habit-building">
+                    <i class="fa fa-repeat mr-2"></i>习惯养成
+                </button>
+                <button class="module-tab whitespace-nowrap px-5 py-3 rounded-xl tab-inactive" data-target="review-summary">
+                    <i class="fa fa-refresh mr-2"></i>总结复盘
+                </button>
+                <button class="module-tab whitespace-nowrap px-5 py-3 rounded-xl tab-inactive" data-target="plan-goal">
+                    <i class="fa fa-bullseye mr-2"></i>规划目标
+                </button>
+                <button class="module-tab whitespace-nowrap px-5 py-3 rounded-xl tab-inactive" data-target="dashboard">
+                    <i class="fa fa-dashboard mr-2"></i>数据看板
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 核心内容区：各模块内容 -->
+    <main class="max-w-7xl mx-auto px-4 md:px-8 py-8">
+        <!-- 1. 记录事情模块 -->
+        <section id="record-things" class="module-content active">
+            <div class="bg-white dark:bg-gray-800 rounded-2xl card-shadow-lg p-6 md:p-8 mb-8 glass-effect animate-slide-in">
+                <div class="flex items-center mb-8">
+                    <div class="bg-gradient-to-r from-primary-500 to-accent-500 p-4 rounded-2xl mr-5 shadow-lg">
+                        <i class="fa fa-list-alt text-3xl text-white"></i>
+                    </div>
+                    <div>
+                        <h2 class="text-3xl font-bold gradient-text">记录事情：高效留存与快速提取</h2>
+                        <p class="text-gray-600 dark:text-gray-300 mt-2">基于认知负荷理论与记忆编码原理，优化信息处理流程</p>
+                    </div>
+                </div>
+                
+                <div class="grid md:grid-cols-3 gap-6 mb-8">
+                    <!-- 科学原理卡片 -->
+                    <div class="science-card">
+                        <h3 class="font-bold text-primary-700 dark:text-primary-300 text-lg mb-3 flex items-center">
+                            <i class="fa fa-brain mr-2"></i>认知负荷理论
+                        </h3>
+                        <p class="text-gray-700 dark:text-gray-300 text-sm">
+                            工作记忆容量有限（4±1个信息块），需将复杂信息分解为小块，减少无关认知负荷。
+                        </p>
+                        <div class="mt-3 text-xs text-gray-500 dark:text-gray-400">
+                            <i class="fa fa-lightbulb-o mr-1"></i>
+                            <span>应用：使用模板简化输入</span>
+                        </div>
+                    </div>
+                    
+                    <div class="science-card">
+                        <h3 class="font-bold text-primary-700 dark:text-primary-300 text-lg mb-3 flex items-center">
+                            <i class="fa fa-history mr-2"></i>记忆编码特异性
+                        </h3>
+                        <p class="text-gray-700 dark:text-gray-300 text-sm">
+                            记录时关联场景/情绪线索，提升回忆准确率，记忆提取依赖编码时的环境线索。
+                        </p>
+                        <div class="mt-3 text-xs text-gray-500 dark:text-gray-400">
+                            <i class="fa fa-lightbulb-o mr-1"></i>
+                            <span>应用：添加详细上下文信息</span>
+                        </div>
+                    </div>
+                    
+                    <div class="science-card">
+                        <h3 class="font-bold text-primary-700 dark:text-primary-300 text-lg mb-3 flex items-center">
+                            <i class="fa fa-puzzle-piece mr-2"></i>组块化原理
+                        </h3>
+                        <p class="text-gray-700 dark:text-gray-300 text-sm">
+                            将相关信息组织成有意义的组块，提高记忆容量和提取效率。
+                        </p>
+                        <div class="mt-3 text-xs text-gray-500 dark:text-gray-400">
+                            <i class="fa fa-lightbulb-o mr-1"></i>
+                            <span>应用：分类和标签化任务</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 快速输入模板 -->
+                <div class="mb-8">
+                    <h3 class="text-xl font-semibold text-gray-700 dark:text-gray-300 mb-4 flex items-center">
+                        <i class="fa fa-rocket text-accent-500 mr-2"></i>快速模板
+                    </h3>
+                    <div class="flex flex-wrap gap-3">
+                        <button class="template-btn px-4 py-3 bg-gradient-to-r from-primary-100 to-accent-100 dark:from-primary-900/30 dark:to-accent-900/30 rounded-xl text-sm hover:shadow-md transition-all duration-300 flex items-center" data-template="meeting">
+                            <i class="fa fa-users mr-2 text-primary-600"></i>会议记录
+                        </button>
+                        <button class="template-btn px-4 py-3 bg-gradient-to-r from-success-100 to-accent-100 dark:from-success-900/30 dark:to-accent-900/30 rounded-xl text-sm hover:shadow-md transition-all duration-300 flex items-center" data-template="task">
+                            <i class="fa fa-check-square mr-2 text-success-600"></i>任务事项
+                        </button>
+                        <button class="template-btn px-4 py-3 bg-gradient-to-r from-purple-100 to-pink-100 dark:from-purple-900/30 dark:to-pink-900/30 rounded-xl text-sm hover:shadow-md transition-all duration-300 flex items-center" data-template="idea">
+                            <i class="fa fa-lightbulb-o mr-2 text-purple-600"></i>灵感想法
+                        </button>
+                        <button class="template-btn px-4 py-3 bg-gradient-to-r from-warning-100 to-accent-100 dark:from-warning-900/30 dark:to-accent-900/30 rounded-xl text-sm hover:shadow-md transition-all duration-300 flex items-center" data-template="reminder">
+                            <i class="fa fa-bell mr-2 text-warning-600"></i>重要提醒
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- 数据输入区 -->
+                <div class="mb-8 border border-gray-200 dark:border-gray-700 rounded-2xl p-6 bg-gradient-to-br from-gray-50 to-white dark:from-gray-700/50 dark:to-gray-800/50 shadow-md">
+                    <h3 class="text-xl font-semibold text-gray-700 dark:text-gray-300 mb-4 flex items-center">
+                        <i class="fa fa-pencil text-accent-500 mr-2"></i>事务数据输入
+                    </h3>
+                    <div class="grid md:grid-cols-3 gap-4 mb-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">事务名称</label>
+                            <input type="text" id="task-name" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg form-input-focus bg-white dark:bg-gray-800" placeholder="例如：产品原型评审">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">时间</label>
+                            <input type="text" id="task-time" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg form-input-focus bg-white dark:bg-gray-800" placeholder="例如：10:00">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">相关方</label>
+                            <input type="text" id="task-related" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg form-input-focus bg-white dark:bg-gray-800" placeholder="例如：设计部">
+                        </div>
+                    </div>
+                    <div class="grid md:grid-cols-2 gap-4 mb-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">状态</label>
+                            <select id="task-status" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg form-input-focus bg-white dark:bg-gray-800">
+                                <option value="todo">待办</option>
+                                <option value="doing">进行中</option>
+                                <option value="done">已完成</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">优先级</label>
+                            <select id="task-priority" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg form-input-focus bg-white dark:bg-gray-800">
+                                <option value="3">★★★ 紧急重要</option>
+                                <option value="2" selected>★★ 重要不紧急</option>
+                                <option value="1">★ 紧急不重要</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">详细描述</label>
+                        <textarea id="task-description" rows="3" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg form-input-focus bg-white dark:bg-gray-800" placeholder="添加更多细节、上下文或备注..."></textarea>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <div class="text-sm text-gray-500 dark:text-gray-400 flex items-center">
+                            <i class="fa fa-keyboard-o mr-2"></i>
+                            <span>提示：按 Ctrl+Enter 快速添加</span>
+                        </div>
+                        <button id="add-task" class="bg-gradient-to-r from-primary-600 to-accent-500 hover:from-primary-700 hover:to-accent-600 text-white px-5 py-2.5 rounded-lg transition-all duration-300 flex items-center shadow-md hover:shadow-lg">
+                            <i class="fa fa-plus mr-2"></i>添加事务
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 事务列表 -->
+                <div class="mb-8">
+                    <h3 class="text-xl font-semibold text-gray-700 dark:text-gray-300 mb-4 flex items-center justify-between">
+                        <span><i class="fa fa-tasks text-accent-500 mr-2"></i>事务列表</span>
+                        <div class="flex items-center text-sm">
+                            <span class="mr-2 text-gray-500 dark:text-gray-400">筛选:</span>
+                            <select id="task-filter" class="px-3 py-1.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800">
+                                <option value="all">全部</option>
+                                <option value="todo">待办</option>
+                                <option value="doing">进行中</option>
+                                <option value="done">已完成</option>
+                            </select>
+                        </div>
+                    </h3>
+                    <div id="task-list" class="border border-gray-200 dark:border-gray-700 rounded-2xl overflow-hidden bg-white dark:bg-gray-800 shadow-sm">
+                        <!-- 事务列表将通过JS动态生成 -->
+                        <div class="p-6 text-center text-gray-500 dark:text-gray-400" id="empty-task-message">
+                            <i class="fa fa-inbox text-4xl mb-3 opacity-50"></i>
+                            <p class="text-lg">暂无事务记录</p>
+                            <p class="text-sm mt-1">使用上方表单或模板添加您的事务</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 自动分析结果与可视化 -->
+                <div class="mb-8">
+                    <h3 class="text-xl font-semibold text-gray-700 dark:text-gray-300 mb-4 flex items-center">
+                        <i class="fa fa-bar-chart text-accent-500 mr-2"></i>事务分析与可视化
+                    </h3>
+                    <div class="grid md:grid-cols-2 gap-6 mb-6">
+                        <div class="bg-white dark:bg-gray-800 p-5 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-md">
+                            <h4 class="font-medium text-primary-600 dark:text-primary-400 text-lg mb-3">事务状态分布</h4>
+                            <div class="h-64">
+                                <canvas id="taskStatusChart"></canvas>
+                            </div>
+                        </div>
+                        <div class="bg-white dark:bg-gray-800 p-5 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-md">
+                            <h4 class="font-medium text-primary-600 dark:text-primary-400 text-lg mb-3">优先级分布</h4>
+                            <div class="h-64">
+                                <canvas id="taskPriorityChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="analysis-result bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 p-5 rounded-2xl mb-6 shadow-sm">
+                        <h4 class="font-medium text-primary-600 dark:text-primary-400 text-lg mb-2 flex items-center">
+                            <i class="fa fa-lightbulb-o mr-2"></i>自动分析结论
+                        </h4>
+                        <p class="text-gray-700 dark:text-gray-300" id="task-analysis-result">
+                            请添加事务数据以获取分析结果...
+                        </p>
+                    </div>
+                    
+                    <div>
+                        <h4 class="font-medium text-primary-600 dark:text-primary-400 text-lg mb-3">事务清单思维导图</h4>
+                        <div class="mermaid-container bg-white dark:bg-gray-800 rounded-2xl shadow-sm" id="task-mindmap">
+                            <div class="mermaid">
+                                graph TD
+                                    A[事务记录] --> B[待办]
+                                    A --> C[进行中]
+                                    A --> D[已完成]
+                                    
+                                    B --> B1[点击"添加事务"按钮添加内容]
+                                    C --> C1[点击"添加事务"按钮添加内容]
+                                    D --> D1[点击"添加事务"按钮添加内容]
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 2. 分析问题模块 -->
+        <section id="analyze-problem" class="module-content">
+            <div class="bg-white dark:bg-gray-800 rounded-2xl card-shadow-lg p-6 md:p-8 mb-8 glass-effect">
+                <div class="flex items-center mb-8">
+                    <div class="bg-gradient-to-r from-success-500 to-accent-500 p-4 rounded-2xl mr-5 shadow-lg">
+                        <i class="fa fa-search text-3xl text-white"></i>
+                    </div>
+                    <div>
+                        <h2 class="text-3xl font-bold gradient-text">分析问题：结构化思维与科学方法</h2>
+                        <p class="text-gray-600 dark:text-gray-300 mt-2">运用MECE原则、5Why分析法等结构化思维工具，系统化解决问题</p>
+                    </div>
+                </div>
+                
+                <!-- 问题分析表单 -->
+                <div class="mb-8 border border-gray-200 dark:border-gray-700 rounded-2xl p-6 bg-gradient-to-br from-gray-50 to-white dark:from-gray-700/50 dark:to-gray-800/50 shadow-md">
+                    <h3 class="text-xl font-semibold text-gray-700 dark:text-gray-300 mb-4 flex items-center">
+                        <i class="fa fa-question-circle text-accent-500 mr-2"></i>问题分析
+                    </h3>
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">问题描述</label>
+                        <textarea id="problem-description" rows="3" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg form-input-focus bg-white dark:bg-gray-800" placeholder="请详细描述您遇到的问题..."></textarea>
+                    </div>
+                    <div class="grid md:grid-cols-2 gap-4 mb-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">问题类型</label>
+                            <select id="problem-type" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg form-input-focus bg-white dark:bg-gray-800">
+                                <option value="decision">决策问题</option>
+                                <option value="analysis">分析问题</option>
+                                <option value="creative">创意问题</option>
+                                <option value="process">流程问题</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">紧急程度</label>
+                            <select id="problem-urgency" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg form-input-focus bg-white dark:bg-gray-800">
+                                <option value="high">高</option>
+                                <option value="medium" selected>中</option>
+                                <option value="low">低</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <div class="text-sm text-gray-500 dark:text-gray-400 flex items-center">
+                            <i class="fa fa-lightbulb-o mr-2"></i>
+                            <span>提示：使用5Why分析法深入问题根源</span>
+                        </div>
+                        <button id="analyze-problem-btn" class="bg-gradient-to-r from-success-600 to-accent-500 hover:from-success-700 hover:to-accent-600 text-white px-5 py-2.5 rounded-lg transition-all duration-300 flex items-center shadow-md hover:shadow-lg">
+                            <i class="fa fa-magic mr-2"></i>分析问题
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 分析结果 -->
+                <div class="mb-8">
+                    <h3 class="text-xl font-semibold text-gray-700 dark:text-gray-300 mb-4 flex items-center">
+                        <i class="fa fa-bar-chart text-accent-500 mr-2"></i>分析结果
+                    </h3>
+                    <div class="bg-white dark:bg-gray-800 p-5 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-md">
+                        <div id="problem-analysis-result" class="text-gray-700 dark:text-gray-300">
+                            <p class="text-center py-8 text-gray-500">请先输入问题并点击"分析问题"按钮</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 3. 高效学习模块 -->
+        <section id="record-learning" class="module-content">
+            <div class="bg-white dark:bg-gray-800 rounded-2xl card-shadow-lg p-6 md:p-8 mb-8 glass-effect">
+                <div class="flex items-center mb-8">
+                    <div class="bg-gradient-to-r from-purple-500 to-pink-500 p-4 rounded-2xl mr-5 shadow-lg">
+                        <i class="fa fa-graduation-cap text-3xl text-white"></i>
+                    </div>
+                    <div>
+                        <h2 class="text-3xl font-bold gradient-text">高效学习：认知科学与费曼技巧</h2>
+                        <p class="text-gray-600 dark:text-gray-300 mt-2">运用间隔重复、主动回忆与费曼技巧，提升学习效率与知识留存率</p>
+                    </div>
+                </div>
+                
+                <!-- 番茄钟定时器 -->
+                <div class="mb-8 border border-gray-200 dark:border-gray-700 rounded-2xl p-6 bg-gradient-to-br from-gray-50 to-white dark:from-gray-700/50 dark:to-gray-800/50 shadow-md">
+                    <h3 class="text-xl font-semibold text-gray-700 dark:text-gray-300 mb-4 flex items-center">
+                        <i class="fa fa-clock-o text-accent-500 mr-2"></i>番茄工作法定时器
+                    </h3>
+                    <div class="flex flex-col items-center">
+                        <div class="pomodoro-timer mb-6">
+                            <div class="pomodoro-inner">
+                                <div class="pomodoro-time" id="pomodoro-time">25:00</div>
+                                <div class="pomodoro-status" id="pomodoro-status">准备开始</div>
+                            </div>
+                        </div>
+                        <div class="pomodoro-controls">
+                            <button id="pomodoro-start" class="bg-gradient-to-r from-primary-600 to-accent-500 hover:from-primary-700 hover:to-accent-600 text-white px-5 py-2.5 rounded-lg transition-all duration-300 flex items-center shadow-md hover:shadow-lg">
+                                <i class="fa fa-play mr-2"></i>开始
+                            </button>
+                            <button id="pomodoro-pause" class="bg-gradient-to-r from-warning-600 to-accent-500 hover:from-warning-700 hover:to-accent-600 text-white px-5 py-2.5 rounded-lg transition-all duration-300 flex items-center shadow-md hover:shadow-lg">
+                                <i class="fa fa-pause mr-2"></i>暂停
+                            </button>
+                            <button id="pomodoro-reset" class="bg-gradient-to-r from-gray-600 to-gray-500 hover:from-gray-700 hover:to-gray-600 text-white px-5 py-2.5 rounded-lg transition-all duration-300 flex items-center shadow-md hover:shadow-lg">
+                                <i class="fa fa-refresh mr-2"></i>重置
+                            </button>
+                        </div>
+                        <div class="mt-6 grid grid-cols-2 gap-4 w-full max-w-md">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">专注时间(分钟)</label>
+                                <input type="number" id="focus-time" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg form-input-focus bg-white dark:bg-gray-800" value="25" min="1" max="60">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">休息时间(分钟)</label>
+                                <input type="number" id="break-time" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg form-input-focus bg-white dark:bg-gray-800" value="5" min="1" max="30">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 间隔重复学习卡片 -->
+                <div class="mb-8 border border-gray-200 dark:border-gray-700 rounded-2xl p-6 bg-gradient-to-br from-gray-50 to-white dark:from-gray-700/50 dark:to-gray-800/50 shadow-md">
+                    <h3 class="text-xl font-semibold text-gray-700 dark:text-gray-300 mb-4 flex items-center">
+                        <i class="fa fa-retweet text-accent-500 mr-2"></i>间隔重复学习卡片
+                    </h3>
+                    <div class="mb-4">
+                        <p class="text-gray-600 dark:text-gray-300 mb-4">基于艾宾浩斯遗忘曲线，在最佳时间点复习知识，提高记忆保留率</p>
+                        <div class="flex justify-between items-center mb-4">
+                            <div class="text-sm text-gray-500 dark:text-gray-400">
+                                <span id="card-count">0</span> 张学习卡片
+                            </div>
+                            <button id="add-card-btn" class="bg-gradient-to-r from-primary-600 to-accent-500 hover:from-primary-700 hover:to-accent-600 text-white px-4 py-2 rounded-lg transition-all duration-300 flex items-center shadow-md hover:shadow-lg">
+                                <i class="fa fa-plus mr-2"></i>添加卡片
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div id="spaced-repetition-cards" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <!-- 卡片将通过JS动态生成 -->
+                        <div class="col-span-full text-center py-8 text-gray-500 dark:text-gray-400">
+                            <i class="fa fa-clone text-4xl mb-3 opacity-50"></i>
+                            <p class="text-lg">暂无学习卡片</p>
+                            <p class="text-sm mt-1">点击"添加卡片"按钮创建您的第一张学习卡片</p>
+                        </div>
+                    </div>
+                    
+                    <!-- 添加卡片表单 -->
+                    <div id="add-card-form" class="mt-6 p-4 border border-dashed border-gray-300 dark:border-gray-600 rounded-lg hidden">
+                        <h4 class="font-medium text-gray-700 dark:text-gray-300 mb-3">创建新学习卡片</h4>
+                        <div class="mb-3">
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">问题/概念</label>
+                            <input type="text" id="card-question" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg form-input-focus bg-white dark:bg-gray-800" placeholder="输入问题或概念">
+                        </div>
+                        <div class="mb-3">
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">答案/解释</label>
+                            <textarea id="card-answer" rows="3" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg form-input-focus bg-white dark:bg-gray-800" placeholder="输入答案或详细解释"></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">标签</label>
+                            <input type="text" id="card-tags" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg form-input-focus bg-white dark:bg-gray-800" placeholder="输入标签，用逗号分隔">
+                        </div>
+                        <div class="flex justify-end space-x-2">
+                            <button id="cancel-card" class="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-all duration-300">
+                                取消
+                            </button>
+                            <button id="save-card" class="bg-gradient-to-r from-primary-600 to-accent-500 hover:from-primary-700 hover:to-accent-600 text-white px-4 py-2 rounded-lg transition-all duration-300">
+                                保存卡片
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 主动回忆练习 -->
+                <div class="mb-8 border border-gray-200 dark:border-gray-700 rounded-2xl p-6 bg-gradient-to-br from-gray-50 to-white dark:from-gray-700/50 dark:to-gray-800/50 shadow-md">
+                    <h3 class="text-xl font-semibold text-gray-700 dark:text-gray-300 mb-4 flex items-center">
+                        <i class="fa fa-brain text-accent-500 mr-2"></i>主动回忆练习
+                    </h3>
+                    <div class="mb-4">
+                        <p class="text-gray-600 dark:text-gray-300 mb-4">通过主动提取记忆来加强知识连接，比被动复习更有效</p>
+                    </div>
+                    
+                    <div id="active-recall-exercise" class="bg-white dark:bg-gray-800 p-5 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm">
+                        <div id="recall-question" class="text-lg font-medium text-gray-800 dark:text-gray-200 mb-4 text-center">
+                            点击"开始练习"按钮开始主动回忆练习
+                        </div>
+                        <div id="recall-answer" class="hidden text-gray-600 dark:text-gray-300 mb-6 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                            <!-- 答案将在这里显示 -->
+                        </div>
+                        <div class="flex justify-center space-x-3">
+                            <button id="start-recall" class="bg-gradient-to-r from-primary-600 to-accent-500 hover:from-primary-700 hover:to-accent-600 text-white px-5 py-2.5 rounded-lg transition-all duration-300 flex items-center shadow-md hover:shadow-lg">
+                                <i class="fa fa-play mr-2"></i>开始练习
+                            </button>
+                            <button id="show-answer" class="bg-gradient-to-r from-purple-600 to-pink-500 hover:from-purple-700 hover:to-pink-600 text-white px-5 py-2.5 rounded-lg transition-all duration-300 flex items-center shadow-md hover:shadow-lg hidden">
+                                <i class="fa fa-eye mr-2"></i>显示答案
+                            </button>
+                            <div id="recall-feedback" class="hidden space-x-2">
+                                <button class="recall-feedback-btn px-4 py-2 bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 rounded-lg hover:bg-red-200 dark:hover:bg-red-800/50 transition-all duration-300" data-difficulty="hard">
+                                    困难
+                                </button>
+                                <button class="recall-feedback-btn px-4 py-2 bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300 rounded-lg hover:bg-yellow-200 dark:hover:bg-yellow-800/50 transition-all duration-300" data-difficulty="medium">
+                                    一般
+                                </button>
+                                <button class="recall-feedback-btn px-4 py-2 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 rounded-lg hover:bg-green-200 dark:hover:bg-green-800/50 transition-all duration-300" data-difficulty="easy">
+                                    简单
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-6">
+                        <h4 class="font-medium text-gray-700 dark:text-gray-300 mb-2">练习进度</h4>
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="recall-progress" style="width: 0%"></div>
+                        </div>
+                        <div class="flex justify-between text-sm text-gray-500 dark:text-gray-400 mt-1">
+                            <span>已完成: <span id="recall-completed">0</span></span>
+                            <span>总计: <span id="recall-total">0</span></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 学习记录与统计 -->
+                <div class="mb-8 border border-gray-200 dark:border-gray-700 rounded-2xl p-6 bg-gradient-to-br from-gray-50 to-white dark:from-gray-700/50 dark:to-gray-800/50 shadow-md">
+                    <h3 class="text-xl font-semibold text-gray-700 dark:text-gray-300 mb-4 flex items-center">
+                        <i class="fa fa-bar-chart text-accent-500 mr-2"></i>学习统计与分析
+                    </h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="bg-white dark:bg-gray-800 p-5 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm">
+                            <h4 class="font-medium text-primary-600 dark:text-primary-400 text-lg mb-3">学习时间分布</h4>
+                            <div class="learning-chart-container">
+                                <canvas id="learningTimeChart"></canvas>
+                            </div>
+                        </div>
+                        <div class="bg-white dark:bg-gray-800 p-5 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm">
+                            <h4 class="font-medium text-primary-600 dark:text-primary-400 text-lg mb-3">记忆保持曲线</h4>
+                            <div class="learning-chart-container">
+                                <canvas id="retentionChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 4. 习惯养成模块 -->
+        <section id="habit-building" class="module-content">
+            <div class="bg-white dark:bg-gray-800 rounded-2xl card-shadow-lg p-6 md:p-8 mb-8 glass-effect">
+                <div class="flex items-center mb-8">
+                    <div class="bg-gradient-to-r from-green-500 to-teal-500 p-4 rounded-2xl mr-5 shadow-lg">
+                        <i class="fa fa-repeat text-3xl text-white"></i>
+                    </div>
+                    <div>
+                        <h2 class="text-3xl font-bold gradient-text">习惯养成：行为心理学与多巴胺机制</h2>
+                        <p class="text-gray-600 dark:text-gray-300 mt-2">基于习惯回路理论，通过提示、惯常行为与奖励建立持久习惯</p>
+                    </div>
+                </div>
+                
+                <!-- 习惯追踪器 -->
+                <div class="mb-8 border border-gray-200 dark:border-gray-700 rounded-2xl p-6 bg-gradient-to-br from-gray-50 to-white dark:from-gray-700/50 dark:to-gray-800/50 shadow-md">
+                    <h3 class="text-xl font-semibold text-gray-700 dark:text-gray-300 mb-4 flex items-center">
+                        <i class="fa fa-calendar-check-o text-accent-500 mr-2"></i>习惯追踪
+                    </h3>
+                    
+                    <div class="mb-6">
+                        <div class="flex justify-between items-center mb-4">
+                            <h4 class="font-medium text-gray-700 dark:text-gray-300">我的习惯</h4>
+                            <button id="add-habit-btn" class="bg-gradient-to-r from-green-600 to-teal-500 hover:from-green-700 hover:to-teal-600 text-white px-4 py-2 rounded-lg transition-all duration-300 flex items-center shadow-md hover:shadow-lg">
+                                <i class="fa fa-plus mr-2"></i>添加习惯
+                            </button>
+                        </div>
+                        
+                        <div id="habits-list" class="space-y-4">
+                            <!-- 习惯列表将通过JS动态生成 -->
+                            <div class="text-center py-8 text-gray-500 dark:text-gray-400">
+                                <i class="fa fa-calendar-o text-4xl mb-3 opacity-50"></i>
+                                <p class="text-lg">暂无习惯记录</p>
+                                <p class="text-sm mt-1">点击"添加习惯"按钮创建您的第一个习惯</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 添加习惯表单 -->
+                    <div id="add-habit-form" class="mt-6 p-4 border border-dashed border-gray-300 dark:border-gray-600 rounded-lg hidden">
+                        <h4 class="font-medium text-gray-700 dark:text-gray-300 mb-3">创建新习惯</h4>
+                        <div class="mb-3">
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">习惯名称</label>
+                            <input type="text" id="habit-name" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg form-input-focus bg-white dark:bg-gray-800" placeholder="例如：每天阅读30分钟">
+                        </div>
+                        <div class="mb-3">
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">习惯类型</label>
+                            <select id="habit-type" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg form-input-focus bg-white dark:bg-gray-800">
+                                <option value="daily">每日习惯</option>
+                                <option value="weekly">每周习惯</option>
+                                <option value="monthly">每月习惯</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">目标天数</label>
+                            <input type="number" id="habit-target" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg form-input-focus bg-white dark:bg-gray-800" placeholder="例如：21" value="21">
+                        </div>
+                        <div class="mb-3">
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">奖励机制</label>
+                            <input type="text" id="habit-reward" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg form-input-focus bg-white dark:bg-gray-800" placeholder="例如：完成一周后看一场电影">
+                        </div>
+                        <div class="flex justify-end space-x-2">
+                            <button id="cancel-habit" class="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-all duration-300">
+                                取消
+                            </button>
+                            <button id="save-habit" class="bg-gradient-to-r from-green-600 to-teal-500 hover:from-green-700 hover:to-teal-600 text-white px-4 py-2 rounded-lg transition-all duration-300">
+                                保存习惯
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 习惯养成科学原理 -->
+                <div class="mb-8 border border-gray-200 dark:border-gray-700 rounded-2xl p-6 bg-gradient-to-br from-gray-50 to-white dark:from-gray-700/50 dark:to-gray-800/50 shadow-md">
+                    <h3 class="text-xl font-semibold text-gray-700 dark:text-gray-300 mb-4 flex items-center">
+                        <i class="fa fa-flask text-accent-500 mr-2"></i>习惯养成科学原理
+                    </h3>
+                    
+                    <div class="grid md:grid-cols-2 gap-6">
+                        <div class="science-card">
+                            <h3 class="font-bold text-primary-700 dark:text-primary-300 text-lg mb-3 flex items-center">
+                                <i class="fa fa-refresh mr-2"></i>习惯回路理论
+                            </h3>
+                            <p class="text-gray-700 dark:text-gray-300 text-sm">
+                                习惯形成包含三个要素：提示（触发行为）、惯常行为（行动本身）和奖励（行为带来的好处）。
+                            </p>
+                            <div class="mt-3 text-xs text-gray-500 dark:text-gray-400">
+                                <i class="fa fa-lightbulb-o mr-1"></i>
+                                <span>应用：设计明确的提示和奖励</span>
+                            </div>
+                        </div>
+                        
+                        <div class="science-card">
+                            <h3 class="font-bold text-primary-700 dark:text-primary-300 text-lg mb-3 flex items-center">
+                                <i class="fa fa-line-chart mr-2"></i>21/90规则
+                            </h3>
+                            <p class="text-gray-700 dark:text-gray-300 text-sm">
+                                形成习惯需要21天，而成为稳定习惯则需要90天。前21天是适应期，后69天是巩固期。
+                            </p>
+                            <div class="mt-3 text-xs text-gray-500 dark:text-gray-400">
+                                <i class="fa fa-lightbulb-o mr-1"></i>
+                                <span>应用：设置阶段性目标</span>
+                            </div>
+                        </div>
+                        
+                        <div class="science-card">
+                            <h3 class="font-bold text-primary-700 dark:text-primary-300 text-lg mb-3 flex items-center">
+                                <i class="fa fa-trophy mr-2"></i>多巴胺奖励机制
+                            </h3>
+                            <p class="text-gray-700 dark:text-gray-300 text-sm">
+                                多巴胺不仅在我们获得奖励时释放，也在预期奖励时释放，这强化了习惯回路。
+                            </p>
+                            <div class="mt-3 text-xs text-gray-500 dark:text-gray-400">
+                                <i class="fa fa-lightbulb-o mr-1"></i>
+                                <span>应用：设计即时和延迟奖励</span>
+                            </div>
+                        </div>
+                        
+                        <div class="science-card">
+                            <h3 class="font-bold text-primary-700 dark:text-primary-300 text-lg mb-3 flex items-center">
+                                <i class="fa fa-puzzle-piece mr-2"></i>小步渐进原则
+                            </h3>
+                            <p class="text-gray-700 dark:text-gray-300 text-sm">
+                                将大目标分解为小步骤，每次只专注于完成一小步，降低开始的心理障碍。
+                            </p>
+                            <div class="mt-3 text-xs text-gray-500 dark:text-gray-400">
+                                <i class="fa fa-lightbulb-o mr-1"></i>
+                                <span>应用：从微小习惯开始</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 习惯养成进度 -->
+                <div class="mb-8 border border-gray-200 dark:border-gray-700 rounded-2xl p-6 bg-gradient-to-br from-gray-50 to-white dark:from-gray-700/50 dark:to-gray-800/50 shadow-md">
+                    <h3 class="text-xl font-semibold text-gray-700 dark:text-gray-300 mb-4 flex items-center">
+                        <i class="fa fa-bar-chart text-accent-500 mr-2"></i>习惯养成进度
+                    </h3>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="bg-white dark:bg-gray-800 p-5 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm">
+                            <h4 class="font-medium text-primary-600 dark:text-primary-400 text-lg mb-3">习惯完成率</h4>
+                            <div class="learning-chart-container">
+                                <canvas id="habitCompletionChart"></canvas>
+                            </div>
+                        </div>
+                        <div class="bg-white dark:bg-gray-800 p-5 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm">
+                            <h4 class="font-medium text-primary-600 dark:text-primary-400 text-lg mb-3">习惯坚持天数</h4>
+                            <div class="learning-chart-container">
+                                <canvas id="habitStreakChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 5. 总结复盘模块 -->
+        <section id="review-summary" class="module-content">
+            <div class="bg-white dark:bg-gray-800 rounded-2xl card-shadow-lg p-6 md:p-8 mb-8 glass-effect">
+                <div class="flex items-center mb-8">
+                    <div class="bg-gradient-to-r from-blue-500 to-indigo-500 p-4 rounded-2xl mr-5 shadow-lg">
+                        <i class="fa fa-refresh text-3xl text-white"></i>
+                    </div>
+                    <div>
+                        <h2 class="text-3xl font-bold gradient-text">总结复盘：反思与优化</h2>
+                        <p class="text-gray-600 dark:text-gray-300 mt-2">基于PDCA循环与反思实践，持续改进个人效能与决策质量</p>
+                    </div>
+                </div>
+                
+                <!-- 复盘模板 -->
+                <div class="mb-8 border border-gray-200 dark:border-gray-700 rounded-2xl p-6 bg-gradient-to-br from-gray-50 to-white dark:from-gray-700/50 dark:to-gray-800/50 shadow-md">
+                    <h3 class="text-xl font-semibold text-gray-700 dark:text-gray-300 mb-4 flex items-center">
+                        <i class="fa fa-file-text-o text-accent-500 mr-2"></i>复盘模板
+                    </h3>
+                    
+                    <div class="flex flex-wrap gap-3 mb-6">
+                        <button class="review-template-btn px-4 py-3 bg-gradient-to-r from-primary-100 to-accent-100 dark:from-primary-900/30 dark:to-accent-900/30 rounded-xl text-sm hover:shadow-md transition-all duration-300 flex items-center" data-template="daily">
+                            <i class="fa fa-sun-o mr-2 text-primary-600"></i>每日复盘
+                        </button>
+                        <button class="review-template-btn px-4 py-3 bg-gradient-to-r from-success-100 to-accent-100 dark:from-success-900/30 dark:to-accent-900/30 rounded-xl text-sm hover:shadow-md transition-all duration-300 flex items-center" data-template="weekly">
+                            <i class="fa fa-calendar mr-2 text-success-600"></i>每周复盘
+                        </button>
+                        <button class="review-template-btn px-4 py-3 bg-gradient-to-r from-purple-100 to-pink-100 dark:from-purple-900/30 dark:to-pink-900/30 rounded-xl text-sm hover:shadow-md transition-all duration-300 flex items-center" data-template="monthly">
+                            <i class="fa fa-moon-o mr-2 text-purple-600"></i>每月复盘
+                        </button>
+                        <button class="review-template-btn px-4 py-3 bg-gradient-to-r from-warning-100 to-accent-100 dark:from-warning-900/30 dark:to-accent-900/30 rounded-xl text-sm hover:shadow-md transition-all duration-300 flex items-center" data-template="project">
+                            <i class="fa fa-briefcase mr-2 text-warning-600"></i>项目复盘
+                        </button>
+                    </div>
+                    
+                    <!-- 复盘表单 -->
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">复盘标题</label>
+                        <input type="text" id="review-title" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg form-input-focus bg-white dark:bg-gray-800" placeholder="例如：2023年10月工作复盘">
+                    </div>
+                    
+                    <div class="grid md:grid-cols-2 gap-4 mb-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">复盘周期</label>
+                            <select id="review-period" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg form-input-focus bg-white dark:bg-gray-800">
+                                <option value="daily">每日</option>
+                                <option value="weekly">每周</option>
+                                <option value="monthly">每月</option>
+                                <option value="quarterly">每季度</option>
+                                <option value="yearly">每年</option>
+                                <option value="project">项目</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">复盘日期</label>
+                            <input type="date" id="review-date" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg form-input-focus bg-white dark:bg-gray-800" value="">
+                        </div>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">成就与亮点</label>
+                        <textarea id="review-achievements" rows="3" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg form-input-focus bg-white dark:bg-gray-800" placeholder="记录这段时间的成就和亮点..."></textarea>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">挑战与困难</label>
+                        <textarea id="review-challenges" rows="3" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg form-input-focus bg-white dark:bg-gray-800" placeholder="记录遇到的挑战和困难..."></textarea>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">学习与反思</label>
+                        <textarea id="review-reflections" rows="3" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg form-input-focus bg-white dark:bg-gray-800" placeholder="记录学到的经验和反思..."></textarea>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">下一步行动计划</label>
+                        <textarea id="review-action-plan" rows="3" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg form-input-focus bg-white dark:bg-gray-800" placeholder="记录下一步的行动计划..."></textarea>
+                    </div>
+                    
+                    <div class="flex justify-between items-center">
+                        <div class="text-sm text-gray-500 dark:text-gray-400 flex items-center">
+                            <i class="fa fa-lightbulb-o mr-2"></i>
+                            <span>提示：定期复盘可以提升30%的决策质量</span>
+                        </div>
+                        <button id="save-review" class="bg-gradient-to-r from-blue-600 to-indigo-500 hover:from-blue-700 hover:to-indigo-600 text-white px-5 py-2.5 rounded-lg transition-all duration-300 flex items-center shadow-md hover:shadow-lg">
+                            <i class="fa fa-save mr-2"></i>保存复盘
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- 复盘记录 -->
+                <div class="mb-8">
+                    <h3 class="text-xl font-semibold text-gray-700 dark:text-gray-300 mb-4 flex items-center">
+                        <i class="fa fa-history text-accent-500 mr-2"></i>复盘记录
+                    </h3>
+                    <div id="reviews-list" class="border border-gray-200 dark:border-gray-700 rounded-2xl overflow-hidden bg-white dark:bg-gray-800 shadow-sm">
+                        <!-- 复盘记录将通过JS动态生成 -->
+                        <div class="p-6 text-center text-gray-500 dark:text-gray-400">
+                            <i class="fa fa-file-text-o text-4xl mb-3 opacity-50"></i>
+                            <p class="text-lg">暂无复盘记录</p>
+                            <p class="text-sm mt-1">使用上方表单创建您的第一份复盘记录</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 复盘分析 -->
+                <div class="mb-8 border border-gray-200 dark:border-gray-700 rounded-2xl p-6 bg-gradient-to-br from-gray-50 to-white dark:from-gray-700/50 dark:to-gray-800/50 shadow-md">
+                    <h3 class="text-xl font-semibold text-gray-700 dark:text-gray-300 mb-4 flex items-center">
+                        <i class="fa fa-bar-chart text-accent-500 mr-2"></i>复盘分析
+                    </h3>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="bg-white dark:bg-gray-800 p-5 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm">
+                            <h4 class="font-medium text-primary-600 dark:text-primary-400 text-lg mb-3">复盘频率分析</h4>
+                            <div class="learning-chart-container">
+                                <canvas id="reviewFrequencyChart"></canvas>
+                            </div>
+                        </div>
+                        <div class="bg-white dark:bg-gray-800 p-5 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm">
+                            <h4 class="font-medium text-primary-600 dark:text-primary-400 text-lg mb-3">问题类型分布</h4>
+                            <div class="learning-chart-container">
+                                <canvas id="problemTypeChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 6. 规划目标模块 -->
+        <section id="plan-goal" class="module-content">
+            <div class="bg-white dark:bg-gray-800 rounded-2xl card-shadow-lg p-6 md:p-8 mb-8 glass-effect">
+                <div class="flex items-center mb-8">
+                    <div class="bg-gradient-to-r from-purple-500 to-pink-500 p-4 rounded-2xl mr-5 shadow-lg">
+                        <i class="fa fa-bullseye text-3xl text-white"></i>
+                    </div>
+                    <div>
+                        <h2 class="text-3xl font-bold gradient-text">规划目标：SMART原则与执行路径</h2>
+                        <p class="text-gray-600 dark:text-gray-300 mt-2">运用目标设定理论与执行意图，将愿景转化为可执行的行动计划</p>
+                    </div>
+                </div>
+                
+                <!-- 目标设定 -->
+                <div class="mb-8 border border-gray-200 dark:border-gray-700 rounded-2xl p-6 bg-gradient-to-br from-gray-50 to-white dark:from-gray-700/50 dark:to-gray-800/50 shadow-md">
+                    <h3 class="text-xl font-semibold text-gray-700 dark:text-gray-300 mb-4 flex items-center">
+                        <i class="fa fa-flag text-accent-500 mr-2"></i>目标设定
+                    </h3>
+                    
+                    <div class="mb-6">
+                        <div class="flex justify-between items-center mb-4">
+                            <h4 class="font-medium text-gray-700 dark:text-gray-300">我的目标</h4>
+                            <button id="add-goal-btn" class="bg-gradient-to-r from-purple-600 to-pink-500 hover:from-purple-700 hover:to-pink-600 text-white px-4 py-2 rounded-lg transition-all duration-300 flex items-center shadow-md hover:shadow-lg">
+                                <i class="fa fa-plus mr-2"></i>添加目标
+                            </button>
+                        </div>
+                        
+                        <div id="goals-list" class="space-y-4">
+                            <!-- 目标列表将通过JS动态生成 -->
+                            <div class="text-center py-8 text-gray-500 dark:text-gray-400">
+                                <i class="fa fa-bullseye text-4xl mb-3 opacity-50"></i>
+                                <p class="text-lg">暂无目标设定</p>
+                                <p class="text-sm mt-1">点击"添加目标"按钮设定您的第一个目标</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 添加目标表单 -->
+                    <div id="add-goal-form" class="mt-6 p-4 border border-dashed border-gray-300 dark:border-gray-600 rounded-lg hidden">
+                        <h4 class="font-medium text-gray-700 dark:text-gray-300 mb-3">设定新目标</h4>
+                        <div class="mb-3">
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">目标名称</label>
+                            <input type="text" id="goal-name" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg form-input-focus bg-white dark:bg-gray-800" placeholder="例如：三个月内完成在线课程">
+                        </div>
+                        <div class="grid md:grid-cols-2 gap-4 mb-3">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">开始日期</label>
+                                <input type="date" id="goal-start-date" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg form-input-focus bg-white dark:bg-gray-800">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">截止日期</label>
+                                <input type="date" id="goal-end-date" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg form-input-focus bg-white dark:bg-gray-800">
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">目标分类</label>
+                            <select id="goal-category" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg form-input-focus bg-white dark:bg-gray-800">
+                                <option value="career">职业发展</option>
+                                <option value="learning">学习成长</option>
+                                <option value="health">健康生活</option>
+                                <option value="finance">财务管理</option>
+                                <option value="relationship">人际关系</option>
+                                <option value="hobby">兴趣爱好</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">目标描述</label>
+                            <textarea id="goal-description" rows="3" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg form-input-focus bg-white dark:bg-gray-800" placeholder="详细描述您的目标..."></textarea>
+                        </div>
+                        <div class="flex justify-end space-x-2">
+                            <button id="cancel-goal" class="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-all duration-300">
+                                取消
+                            </button>
+                            <button id="save-goal" class="bg-gradient-to-r from-purple-600 to-pink-500 hover:from-purple-700 hover:to-pink-600 text-white px-4 py-2 rounded-lg transition-all duration-300">
+                                保存目标
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 目标分解 -->
+                <div class="mb-8 border border-gray-200 dark:border-gray-700 rounded-2xl p-6 bg-gradient-to-br from-gray-50 to-white dark:from-gray-700/50 dark:to-gray-800/50 shadow-md">
+                    <h3 class="text-xl font-semibold text-gray-700 dark:text-gray-300 mb-4 flex items-center">
+                        <i class="fa fa-sitemap text-accent-500 mr-2"></i>目标分解
+                    </h3>
+                    
+                    <div id="goal-breakdown" class="space-y-4">
+                        <div class="text-center py-8 text-gray-500 dark:text-gray-400">
+                            <i class="fa fa-sitemap text-4xl mb-3 opacity-50"></i>
+                            <p class="text-lg">暂无目标分解</p>
+                            <p class="text-sm mt-1">选择一个目标后，您可以将其分解为可执行的步骤</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 目标进度追踪 -->
+                <div class="mb-8 border border-gray-200 dark:border-gray-700 rounded-2xl p-6 bg-gradient-to-br from-gray-50 to-white dark:from-gray-700/50 dark:to-gray-800/50 shadow-md">
+                    <h3 class="text-xl font-semibold text-gray-700 dark:text-gray-300 mb-4 flex items-center">
+                        <i class="fa fa-line-chart text-accent-500 mr-2"></i>目标进度追踪
+                    </h3>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="bg-white dark:bg-gray-800 p-5 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm">
+                            <h4 class="font-medium text-primary-600 dark:text-primary-400 text-lg mb-3">目标完成情况</h4>
+                            <div class="learning-chart-container">
+                                <canvas id="goalCompletionChart"></canvas>
+                            </div>
+                        </div>
+                        <div class="bg-white dark:bg-gray-800 p-5 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm">
+                            <h4 class="font-medium text-primary-600 dark:text-primary-400 text-lg mb-3">目标时间分布</h4>
+                            <div class="learning-chart-container">
+                                <canvas id="goalTimelineChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 7. 数据看板模块 -->
+        <section id="dashboard" class="module-content">
+            <div class="bg-white dark:bg-gray-800 rounded-2xl card-shadow-lg p-6 md:p-8 mb-8 glass-effect">
+                <div class="flex items-center mb-8">
+                    <div class="bg-gradient-to-r from-orange-500 to-red-500 p-4 rounded-2xl mr-5 shadow-lg">
+                        <i class="fa fa-dashboard text-3xl text-white"></i>
+                    </div>
+                    <div>
+                        <h2 class="text-3xl font-bold gradient-text">数据看板：个人效能全景视图</h2>
+                        <p class="text-gray-600 dark:text-gray-300 mt-2">整合各模块数据，提供全面的个人成长与效能分析</p>
+                    </div>
+                </div>
+                
+                <!-- 关键指标 -->
+                <div class="mb-8 border border-gray-200 dark:border-gray-700 rounded-2xl p-6 bg-gradient-to-br from-gray-50 to-white dark:from-gray-700/50 dark:to-gray-800/50 shadow-md">
+                    <h3 class="text-xl font-semibold text-gray-700 dark:text-gray-300 mb-4 flex items-center">
+                        <i class="fa fa-tachometer text-accent-500 mr-2"></i>关键指标
+                    </h3>
+                    
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <div class="bg-white dark:bg-gray-800 p-4 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm text-center">
+                            <div class="text-2xl font-bold text-primary-600 dark:text-primary-400" id="dashboard-tasks-completed">0</div>
+                            <div class="text-sm text-gray-500 dark:text-gray-400">完成任务</div>
+                        </div>
+                        <div class="bg-white dark:bg-gray-800 p-4 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm text-center">
+                            <div class="text-2xl font-bold text-success-600 dark:text-success-400" id="dashboard-habits-streak">0</div>
+                            <div class="text-sm text-gray-500 dark:text-gray-400">习惯坚持天数</div>
+                        </div>
+                        <div class="bg-white dark:bg-gray-800 p-4 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm text-center">
+                            <div class="text-2xl font-bold text-purple-600 dark:text-purple-400" id="dashboard-goals-achieved">0</div>
+                            <div class="text-sm text-gray-500 dark:text-gray-400">达成目标</div>
+                        </div>
+                        <div class="bg-white dark:bg-gray-800 p-4 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm text-center">
+                            <div class="text-2xl font-bold text-accent-600 dark:text-accent-400" id="dashboard-learning-hours">0</div>
+                            <div class="text-sm text-gray-500 dark:text-gray-400">学习时长(小时)</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 综合图表 -->
+                <div class="mb-8 border border-gray-200 dark:border-gray-700 rounded-2xl p-6 bg-gradient-to-br from-gray-50 to-white dark:from-gray-700/50 dark:to-gray-800/50 shadow-md">
+                    <h3 class="text-xl font-semibold text-gray-700 dark:text-gray-300 mb-4 flex items-center">
+                        <i class="fa fa-bar-chart text-accent-500 mr-2"></i>综合图表
+                    </h3>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="bg-white dark:bg-gray-800 p-5 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm">
+                            <h4 class="font-medium text-primary-600 dark:text-primary-400 text-lg mb-3">各模块活动分布</h4>
+                            <div class="learning-chart-container">
+                                <canvas id="activityDistributionChart"></canvas>
+                            </div>
+                        </div>
+                        <div class="bg-white dark:bg-gray-800 p-5 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm">
+                            <h4 class="font-medium text-primary-600 dark:text-primary-400 text-lg mb-3">效能趋势</h4>
+                            <div class="learning-chart-container">
+                                <canvas id="efficiencyTrendChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 个性化建议 -->
+                <div class="mb-8 border border-gray-200 dark:border-gray-700 rounded-2xl p-6 bg-gradient-to-br from-gray-50 to-white dark:from-gray-700/50 dark:to-gray-800/50 shadow-md">
+                    <h3 class="text-xl font-semibold text-gray-700 dark:text-gray-300 mb-4 flex items-center">
+                        <i class="fa fa-lightbulb-o text-accent-500 mr-2"></i>个性化建议
+                    </h3>
+                    
+                    <div id="personalized-suggestions" class="space-y-4">
+                        <div class="analysis-result bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 p-5 rounded-2xl shadow-sm">
+                            <h4 class="font-medium text-primary-600 dark:text-primary-400 text-lg mb-2 flex items-center">
+                                <i class="fa fa-check-circle mr-2"></i>做得好的方面
+                            </h4>
+                            <p class="text-gray-700 dark:text-gray-300" id="positive-feedback">
+                                请继续使用系统以获取个性化建议...
+                            </p>
+                        </div>
+                        
+                        <div class="analysis-result bg-gradient-to-r from-yellow-50 to-orange-50 dark:from-yellow-900/20 dark:to-orange-900/20 p-5 rounded-2xl shadow-sm">
+                            <h4 class="font-medium text-warning-600 dark:text-warning-400 text-lg mb-2 flex items-center">
+                                <i class="fa fa-exclamation-circle mr-2"></i>改进建议
+                            </h4>
+                            <p class="text-gray-700 dark:text-gray-300" id="improvement-suggestions">
+                                请继续使用系统以获取改进建议...
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 数据导出 -->
+                <div class="border border-gray-200 dark:border-gray-700 rounded-2xl p-6 bg-gradient-to-br from-gray-50 to-white dark:from-gray-700/50 dark:to-gray-800/50 shadow-md">
+                    <h3 class="text-xl font-semibold text-gray-700 dark:text-gray-300 mb-4 flex items-center">
+                        <i class="fa fa-download text-accent-500 mr-2"></i>数据导出
+                    </h3>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="bg-white dark:bg-gray-800 p-4 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm">
+                            <h4 class="font-medium text-gray-700 dark:text-gray-300 mb-2">导出个人报告</h4>
+                            <p class="text-sm text-gray-500 dark:text-gray-400 mb-3">生成包含所有数据的个人效能报告</p>
+                            <button id="export-report" class="w-full bg-gradient-to-r from-primary-600 to-accent-500 hover:from-primary-700 hover:to-accent-600 text-white px-4 py-2 rounded-lg transition-all duration-300 flex items-center justify-center shadow-md hover:shadow-lg">
+                                <i class="fa fa-file-pdf-o mr-2"></i>生成PDF报告
+                            </button>
+                        </div>
+                        <div class="bg-white dark:bg-gray-800 p-4 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm">
+                            <h4 class="font-medium text-gray-700 dark:text-gray-300 mb-2">导出原始数据</h4>
+                            <p class="text-sm text-gray-500 dark:text-gray-400 mb-3">导出所有原始数据用于进一步分析</p>
+                            <button id="export-raw-data" class="w-full bg-gradient-to-r from-success-600 to-accent-500 hover:from-success-700 hover:to-accent-600 text-white px-4 py-2 rounded-lg transition-all duration-300 flex items-center justify-center shadow-md hover:shadow-lg">
+                                <i class="fa fa-file-excel-o mr-2"></i>导出CSV数据
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        // 初始化系统
+        document.addEventListener('DOMContentLoaded', function() {
+            // 初始化Mermaid
+            mermaid.initialize({ 
+                startOnLoad: true,
+                theme: document.documentElement.classList.contains('dark') ? 'dark' : 'default'
+            });
+
+            // 初始化主题
+            initTheme();
+
+            // 初始化模块切换
+            initModuleTabs();
+
+            // 初始化模板按钮
+            initTemplateButtons();
+
+            // 初始化事务功能
+            initTaskFunctionality();
+
+            // 初始化问题分析功能
+            initProblemAnalysis();
+
+            // 初始化番茄钟定时器
+            initPomodoroTimer();
+
+            // 初始化间隔重复卡片系统
+            initSpacedRepetitionCards();
+
+            // 初始化主动回忆练习
+            initActiveRecall();
+
+            // 初始化学习统计图表
+            initLearningCharts();
+
+            // 初始化习惯养成功能
+            initHabitBuilding();
+
+            // 初始化总结复盘功能
+            initReviewSummary();
+
+            // 初始化规划目标功能
+            initGoalPlanning();
+
+            // 初始化数据看板
+            initDashboard();
+
+            // 初始化导出导入功能
+            initDataExportImport();
+
+            // 初始化成就系统
+            initAchievementSystem();
+
+            // 更新图表和可视化
+            updateChartsAndVisualizations();
+        });
+
+        // 主题切换功能
+        function initTheme() {
+            const themeToggle = document.getElementById('theme-toggle');
+            const themeIcon = document.getElementById('theme-icon');
+            
+            // 检查本地存储或系统偏好
+            const isDarkMode = localStorage.getItem('darkMode') === 'true' || 
+                (!localStorage.getItem('darkMode') && window.matchMedia('(prefers-color-scheme: dark)').matches);
+            
+            if (isDarkMode) {
+                document.documentElement.classList.add('dark');
+                themeIcon.classList.replace('fa-moon', 'fa-sun');
+            }
+            
+            themeToggle.addEventListener('click', () => {
+                document.documentElement.classList.toggle('dark');
+                if (document.documentElement.classList.contains('dark')) {
+                    localStorage.setItem('darkMode', 'true');
+                    themeIcon.classList.replace('fa-moon', 'fa-sun');
+                } else {
+                    localStorage.setItem('darkMode', 'false');
+                    themeIcon.classList.replace('fa-sun', 'fa-moon');
+                }
+                // 重新初始化Mermaid以应用主题
+                mermaid.initialize({ 
+                    startOnLoad: false,
+                    theme: document.documentElement.classList.contains('dark') ? 'dark' : 'default'
+                });
+                mermaid.init(undefined, document.querySelectorAll('.mermaid'));
+                
+                // 重新渲染图表以应用主题
+                updateLearningCharts();
+            });
+        }
+
+        // 模块切换功能
+        function initModuleTabs() {
+            const moduleTabs = document.querySelectorAll('.module-tab');
+            const moduleContents = document.querySelectorAll('.module-content');
+            
+            moduleTabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    const targetId = tab.getAttribute('data-target');
+                    
+                    // 更新标签状态
+                    moduleTabs.forEach(t => {
+                        t.classList.remove('tab-active');
+                        t.classList.add('tab-inactive');
+                    });
+                    tab.classList.remove('tab-inactive');
+                    tab.classList.add('tab-active');
+                    
+                    // 更新内容显示
+                    moduleContents.forEach(content => {
+                        content.classList.remove('active');
+                    });
+                    document.getElementById(targetId).classList.add('active');
+                    
+                    // 更新URL哈希（可选）
+                    window.location.hash = targetId;
+                    
+                    // 显示成功提示
+                    showToast('已切换到' + tab.textContent.trim() + '模块');
+                    
+                    // 如果切换到高效学习模块，更新图表
+                    if (targetId === 'record-learning') {
+                        updateLearningCharts();
+                    }
+                    
+                    // 如果切换到数据看板模块，更新数据
+                    if (targetId === 'dashboard') {
+                        updateDashboardData();
+                    }
+                });
+            });
+            
+            // 检查URL哈希并激活对应模块
+            if (window.location.hash) {
+                const targetModule = document.getElementById(window.location.hash.substring(1));
+                if (targetModule) {
+                    const correspondingTab = document.querySelector(`.module-tab[data-target="${window.location.hash.substring(1)}"]`);
+                    if (correspondingTab) {
+                        correspondingTab.click();
+                    }
+                }
+            }
+        }
+
+        // 模板按钮功能
+        function initTemplateButtons() {
+            const templateButtons = document.querySelectorAll('.template-btn');
+            
+            templateButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    const templateType = button.getAttribute('data-template');
+                    applyTemplate(templateType);
+                    showToast(`已应用${button.textContent.trim()}模板`);
+                });
+            });
+        }
+
+        // 应用模板
+        function applyTemplate(templateType) {
+            const templates = {
+                meeting: {
+                    name: '会议记录',
+                    time: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}),
+                    related: '团队成员',
+                    status: 'done',
+                    priority: '2',
+                    description: '会议主题：\n参会人员：\n主要议题：\n决议事项：\n下一步行动：'
+                },
+                task: {
+                    name: '任务事项',
+                    time: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}),
+                    related: '个人',
+                    status: 'todo',
+                    priority: '2',
+                    description: '任务描述：\n预期结果：\n截止时间：\n所需资源：'
+                },
+                idea: {
+                    name: '灵感想法',
+                    time: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}),
+                    related: '个人',
+                    status: 'todo',
+                    priority: '1',
+                    description: '想法概述：\n潜在价值：\n实施步骤：\n所需资源：'
+                },
+                reminder: {
+                    name: '重要提醒',
+                    time: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}),
+                    related: '个人',
+                    status: 'todo',
+                    priority: '3',
+                    description: '提醒内容：\n重要程度：\n截止时间：\n相关事项：'
+                }
+            };
+            
+            const template = templates[templateType];
+            if (template) {
+                document.getElementById('task-name').value = template.name;
+                document.getElementById('task-time').value = template.time;
+                document.getElementById('task-related').value = template.related;
+                document.getElementById('task-status').value = template.status;
+                document.getElementById('task-priority').value = template.priority;
+                document.getElementById('task-description').value = template.description;
+            }
+        }
+
+        // 事务功能
+        function initTaskFunctionality() {
+            const addTaskBtn = document.getElementById('add-task');
+            const taskFilter = document.getElementById('task-filter');
+            
+            // 加载现有任务
+            loadTasks();
+            
+            // 添加任务事件
+            addTaskBtn.addEventListener('click', addTask);
+            
+            // 快捷键支持
+            document.addEventListener('keydown', (e) => {
+                if (e.ctrlKey && e.key === 'Enter') {
+                    addTask();
+                }
+            });
+            
+            // 筛选任务
+            taskFilter.addEventListener('change', filterTasks);
+        }
+
+        // 添加任务
+        function addTask() {
+            const taskName = document.getElementById('task-name').value.trim();
+            const taskTime = document.getElementById('task-time').value.trim();
+            const taskRelated = document.getElementById('task-related').value.trim();
+            const taskStatus = document.getElementById('task-status').value;
+            const taskPriority = document.getElementById('task-priority').value;
+            const taskDescription = document.getElementById('task-description').value.trim();
+            
+            if (!taskName) {
+                showToast('请输入事务名称', 'error');
+                return;
+            }
+            
+            const task = {
+                id: Date.now(),
+                name: taskName,
+                time: taskTime,
+                related: taskRelated,
+                status: taskStatus,
+                priority: taskPriority,
+                description: taskDescription,
+                createdAt: new Date().toISOString()
+            };
+            
+            // 保存任务
+            saveTask(task);
+            
+            // 清空表单
+            document.getElementById('task-name').value = '';
+            document.getElementById('task-time').value = '';
+            document.getElementById('task-related').value = '';
+            document.getElementById('task-status').value = 'todo';
+            document.getElementById('task-priority').value = '2';
+            document.getElementById('task-description').value = '';
+            
+            // 显示成功提示
+            showToast('事务已成功添加');
+            
+            // 更新任务列表
+            loadTasks();
+            
+            // 更新图表和可视化
+            updateChartsAndVisualizations();
+            
+            // 更新积分
+            updatePoints(5);
+        }
+
+        // 保存任务到本地存储
+        function saveTask(task) {
+            let tasks = JSON.parse(localStorage.getItem('tasks') || '[]');
+            tasks.push(task);
+            localStorage.setItem('tasks', JSON.stringify(tasks));
+        }
+
+        // 从本地存储加载任务
+        function loadTasks() {
+            const tasks = JSON.parse(localStorage.getItem('tasks') || '[]');
+            const taskList = document.getElementById('task-list');
+            const emptyTaskMessage = document.getElementById('empty-task-message');
+            
+            if (tasks.length === 0) {
+                emptyTaskMessage.style.display = 'block';
+                taskList.innerHTML = '';
+                taskList.appendChild(emptyTaskMessage);
+                return;
+            }
+            
+            emptyTaskMessage.style.display = 'none';
+            
+            // 根据筛选条件过滤任务
+            const filterValue = document.getElementById('task-filter').value;
+            const filteredTasks = filterValue === 'all' ? 
+                tasks : tasks.filter(task => task.status === filterValue);
+            
+            // 生成任务列表HTML
+            let tasksHTML = '';
+            filteredTasks.forEach(task => {
+                const statusText = {
+                    'todo': '待办',
+                    'doing': '进行中',
+                    'done': '已完成'
+                }[task.status];
+                
+                const priorityStars = '★'.repeat(parseInt(task.priority));
+                
+                tasksHTML += `
+                    <div class="task-item border-b border-gray-200 dark:border-gray-700 p-4 flex items-center justify-between" data-task-id="${task.id}">
+                        <div class="flex items-center">
+                            <div class="mr-4">
+                                <input type="checkbox" class="h-5 w-5 text-primary-600 rounded" ${task.status === 'done' ? 'checked' : ''}>
+                            </div>
+                            <div>
+                                <h4 class="font-medium text-gray-800 dark:text-gray-200">${task.name}</h4>
+                                <div class="flex items-center mt-1 text-sm text-gray-500 dark:text-gray-400">
+                                    <span class="mr-3"><i class="fa fa-clock-o mr-1"></i>${task.time}</span>
+                                    <span class="mr-3"><i class="fa fa-users mr-1"></i>${task.related}</span>
+                                    <span class="mr-3 badge badge-${task.status}">${statusText}</span>
+                                    <span>${priorityStars}</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="flex items-center">
+                            <button class="edit-task p-2 text-gray-500 hover:text-primary-600 dark:hover:text-primary-400">
+                                <i class="fa fa-edit"></i>
+                            </button>
+                            <button class="delete-task p-2 text-gray-500 hover:text-red-600 dark:hover:text-red-400 ml-2">
+                                <i class="fa fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            taskList.innerHTML = tasksHTML;
+            
+            // 添加任务操作事件
+            document.querySelectorAll('.edit-task').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const taskId = this.closest('.task-item').getAttribute('data-task-id');
+                    editTask(taskId);
+                });
+            });
+            
+            document.querySelectorAll('.delete-task').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const taskId = this.closest('.task-item').getAttribute('data-task-id');
+                    deleteTask(taskId);
+                });
+            });
+            
+            document.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
+                checkbox.addEventListener('change', function() {
+                    const taskId = this.closest('.task-item').getAttribute('data-task-id');
+                    toggleTaskStatus(taskId, this.checked);
+                });
+            });
+        }
+
+        // 编辑任务
+        function editTask(taskId) {
+            const tasks = JSON.parse(localStorage.getItem('tasks') || '[]');
+            const task = tasks.find(t => t.id == taskId);
+            
+            if (task) {
+                document.getElementById('task-name').value = task.name;
+                document.getElementById('task-time').value = task.time;
+                document.getElementById('task-related').value = task.related;
+                document.getElementById('task-status').value = task.status;
+                document.getElementById('task-priority').value = task.priority;
+                document.getElementById('task-description').value = task.description;
+                
+                // 删除原任务
+                deleteTask(taskId, false);
+                
+                showToast('任务已加载到编辑表单');
+            }
+        }
+
+        // 删除任务
+        function deleteTask(taskId, showMessage = true) {
+            let tasks = JSON.parse(localStorage.getItem('tasks') || '[]');
+            tasks = tasks.filter(task => task.id != taskId);
+            localStorage.setItem('tasks', JSON.stringify(tasks));
+            
+            if (showMessage) {
+                showToast('任务已删除');
+            }
+            
+            loadTasks();
+            updateChartsAndVisualizations();
+        }
+
+        // 切换任务状态
+        function toggleTaskStatus(taskId, isDone) {
+            let tasks = JSON.parse(localStorage.getItem('tasks') || '[]');
+            const taskIndex = tasks.findIndex(task => task.id == taskId);
+            
+            if (taskIndex !== -1) {
+                tasks[taskIndex].status = isDone ? 'done' : 'todo';
+                localStorage.setItem('tasks', JSON.stringify(tasks));
+                
+                // 如果任务完成，给予积分奖励
+                if (isDone) {
+                    updatePoints(10);
+                    checkAchievements();
+                }
+                
+                loadTasks();
+                updateChartsAndVisualizations();
+            }
+        }
+
+        // 筛选任务
+        function filterTasks() {
+            loadTasks();
+        }
+
+        // 问题分析功能
+        function initProblemAnalysis() {
+            const analyzeBtn = document.getElementById('analyze-problem-btn');
+            analyzeBtn.addEventListener('click', analyzeProblem);
+        }
+
+        // 分析问题
+        function analyzeProblem() {
+            const problemDescription = document.getElementById('problem-description').value.trim();
+            const problemType = document.getElementById('problem-type').value;
+            const problemUrgency = document.getElementById('problem-urgency').value;
+            
+            if (!problemDescription) {
+                showToast('请输入问题描述', 'error');
+                return;
+            }
+            
+            // 模拟问题分析结果
+            const analysisResult = generateProblemAnalysis(problemDescription, problemType, problemUrgency);
+            
+            // 显示分析结果
+            document.getElementById('problem-analysis-result').innerHTML = analysisResult;
+            
+            // 显示成功提示
+            showToast('问题分析完成');
+            
+            // 更新积分
+            updatePoints(15);
+        }
+
+        // 生成问题分析结果
+        function generateProblemAnalysis(description, type, urgency) {
+            const analysisMethods = {
+                decision: ['决策矩阵', '成本效益分析', 'SWOT分析'],
+                analysis: ['5Why分析法', '鱼骨图', '帕累托分析'],
+                creative: ['头脑风暴', '思维导图', 'SCAMPER方法'],
+                process: ['流程图分析', '价值流图', '根本原因分析']
+            };
+            
+            const urgencyText = {
+                high: '高',
+                medium: '中',
+                low: '低'
+            }[urgency];
+            
+            const methods = analysisMethods[type];
+            const randomMethod = methods[Math.floor(Math.random() * methods.length)];
+            
+            return `
+                <div class="space-y-4">
+                    <div>
+                        <h4 class="font-semibold text-primary-600 dark:text-primary-400">问题概述</h4>
+                        <p>${description}</p>
+                    </div>
+                    <div class="grid md:grid-cols-2 gap-4">
+                        <div>
+                            <h4 class="font-semibold text-primary-600 dark:text-primary-400">问题类型</h4>
+                            <p>${type === 'decision' ? '决策问题' : 
+                                type === 'analysis' ? '分析问题' : 
+                                type === 'creative' ? '创意问题' : '流程问题'}</p>
+                        </div>
+                        <div>
+                            <h4 class="font-semibold text-primary-600 dark:text-primary-400">紧急程度</h4>
+                            <p>${urgencyText}</p>
+                        </div>
+                    </div>
+                    <div>
+                        <h4 class="font-semibold text-primary-600 dark:text-primary-400">推荐分析方法</h4>
+                        <p>${randomMethod}</p>
+                    </div>
+                    <div>
+                        <h4 class="font-semibold text-primary-600 dark:text-primary-400">分析步骤</h4>
+                        <ol class="list-decimal list-inside space-y-2">
+                            <li>明确问题定义和目标</li>
+                            <li>收集相关数据和信息</li>
+                            <li>使用${randomMethod}进行分析</li>
+                            <li>识别关键因素和模式</li>
+                            <li>制定解决方案或行动计划</li>
+                        </ol>
+                    </div>
+                </div>
+            `;
+        }
+
+        // 番茄钟定时器功能
+        function initPomodoroTimer() {
+            let timer;
+            let isRunning = false;
+            let isBreak = false;
+            let timeLeft = 25 * 60; // 25分钟，以秒为单位
+            let focusTime = 25;
+            let breakTime = 5;
+            
+            const timeDisplay = document.getElementById('pomodoro-time');
+            const statusDisplay = document.getElementById('pomodoro-status');
+            const startBtn = document.getElementById('pomodoro-start');
+            const pauseBtn = document.getElementById('pomodoro-pause');
+            const resetBtn = document.getElementById('pomodoro-reset');
+            const focusTimeInput = document.getElementById('focus-time');
+            const breakTimeInput = document.getElementById('break-time');
+            
+            // 更新显示时间
+            function updateDisplay() {
+                const minutes = Math.floor(timeLeft / 60);
+                const seconds = timeLeft % 60;
+                timeDisplay.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+                
+                // 更新进度环
+                const totalTime = isBreak ? breakTime * 60 : focusTime * 60;
+                const progress = ((totalTime - timeLeft) / totalTime) * 100;
+                document.querySelector('.pomodoro-timer').style.background = 
+                    `conic-gradient(#3b82f6 ${progress}%, #e5e7eb ${progress}%)`;
+            }
+            
+            // 开始计时器
+            function startTimer() {
+                if (isRunning) return;
+                
+                isRunning = true;
+                statusDisplay.textContent = isBreak ? '休息中' : '专注中';
+                
+                timer = setInterval(() => {
+                    timeLeft--;
+                    updateDisplay();
+                    
+                    if (timeLeft <= 0) {
+                        clearInterval(timer);
+                        isRunning = false;
+                        
+                        // 播放提示音
+                        playNotificationSound();
+                        
+                        // 显示通知
+                        if (isBreak) {
+                            showToast('休息时间结束！开始新的专注时段', 'warning');
+                            statusDisplay.textContent = '休息结束';
+                            // 切换到专注时间
+                            isBreak = false;
+                            timeLeft = focusTime * 60;
+                        } else {
+                            showToast('专注时间结束！开始休息', 'success');
+                            statusDisplay.textContent = '专注结束';
+                            // 切换到休息时间
+                            isBreak = true;
+                            timeLeft = breakTime * 60;
+                            
+                            // 更新积分
+                            updatePoints(10);
+                        }
+                        
+                        updateDisplay();
+                    }
+                }, 1000);
+            }
+            
+            // 暂停计时器
+            function pauseTimer() {
+                if (!isRunning) return;
+                
+                clearInterval(timer);
+                isRunning = false;
+                statusDisplay.textContent = '已暂停';
+            }
+            
+            // 重置计时器
+            function resetTimer() {
+                clearInterval(timer);
+                isRunning = false;
+                isBreak = false;
+                focusTime = parseInt(focusTimeInput.value) || 25;
+                breakTime = parseInt(breakTimeInput.value) || 5;
+                timeLeft = focusTime * 60;
+                statusDisplay.textContent = '准备开始';
+                updateDisplay();
+            }
+            
+            // 播放提示音
+            function playNotificationSound() {
+                // 在实际应用中，这里应该播放音频文件
+                // 这里使用浏览器通知作为替代
+                if (Notification.permission === 'granted') {
+                    new Notification('番茄钟提醒', {
+                        body: isBreak ? '休息时间结束！' : '专注时间结束！',
+                        icon: '/favicon.ico'
+                    });
+                } else if (Notification.permission !== 'denied') {
+                    Notification.requestPermission().then(permission => {
+                        if (permission === 'granted') {
+                            new Notification('番茄钟提醒', {
+                                body: isBreak ? '休息时间结束！' : '专注时间结束！',
+                                icon: '/favicon.ico'
+                            });
+                        }
+                    });
+                }
+            }
+            
+            // 事件监听
+            startBtn.addEventListener('click', startTimer);
+            pauseBtn.addEventListener('click', pauseTimer);
+            resetBtn.addEventListener('click', resetTimer);
+            
+            focusTimeInput.addEventListener('change', function() {
+                focusTime = parseInt(this.value) || 25;
+                if (!isRunning && !isBreak) {
+                    timeLeft = focusTime * 60;
+                    updateDisplay();
+                }
+            });
+            
+            breakTimeInput.addEventListener('change', function() {
+                breakTime = parseInt(this.value) || 5;
+                if (!isRunning && isBreak) {
+                    timeLeft = breakTime * 60;
+                    updateDisplay();
+                }
+            });
+            
+            // 初始化显示
+            updateDisplay();
+        }
+
+        // 间隔重复卡片系统
+        function initSpacedRepetitionCards() {
+            const addCardBtn = document.getElementById('add-card-btn');
+            const addCardForm = document.getElementById('add-card-form');
+            const cancelCardBtn = document.getElementById('cancel-card');
+            const saveCardBtn = document.getElementById('save-card');
+            const cardsContainer = document.getElementById('spaced-repetition-cards');
+            const cardCount = document.getElementById('card-count');
+            
+            // 加载卡片
+            loadCards();
+            
+            // 显示添加卡片表单
+            addCardBtn.addEventListener('click', () => {
+                addCardForm.classList.remove('hidden');
+                addCardBtn.classList.add('hidden');
+            });
+            
+            // 取消添加卡片
+            cancelCardBtn.addEventListener('click', () => {
+                addCardForm.classList.add('hidden');
+                addCardBtn.classList.remove('hidden');
+                clearCardForm();
+            });
+            
+            // 保存卡片
+            saveCardBtn.addEventListener('click', saveCard);
+            
+            // 回车键保存卡片
+            document.getElementById('card-answer').addEventListener('keydown', (e) => {
+                if (e.ctrlKey && e.key === 'Enter') {
+                    saveCard();
+                }
+            });
+        }
+        
+        // 保存卡片
+        function saveCard() {
+            const question = document.getElementById('card-question').value.trim();
+            const answer = document.getElementById('card-answer').value.trim();
+            const tags = document.getElementById('card-tags').value.trim();
+            
+            if (!question || !answer) {
+                showToast('请填写问题和答案', 'error');
+                return;
+            }
+            
+            const card = {
+                id: Date.now(),
+                question: question,
+                answer: answer,
+                tags: tags ? tags.split(',').map(tag => tag.trim()) : [],
+                createdAt: new Date().toISOString(),
+                nextReview: new Date().toISOString(), // 第一次复习时间
+                interval: 1, // 间隔天数
+                ease: 2.5, // 简易因子
+                reviews: 0 // 复习次数
+            };
+            
+            // 保存卡片到本地存储
+            saveCardToStorage(card);
+            
+            // 清空表单
+            clearCardForm();
+            
+            // 隐藏表单
+            document.getElementById('add-card-form').classList.add('hidden');
+            document.getElementById('add-card-btn').classList.remove('hidden');
+            
+            // 重新加载卡片
+            loadCards();
+            
+            // 显示成功提示
+            showToast('学习卡片已添加');
+            
+            // 更新积分
+            updatePoints(5);
+        }
+        
+        // 保存卡片到本地存储
+        function saveCardToStorage(card) {
+            let cards = JSON.parse(localStorage.getItem('learningCards') || '[]');
+            cards.push(card);
+            localStorage.setItem('learningCards', JSON.stringify(cards));
+        }
+        
+        // 从本地存储加载卡片
+        function loadCards() {
+            const cards = JSON.parse(localStorage.getItem('learningCards') || '[]');
+            const cardsContainer = document.getElementById('spaced-repetition-cards');
+            const cardCount = document.getElementById('card-count');
+            
+            cardCount.textContent = cards.length;
+            
+            if (cards.length === 0) {
+                cardsContainer.innerHTML = `
+                    <div class="col-span-full text-center py-8 text-gray-500 dark:text-gray-400">
+                        <i class="fa fa-clone text-4xl mb-3 opacity-50"></i>
+                        <p class="text-lg">暂无学习卡片</p>
+                        <p class="text-sm mt-1">点击"添加卡片"按钮创建您的第一张学习卡片</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            // 筛选出需要复习的卡片（nextReview <= 当前时间）
+            const now = new Date();
+            const dueCards = cards.filter(card => new Date(card.nextReview) <= now);
+            const upcomingCards = cards.filter(card => new Date(card.nextReview) > now);
+            
+            // 合并卡片，到期卡片在前
+            const sortedCards = [...dueCards, ...upcomingCards];
+            
+            let cardsHTML = '';
+            sortedCards.forEach(card => {
+                const isDue = new Date(card.nextReview) <= now;
+                const reviewDate = new Date(card.nextReview).toLocaleDateString();
+                
+                cardsHTML += `
+                    <div class="spaced-repetition-card ${isDue ? 'border-2 border-primary-500' : ''}" data-card-id="${card.id}">
+                        <div>
+                            <h4 class="font-medium text-gray-800 dark:text-gray-200 mb-2">${card.question}</h4>
+                            <div class="text-sm text-gray-600 dark:text-gray-400 mb-3 hidden card-answer">${card.answer}</div>
+                            <div class="flex flex-wrap gap-1 mb-3">
+                                ${card.tags.map(tag => `<span class="px-2 py-1 bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300 rounded-full text-xs">${tag}</span>`).join('')}
+                            </div>
+                        </div>
+                        <div class="flex justify-between items-center text-sm text-gray-500 dark:text-gray-400">
+                            <span>复习: ${card.reviews}次</span>
+                            <span>下次: ${reviewDate}</span>
+                        </div>
+                        <div class="card-actions mt-3 hidden">
+                            <button class="show-answer-btn w-full bg-gradient-to-r from-primary-600 to-accent-500 hover:from-primary-700 hover:to-accent-600 text-white px-3 py-2 rounded-lg transition-all duration-300 text-sm">
+                                显示答案
+                            </button>
+                            <div class="flex justify-between mt-2 hidden answer-feedback">
+                                <button class="feedback-btn px-3 py-1 bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 rounded text-xs hover:bg-red-200 dark:hover:bg-red-800/50 transition-all duration-300" data-quality="1">
+                                    生疏
+                                </button>
+                                <button class="feedback-btn px-3 py-1 bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300 rounded text-xs hover:bg-yellow-200 dark:hover:bg-yellow-800/50 transition-all duration-300" data-quality="3">
+                                    一般
+                                </button>
+                                <button class="feedback-btn px-3 py-1 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 rounded text-xs hover:bg-green-200 dark:hover:bg-green-800/50 transition-all duration-300" data-quality="5">
+                                    熟练
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            cardsContainer.innerHTML = cardsHTML;
+            
+            // 添加卡片交互事件
+            document.querySelectorAll('.spaced-repetition-card').forEach(card => {
+                card.addEventListener('click', function(e) {
+                    if (!e.target.classList.contains('feedback-btn')) {
+                        const cardId = this.getAttribute('data-card-id');
+                        const answerEl = this.querySelector('.card-answer');
+                        const actionsEl = this.querySelector('.card-actions');
+                        const feedbackEl = this.querySelector('.answer-feedback');
+                        
+                        if (answerEl.classList.contains('hidden')) {
+                            // 显示答案
+                            answerEl.classList.remove('hidden');
+                            actionsEl.classList.remove('hidden');
+                            feedbackEl.classList.remove('hidden');
+                        }
+                    }
+                });
+            });
+            
+            // 添加反馈按钮事件
+            document.querySelectorAll('.feedback-btn').forEach(btn => {
+                btn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    const cardId = this.closest('.spaced-repetition-card').getAttribute('data-card-id');
+                    const quality = parseInt(this.getAttribute('data-quality'));
+                    processCardReview(cardId, quality);
+                });
+            });
+        }
+        
+        // 处理卡片复习
+        function processCardReview(cardId, quality) {
+            let cards = JSON.parse(localStorage.getItem('learningCards') || '[]');
+            const cardIndex = cards.findIndex(card => card.id == cardId);
+            
+            if (cardIndex === -1) return;
+            
+            const card = cards[cardIndex];
+            card.reviews++;
+            
+            // 基于SM-2算法更新间隔
+            if (quality >= 3) {
+                if (card.reviews === 1) {
+                    card.interval = 1;
+                } else if (card.reviews === 2) {
+                    card.interval = 6;
+                } else {
+                    card.interval = Math.round(card.interval * card.ease);
+                }
+            } else {
+                card.interval = 1;
+            }
+            
+            // 更新简易因子
+            card.ease = card.ease + (0.1 - (5 - quality) * (0.08 + (5 - quality) * 0.02));
+            if (card.ease < 1.3) card.ease = 1.3;
+            
+            // 计算下次复习时间
+            const nextReview = new Date();
+            nextReview.setDate(nextReview.getDate() + card.interval);
+            card.nextReview = nextReview.toISOString();
+            
+            // 保存更新后的卡片
+            cards[cardIndex] = card;
+            localStorage.setItem('learningCards', JSON.stringify(cards));
+            
+            // 重新加载卡片
+            loadCards();
+            
+            // 显示成功提示
+            showToast('复习完成！下次复习: ' + nextReview.toLocaleDateString());
+            
+            // 更新积分
+            updatePoints(3);
+        }
+        
+        // 清空卡片表单
+        function clearCardForm() {
+            document.getElementById('card-question').value = '';
+            document.getElementById('card-answer').value = '';
+            document.getElementById('card-tags').value = '';
+        }
+
+        // 主动回忆练习
+        function initActiveRecall() {
+            const startBtn = document.getElementById('start-recall');
+            const showAnswerBtn = document.getElementById('show-answer');
+            const feedbackBtns = document.getElementById('recall-feedback');
+            const questionEl = document.getElementById('recall-question');
+            const answerEl = document.getElementById('recall-answer');
+            const progressBar = document.getElementById('recall-progress');
+            const completedEl = document.getElementById('recall-completed');
+            const totalEl = document.getElementById('recall-total');
+            
+            let currentCards = [];
+            let currentIndex = 0;
+            let completed = 0;
+            
+            // 开始练习
+            startBtn.addEventListener('click', startRecallPractice);
+            
+            // 显示答案
+            showAnswerBtn.addEventListener('click', showAnswer);
+            
+            // 反馈按钮
+            document.querySelectorAll('.recall-feedback-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const difficulty = this.getAttribute('data-difficulty');
+                    nextCard(difficulty);
+                });
+            });
+        }
+        
+        // 开始主动回忆练习
+        function startRecallPractice() {
+            const cards = JSON.parse(localStorage.getItem('learningCards') || '[]');
+            
+            if (cards.length === 0) {
+                showToast('请先创建学习卡片', 'error');
+                return;
+            }
+            
+            // 筛选需要复习的卡片
+            const now = new Date();
+            const dueCards = cards.filter(card => new Date(card.nextReview) <= now);
+            
+            if (dueCards.length === 0) {
+                showToast('暂无需要复习的卡片', 'warning');
+                return;
+            }
+            
+            // 随机选择最多10张卡片
+            currentCards = dueCards.sort(() => 0.5 - Math.random()).slice(0, 10);
+            currentIndex = 0;
+            completed = 0;
+            
+            // 更新UI
+            document.getElementById('start-recall').classList.add('hidden');
+            document.getElementById('show-answer').classList.remove('hidden');
+            document.getElementById('recall-feedback').classList.add('hidden');
+            document.getElementById('recall-answer').classList.add('hidden');
+            
+            // 更新进度
+            updateRecallProgress();
+            
+            // 显示第一张卡片
+            showCurrentCard();
+        }
+        
+        // 显示当前卡片
+        function showCurrentCard() {
+            if (currentIndex >= currentCards.length) {
+                // 练习完成
+                document.getElementById('recall-question').textContent = '练习完成！';
+                document.getElementById('show-answer').classList.add('hidden');
+                document.getElementById('recall-feedback').classList.add('hidden');
+                document.getElementById('start-recall').classList.remove('hidden');
+                showToast('主动回忆练习完成！');
+                return;
+            }
+            
+            const card = currentCards[currentIndex];
+            document.getElementById('recall-question').textContent = card.question;
+            document.getElementById('recall-answer').innerHTML = `<strong>答案:</strong> ${card.answer}`;
+        }
+        
+        // 显示答案
+        function showAnswer() {
+            document.getElementById('recall-answer').classList.remove('hidden');
+            document.getElementById('show-answer').classList.add('hidden');
+            document.getElementById('recall-feedback').classList.remove('hidden');
+        }
+        
+        // 下一张卡片
+        function nextCard(difficulty) {
+            // 根据难度更新卡片间隔（简化版）
+            const card = currentCards[currentIndex];
+            updateCardBasedOnRecall(card.id, difficulty);
+            
+            currentIndex++;
+            completed++;
+            
+            // 更新进度
+            updateRecallProgress();
+            
+            // 隐藏答案和反馈
+            document.getElementById('recall-answer').classList.add('hidden');
+            document.getElementById('recall-feedback').classList.add('hidden');
+            document.getElementById('show-answer').classList.remove('hidden');
+            
+            // 显示下一张卡片
+            showCurrentCard();
+        }
+        
+        // 根据回忆结果更新卡片
+        function updateCardBasedOnRecall(cardId, difficulty) {
+            let cards = JSON.parse(localStorage.getItem('learningCards') || '[]');
+            const cardIndex = cards.findIndex(card => card.id == cardId);
+            
+            if (cardIndex === -1) return;
+            
+            const card = cards[cardIndex];
+            card.reviews++;
+            
+            // 根据难度调整下次复习时间
+            const now = new Date();
+            let interval = 1;
+            
+            switch(difficulty) {
+                case 'easy':
+                    interval = card.interval * 2.5;
+                    break;
+                case 'medium':
+                    interval = card.interval * 1.5;
+                    break;
+                case 'hard':
+                    interval = 1;
+                    break;
+            }
+            
+            // 计算下次复习时间
+            const nextReview = new Date();
+            nextReview.setDate(nextReview.getDate() + interval);
+            card.nextReview = nextReview.toISOString();
+            card.interval = interval;
+            
+            // 保存更新后的卡片
+            cards[cardIndex] = card;
+            localStorage.setItem('learningCards', JSON.stringify(cards));
+        }
+        
+        // 更新主动回忆进度
+        function updateRecallProgress() {
+            const progress = (completed / currentCards.length) * 100;
+            document.getElementById('recall-progress').style.width = `${progress}%`;
+            document.getElementById('recall-completed').textContent = completed;
+            document.getElementById('recall-total').textContent = currentCards.length;
+        }
+
+        // 学习统计图表
+        function initLearningCharts() {
+            // 学习时间分布图表
+            const learningTimeCtx = document.getElementById('learningTimeChart').getContext('2d');
+            
+            // 模拟学习时间数据
+            const learningTimeData = {
+                labels: ['周一', '周二', '周三', '周四', '周五', '周六', '周日'],
+                datasets: [{
+                    label: '学习时间(分钟)',
+                    data: [45, 60, 30, 75, 90, 45, 60],
+                    backgroundColor: 'rgba(59, 130, 246, 0.5)',
+                    borderColor: 'rgb(59, 130, 246)',
+                    borderWidth: 1
+                }]
+            };
+            
+            window.learningTimeChart = new Chart(learningTimeCtx, {
+                type: 'bar',
+                data: learningTimeData,
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: '分钟'
+                            }
+                        }
+                    }
+                }
+            });
+            
+            // 记忆保持曲线图表
+            const retentionCtx = document.getElementById('retentionChart').getContext('2d');
+            
+            // 艾宾浩斯遗忘曲线数据
+            const retentionData = {
+                labels: ['0小时', '1小时', '9小时', '1天', '2天', '6天', '31天'],
+                datasets: [{
+                    label: '记忆保留率',
+                    data: [100, 44, 36, 33, 28, 25, 21],
+                    borderColor: 'rgb(139, 92, 246)',
+                    backgroundColor: 'rgba(139, 92, 246, 0.1)',
+                    fill: true,
+                    tension: 0.4
+                }]
+            };
+            
+            window.retentionChart = new Chart(retentionCtx, {
+                type: 'line',
+                data: retentionData,
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            min: 0,
+                            max: 100,
+                            title: {
+                                display: true,
+                                text: '保留率(%)'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        
+        // 更新学习图表
+        function updateLearningCharts() {
+            if (window.learningTimeChart) {
+                window.learningTimeChart.destroy();
+            }
+            if (window.retentionChart) {
+                window.retentionChart.destroy();
+            }
+            initLearningCharts();
+        }
+
+        // 习惯养成功能
+        function initHabitBuilding() {
+            const addHabitBtn = document.getElementById('add-habit-btn');
+            const addHabitForm = document.getElementById('add-habit-form');
+            const cancelHabitBtn = document.getElementById('cancel-habit');
+            const saveHabitBtn = document.getElementById('save-habit');
+            
+            // 加载习惯
+            loadHabits();
+            
+            // 显示添加习惯表单
+            addHabitBtn.addEventListener('click', () => {
+                addHabitForm.classList.remove('hidden');
+                addHabitBtn.classList.add('hidden');
+            });
+            
+            // 取消添加习惯
+            cancelHabitBtn.addEventListener('click', () => {
+                addHabitForm.classList.add('hidden');
+                addHabitBtn.classList.remove('hidden');
+                clearHabitForm();
+            });
+            
+            // 保存习惯
+            saveHabitBtn.addEventListener('click', saveHabit);
+        }
+        
+        // 保存习惯
+        function saveHabit() {
+            const name = document.getElementById('habit-name').value.trim();
+            const type = document.getElementById('habit-type').value;
+            const target = parseInt(document.getElementById('habit-target').value) || 21;
+            const reward = document.getElementById('habit-reward').value.trim();
+            
+            if (!name) {
+                showToast('请输入习惯名称', 'error');
+                return;
+            }
+            
+            const habit = {
+                id: Date.now(),
+                name: name,
+                type: type,
+                target: target,
+                reward: reward,
+                currentStreak: 0,
+                longestStreak: 0,
+                completionRate: 0,
+                createdAt: new Date().toISOString(),
+                history: []
+            };
+            
+            // 保存习惯到本地存储
+            saveHabitToStorage(habit);
+            
+            // 清空表单
+            clearHabitForm();
+            
+            // 隐藏表单
+            document.getElementById('add-habit-form').classList.add('hidden');
+            document.getElementById('add-habit-btn').classList.remove('hidden');
+            
+            // 重新加载习惯
+            loadHabits();
+            
+            // 显示成功提示
+            showToast('习惯已添加');
+            
+            // 更新积分
+            updatePoints(5);
+        }
+        
+        // 保存习惯到本地存储
+        function saveHabitToStorage(habit) {
+            let habits = JSON.parse(localStorage.getItem('habits') || '[]');
+            habits.push(habit);
+            localStorage.setItem('habits', JSON.stringify(habits));
+        }
+        
+        // 从本地存储加载习惯
+        function loadHabits() {
+            const habits = JSON.parse(localStorage.getItem('habits') || '[]');
+            const habitsList = document.getElementById('habits-list');
+            
+            if (habits.length === 0) {
+                habitsList.innerHTML = `
+                    <div class="text-center py-8 text-gray-500 dark:text-gray-400">
+                        <i class="fa fa-calendar-o text-4xl mb-3 opacity-50"></i>
+                        <p class="text-lg">暂无习惯记录</p>
+                        <p class="text-sm mt-1">点击"添加习惯"按钮创建您的第一个习惯</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            let habitsHTML = '';
+            habits.forEach(habit => {
+                const progress = (habit.currentStreak / habit.target) * 100;
+                const today = new Date().toDateString();
+                const isCompletedToday = habit.history.some(entry => entry.date === today && entry.completed);
+                
+                habitsHTML += `
+                    <div class="bg-white dark:bg-gray-800 p-4 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm" data-habit-id="${habit.id}">
+                        <div class="flex justify-between items-start mb-3">
+                            <div>
+                                <h4 class="font-medium text-gray-800 dark:text-gray-200">${habit.name}</h4>
+                                <div class="flex items-center mt-1 text-sm text-gray-500 dark:text-gray-400">
+                                    <span class="mr-3"><i class="fa fa-fire mr-1"></i>${habit.currentStreak}天</span>
+                                    <span><i class="fa fa-target mr-1"></i>目标: ${habit.target}天</span>
+                                </div>
+                            </div>
+                            <div class="flex items-center">
+                                <button class="complete-habit p-2 ${isCompletedToday ? 'text-green-500' : 'text-gray-400 hover:text-green-500'} transition-all duration-300">
+                                    <i class="fa ${isCompletedToday ? 'fa-check-circle' : 'fa-circle-o'} text-lg"></i>
+                                </button>
+                                <button class="delete-habit p-2 text-gray-400 hover:text-red-500 ml-1 transition-all duration-300">
+                                    <i class="fa fa-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-2">
+                            <div class="flex justify-between text-sm text-gray-500 dark:text-gray-400 mb-1">
+                                <span>进度: ${habit.currentStreak}/${habit.target}天</span>
+                                <span>${Math.round(progress)}%</span>
+                            </div>
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: ${progress}%"></div>
+                            </div>
+                        </div>
+                        
+                        <div class="text-sm text-gray-500 dark:text-gray-400">
+                            <i class="fa fa-gift mr-1"></i>
+                            <span>奖励: ${habit.reward || '无'}</span>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            habitsList.innerHTML = habitsHTML;
+            
+            // 添加习惯完成事件
+            document.querySelectorAll('.complete-habit').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const habitId = this.closest('[data-habit-id]').getAttribute('data-habit-id');
+                    toggleHabitCompletion(habitId);
+                });
+            });
+            
+            // 添加删除习惯事件
+            document.querySelectorAll('.delete-habit').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const habitId = this.closest('[data-habit-id]').getAttribute('data-habit-id');
+                    deleteHabit(habitId);
+                });
+            });
+        }
+        
+        // 切换习惯完成状态
+        function toggleHabitCompletion(habitId) {
+            let habits = JSON.parse(localStorage.getItem('habits') || '[]');
+            const habitIndex = habits.findIndex(habit => habit.id == habitId);
+            
+            if (habitIndex === -1) return;
+            
+            const habit = habits[habitIndex];
+            const today = new Date().toDateString();
+            const todayEntryIndex = habit.history.findIndex(entry => entry.date === today);
+            
+            if (todayEntryIndex !== -1) {
+                // 切换完成状态
+                habit.history[todayEntryIndex].completed = !habit.history[todayEntryIndex].completed;
+            } else {
+                // 添加新记录
+                habit.history.push({
+                    date: today,
+                    completed: true
+                });
+            }
+            
+            // 更新连续天数
+            updateHabitStreak(habit);
+            
+            // 保存更新后的习惯
+            habits[habitIndex] = habit;
+            localStorage.setItem('habits', JSON.stringify(habits));
+            
+            // 重新加载习惯
+            loadHabits();
+            
+            // 显示成功提示
+            showToast('习惯状态已更新');
+            
+            // 更新积分
+            updatePoints(2);
+        }
+        
+        // 更新习惯连续天数
+        function updateHabitStreak(habit) {
+            // 按日期排序历史记录
+            habit.history.sort((a, b) => new Date(a.date) - new Date(b.date));
+            
+            // 计算当前连续天数
+            let currentStreak = 0;
+            const today = new Date();
+            
+            for (let i = habit.history.length - 1; i >= 0; i--) {
+                const entry = habit.history[i];
+                const entryDate = new Date(entry.date);
+                const diffTime = today - entryDate;
+                const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+                
+                if (diffDays === currentStreak && entry.completed) {
+                    currentStreak++;
+                } else {
+                    break;
+                }
+            }
+            
+            habit.currentStreak = currentStreak;
+            habit.longestStreak = Math.max(habit.longestStreak, currentStreak);
+            
+            // 计算完成率
+            const totalDays = habit.history.length;
+            const completedDays = habit.history.filter(entry => entry.completed).length;
+            habit.completionRate = totalDays > 0 ? (completedDays / totalDays) * 100 : 0;
+        }
+        
+        // 删除习惯
+        function deleteHabit(habitId) {
+            if (!confirm('确定要删除这个习惯吗？')) return;
+            
+            let habits = JSON.parse(localStorage.getItem('habits') || '[]');
+            habits = habits.filter(habit => habit.id != habitId);
+            localStorage.setItem('habits', JSON.stringify(habits));
+            
+            // 重新加载习惯
+            loadHabits();
+            
+            // 显示成功提示
+            showToast('习惯已删除');
+        }
+        
+        // 清空习惯表单
+        function clearHabitForm() {
+            document.getElementById('habit-name').value = '';
+            document.getElementById('habit-type').value = 'daily';
+            document.getElementById('habit-target').value = '21';
+            document.getElementById('habit-reward').value = '';
+        }
+
+        // 总结复盘功能
+        function initReviewSummary() {
+            const templateBtns = document.querySelectorAll('.review-template-btn');
+            const saveReviewBtn = document.getElementById('save-review');
+            
+            // 设置默认日期为今天
+            document.getElementById('review-date').valueAsDate = new Date();
+            
+            // 加载复盘记录
+            loadReviews();
+            
+            // 模板按钮事件
+            templateBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const templateType = btn.getAttribute('data-template');
+                    applyReviewTemplate(templateType);
+                    showToast(`已应用${btn.textContent.trim()}模板`);
+                });
+            });
+            
+            // 保存复盘
+            saveReviewBtn.addEventListener('click', saveReview);
+        }
+        
+        // 应用复盘模板
+        function applyReviewTemplate(templateType) {
+            const templates = {
+                daily: {
+                    title: '每日复盘 - ' + new Date().toLocaleDateString(),
+                    period: 'daily',
+                    achievements: '1. 完成了哪些任务？\n2. 有哪些小的进步或成就？\n3. 今天感到满意的事情是什么？',
+                    challenges: '1. 遇到了什么困难或挑战？\n2. 哪些事情没有按计划进行？\n3. 感到压力或焦虑的原因是什么？',
+                    reflections: '1. 从今天的经历中学到了什么？\n2. 有什么可以改进的地方？\n3. 明天可以尝试什么不同的做法？',
+                    actionPlan: '1. 明天最重要的三件事是什么？\n2. 需要避免或减少什么行为？\n3. 如何让明天过得更好？'
+                },
+                weekly: {
+                    title: '每周复盘 - ' + new Date().toLocaleDateString(),
+                    period: 'weekly',
+                    achievements: '1. 本周完成了哪些重要任务？\n2. 有哪些显著的进步或成就？\n3. 本周感到自豪的事情是什么？',
+                    challenges: '1. 本周遇到了什么主要困难？\n2. 哪些计划没有实现？原因是什么？\n3. 本周最大的压力来源是什么？',
+                    reflections: '1. 从本周的经历中学到了什么？\n2. 有什么模式或规律可以总结？\n3. 如果重新过这一周，会有什么不同？',
+                    actionPlan: '1. 下周最重要的目标是什么？\n2. 需要改变或调整什么策略？\n3. 如何让下周更高效和充实？'
+                },
+                monthly: {
+                    title: '每月复盘 - ' + new Date().toLocaleDateString(),
+                    period: 'monthly',
+                    achievements: '1. 本月完成了哪些重要目标？\n2. 有哪些显著的成长或进步？\n3. 本月最大的成就是什么？',
+                    challenges: '1. 本月遇到了什么主要挑战？\n2. 哪些目标没有实现？原因是什么？\n3. 本月最大的困难是什么？',
+                    reflections: '1. 从本月的经历中学到了什么？\n2. 有什么重要的领悟或洞察？\n3. 这个月最值得记住的是什么？',
+                    actionPlan: '1. 下个月最重要的目标是什么？\n2. 需要建立或改变什么习惯？\n3. 如何让下个月更有意义？'
+                },
+                project: {
+                    title: '项目复盘 - ' + new Date().toLocaleDateString(),
+                    period: 'project',
+                    achievements: '1. 项目完成了哪些主要成果？\n2. 项目中的亮点和成功之处？\n3. 团队或个人的突出表现？',
+                    challenges: '1. 项目遇到了什么主要困难？\n2. 哪些方面没有达到预期？\n3. 项目中的失误或不足？',
+                    reflections: '1. 从这个项目中学到了什么？\n2. 如果重新做这个项目，会有什么不同？\n3. 项目管理中的经验教训？',
+                    actionPlan: '1. 下一步的行动计划是什么？\n2. 如何改进未来的项目管理？\n3. 需要进一步学习或提升什么能力？'
+                }
+            };
+            
+            const template = templates[templateType];
+            if (template) {
+                document.getElementById('review-title').value = template.title;
+                document.getElementById('review-period').value = template.period;
+                document.getElementById('review-achievements').value = template.achievements;
+                document.getElementById('review-challenges').value = template.challenges;
+                document.getElementById('review-reflections').value = template.reflections;
+                document.getElementById('review-action-plan').value = template.actionPlan;
+            }
+        }
+        
+        // 保存复盘
+        function saveReview() {
+            const title = document.getElementById('review-title').value.trim();
+            const period = document.getElementById('review-period').value;
+            const date = document.getElementById('review-date').value;
+            const achievements = document.getElementById('review-achievements').value.trim();
+            const challenges = document.getElementById('review-challenges').value.trim();
+            const reflections = document.getElementById('review-reflections').value.trim();
+            const actionPlan = document.getElementById('review-action-plan').value.trim();
+            
+            if (!title) {
+                showToast('请输入复盘标题', 'error');
+                return;
+            }
+            
+            const review = {
+                id: Date.now(),
+                title: title,
+                period: period,
+                date: date,
+                achievements: achievements,
+                challenges: challenges,
+                reflections: reflections,
+                actionPlan: actionPlan,
+                createdAt: new Date().toISOString()
+            };
+            
+            // 保存复盘的本地存储
+            saveReviewToStorage(review);
+            
+            // 清空表单
+            clearReviewForm();
+            
+            // 重新加载复盘记录
+            loadReviews();
+            
+            // 显示成功提示
+            showToast('复盘已保存');
+            
+            // 更新积分
+            updatePoints(10);
+        }
+        
+        // 保存复盘到本地存储
+        function saveReviewToStorage(review) {
+            let reviews = JSON.parse(localStorage.getItem('reviews') || '[]');
+            reviews.push(review);
+            localStorage.setItem('reviews', JSON.stringify(reviews));
+        }
+        
+        // 从本地存储加载复盘
+        function loadReviews() {
+            const reviews = JSON.parse(localStorage.getItem('reviews') || '[]');
+            const reviewsList = document.getElementById('reviews-list');
+            
+            if (reviews.length === 0) {
+                reviewsList.innerHTML = `
+                    <div class="p-6 text-center text-gray-500 dark:text-gray-400">
+                        <i class="fa fa-file-text-o text-4xl mb-3 opacity-50"></i>
+                        <p class="text-lg">暂无复盘记录</p>
+                        <p class="text-sm mt-1">使用上方表单创建您的第一份复盘记录</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            // 按日期降序排序
+            reviews.sort((a, b) => new Date(b.date) - new Date(a.date));
+            
+            let reviewsHTML = '';
+            reviews.forEach(review => {
+                const periodText = {
+                    'daily': '每日',
+                    'weekly': '每周',
+                    'monthly': '每月',
+                    'quarterly': '每季度',
+                    'yearly': '每年',
+                    'project': '项目'
+                }[review.period];
+                
+                reviewsHTML += `
+                    <div class="border-b border-gray-200 dark:border-gray-700 p-6" data-review-id="${review.id}">
+                        <div class="flex justify-between items-start mb-3">
+                            <div>
+                                <h4 class="font-medium text-gray-800 dark:text-gray-200">${review.title}</h4>
+                                <div class="flex items-center mt-1 text-sm text-gray-500 dark:text-gray-400">
+                                    <span class="mr-3"><i class="fa fa-calendar mr-1"></i>${review.date}</span>
+                                    <span><i class="fa fa-repeat mr-1"></i>${periodText}复盘</span>
+                                </div>
+                            </div>
+                            <button class="delete-review p-2 text-gray-400 hover:text-red-500 transition-all duration-300">
+                                <i class="fa fa-trash"></i>
+                            </button>
+                        </div>
+                        
+                        <div class="grid md:grid-cols-2 gap-4 text-sm text-gray-700 dark:text-gray-300">
+                            <div>
+                                <h5 class="font-medium text-green-600 dark:text-green-400 mb-1">成就与亮点</h5>
+                                <p class="whitespace-pre-line">${review.achievements || '无'}</p>
+                            </div>
+                            <div>
+                                <h5 class="font-medium text-orange-600 dark:text-orange-400 mb-1">挑战与困难</h5>
+                                <p class="whitespace-pre-line">${review.challenges || '无'}</p>
+                            </div>
+                            <div>
+                                <h5 class="font-medium text-blue-600 dark:text-blue-400 mb-1">学习与反思</h5>
+                                <p class="whitespace-pre-line">${review.reflections || '无'}</p>
+                            </div>
+                            <div>
+                                <h5 class="font-medium text-purple-600 dark:text-purple-400 mb-1">下一步行动计划</h5>
+                                <p class="whitespace-pre-line">${review.actionPlan || '无'}</p>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            reviewsList.innerHTML = reviewsHTML;
+            
+            // 添加删除复盘事件
+            document.querySelectorAll('.delete-review').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const reviewId = this.closest('[data-review-id]').getAttribute('data-review-id');
+                    deleteReview(reviewId);
+                });
+            });
+        }
+        
+        // 删除复盘
+        function deleteReview(reviewId) {
+            if (!confirm('确定要删除这个复盘记录吗？')) return;
+            
+            let reviews = JSON.parse(localStorage.getItem('reviews') || '[]');
+            reviews = reviews.filter(review => review.id != reviewId);
+            localStorage.setItem('reviews', JSON.stringify(reviews));
+            
+            // 重新加载复盘记录
+            loadReviews();
+            
+            // 显示成功提示
+            showToast('复盘记录已删除');
+        }
+        
+        // 清空复盘表单
+        function clearReviewForm() {
+            document.getElementById('review-title').value = '';
+            document.getElementById('review-period').value = 'daily';
+            document.getElementById('review-date').valueAsDate = new Date();
+            document.getElementById('review-achievements').value = '';
+            document.getElementById('review-challenges').value = '';
+            document.getElementById('review-reflections').value = '';
+            document.getElementById('review-action-plan').value = '';
+        }
+
+        // 规划目标功能
+        function initGoalPlanning() {
+            const addGoalBtn = document.getElementById('add-goal-btn');
+            const addGoalForm = document.getElementById('add-goal-form');
+            const cancelGoalBtn = document.getElementById('cancel-goal');
+            const saveGoalBtn = document.getElementById('save-goal');
+            
+            // 设置默认日期
+            const today = new Date();
+            document.getElementById('goal-start-date').valueAsDate = today;
+            
+            const endDate = new Date(today);
+            endDate.setMonth(today.getMonth() + 3); // 默认3个月后
+            document.getElementById('goal-end-date').valueAsDate = endDate;
+            
+            // 加载目标
+            loadGoals();
+            
+            // 显示添加目标表单
+            addGoalBtn.addEventListener('click', () => {
+                addGoalForm.classList.remove('hidden');
+                addGoalBtn.classList.add('hidden');
+            });
+            
+            // 取消添加目标
+            cancelGoalBtn.addEventListener('click', () => {
+                addGoalForm.classList.add('hidden');
+                addGoalBtn.classList.remove('hidden');
+                clearGoalForm();
+            });
+            
+            // 保存目标
+            saveGoalBtn.addEventListener('click', saveGoal);
+        }
+        
+        // 保存目标
+        function saveGoal() {
+            const name = document.getElementById('goal-name').value.trim();
+            const startDate = document.getElementById('goal-start-date').value;
+            const endDate = document.getElementById('goal-end-date').value;
+            const category = document.getElementById('goal-category').value;
+            const description = document.getElementById('goal-description').value.trim();
+            
+            if (!name) {
+                showToast('请输入目标名称', 'error');
+                return;
+            }
+            
+            if (!startDate || !endDate) {
+                showToast('请选择开始和截止日期', 'error');
+                return;
+            }
+            
+            const goal = {
+                id: Date.now(),
+                name: name,
+                startDate: startDate,
+                endDate: endDate,
+                category: category,
+                description: description,
+                progress: 0,
+                status: 'active', // active, completed, abandoned
+                createdAt: new Date().toISOString(),
+                milestones: []
+            };
+            
+            // 保存目标到本地存储
+            saveGoalToStorage(goal);
+            
+            // 清空表单
+            clearGoalForm();
+            
+            // 隐藏表单
+            document.getElementById('add-goal-form').classList.add('hidden');
+            document.getElementById('add-goal-btn').classList.remove('hidden');
+            
+            // 重新加载目标
+            loadGoals();
+            
+            // 显示成功提示
+            showToast('目标已设定');
+            
+            // 更新积分
+            updatePoints(8);
+        }
+        
+        // 保存目标到本地存储
+        function saveGoalToStorage(goal) {
+            let goals = JSON.parse(localStorage.getItem('goals') || '[]');
+            goals.push(goal);
+            localStorage.setItem('goals', JSON.stringify(goals));
+        }
+        
+        // 从本地存储加载目标
+        function loadGoals() {
+            const goals = JSON.parse(localStorage.getItem('goals') || '[]');
+            const goalsList = document.getElementById('goals-list');
+            
+            if (goals.length === 0) {
+                goalsList.innerHTML = `
+                    <div class="text-center py-8 text-gray-500 dark:text-gray-400">
+                        <i class="fa fa-bullseye text-4xl mb-3 opacity-50"></i>
+                        <p class="text-lg">暂无目标设定</p>
+                        <p class="text-sm mt-1">点击"添加目标"按钮设定您的第一个目标</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            let goalsHTML = '';
+            goals.forEach(goal => {
+                const categoryText = {
+                    'career': '职业发展',
+                    'learning': '学习成长',
+                    'health': '健康生活',
+                    'finance': '财务管理',
+                    'relationship': '人际关系',
+                    'hobby': '兴趣爱好'
+                }[goal.category];
+                
+                const statusText = {
+                    'active': '进行中',
+                    'completed': '已完成',
+                    'abandoned': '已放弃'
+                }[goal.status];
+                
+                const statusColor = {
+                    'active': 'text-blue-500',
+                    'completed': 'text-green-500',
+                    'abandoned': 'text-red-500'
+                }[goal.status];
+                
+                // 计算进度百分比
+                const start = new Date(goal.startDate);
+                const end = new Date(goal.endDate);
+                const today = new Date();
+                const totalDays = (end - start) / (1000 * 60 * 60 * 24);
+                const passedDays = (today - start) / (1000 * 60 * 60 * 24);
+                let timeProgress = Math.min(100, Math.max(0, (passedDays / totalDays) * 100));
+                
+                // 如果目标已完成，进度为100%
+                if (goal.status === 'completed') {
+                    timeProgress = 100;
+                }
+                
+                goalsHTML += `
+                    <div class="bg-white dark:bg-gray-800 p-4 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm" data-goal-id="${goal.id}">
+                        <div class="flex justify-between items-start mb-3">
+                            <div>
+                                <h4 class="font-medium text-gray-800 dark:text-gray-200">${goal.name}</h4>
+                                <div class="flex items-center mt-1 text-sm text-gray-500 dark:text-gray-400">
+                                    <span class="mr-3"><i class="fa fa-tag mr-1"></i>${categoryText}</span>
+                                    <span class="mr-3"><i class="fa fa-calendar mr-1"></i>${goal.startDate} 至 ${goal.endDate}</span>
+                                    <span class="${statusColor}"><i class="fa fa-circle mr-1"></i>${statusText}</span>
+                                </div>
+                            </div>
+                            <div class="flex items-center">
+                                <button class="edit-goal p-2 text-gray-400 hover:text-primary-500 transition-all duration-300">
+                                    <i class="fa fa-edit"></i>
+                                </button>
+                                <button class="delete-goal p-2 text-gray-400 hover:text-red-500 ml-1 transition-all duration-300">
+                                    <i class="fa fa-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3 text-sm text-gray-700 dark:text-gray-300">
+                            <p>${goal.description || '无描述'}</p>
+                        </div>
+                        
+                        <div class="mb-2">
+                            <div class="flex justify-between text-sm text-gray-500 dark:text-gray-400 mb-1">
+                                <span>时间进度</span>
+                                <span>${Math.round(timeProgress)}%</span>
+                            </div>
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: ${timeProgress}%"></div>
+                            </div>
+                        </div>
+                        
+                        <div class="flex justify-between items-center">
+                            <div class="text-sm text-gray-500 dark:text-gray-400">
+                                <span>目标进度: ${goal.progress}%</span>
+                            </div>
+                            <div class="flex space-x-2">
+                                <button class="update-progress px-3 py-1 bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300 rounded text-xs hover:bg-primary-200 dark:hover:bg-primary-800/50 transition-all duration-300">
+                                    更新进度
+                                </button>
+                                <button class="complete-goal px-3 py-1 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 rounded text-xs hover:bg-green-200 dark:hover:bg-green-800/50 transition-all duration-300">
+                                    标记完成
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            goalsList.innerHTML = goalsHTML;
+            
+            // 添加目标操作事件
+            document.querySelectorAll('.update-progress').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const goalId = this.closest('[data-goal-id]').getAttribute('data-goal-id');
+                    updateGoalProgress(goalId);
+                });
+            });
+            
+            document.querySelectorAll('.complete-goal').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const goalId = this.closest('[data-goal-id]').getAttribute('data-goal-id');
+                    completeGoal(goalId);
+                });
+            });
+            
+            document.querySelectorAll('.delete-goal').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const goalId = this.closest('[data-goal-id]').getAttribute('data-goal-id');
+                    deleteGoal(goalId);
+                });
+            });
+        }
+        
+        // 更新目标进度
+        function updateGoalProgress(goalId) {
+            const progress = prompt('请输入目标进度（0-100）:');
+            if (progress === null) return;
+            
+            const progressValue = parseInt(progress);
+            if (isNaN(progressValue) || progressValue < 0 || progressValue > 100) {
+                showToast('请输入0-100之间的数字', 'error');
+                return;
+            }
+            
+            let goals = JSON.parse(localStorage.getItem('goals') || '[]');
+            const goalIndex = goals.findIndex(goal => goal.id == goalId);
+            
+            if (goalIndex === -1) return;
+            
+            goals[goalIndex].progress = progressValue;
+            
+            // 如果进度为100%，自动标记为完成
+            if (progressValue === 100) {
+                goals[goalIndex].status = 'completed';
+            }
+            
+            localStorage.setItem('goals', JSON.stringify(goals));
+            
+            // 重新加载目标
+            loadGoals();
+            
+            // 显示成功提示
+            showToast('目标进度已更新');
+            
+            // 更新积分
+            updatePoints(3);
+        }
+        
+        // 完成目标
+        function completeGoal(goalId) {
+            let goals = JSON.parse(localStorage.getItem('goals') || '[]');
+            const goalIndex = goals.findIndex(goal => goal.id == goalId);
+            
+            if (goalIndex === -1) return;
+            
+            goals[goalIndex].status = 'completed';
+            goals[goalIndex].progress = 100;
+            
+            localStorage.setItem('goals', JSON.stringify(goals));
+            
+            // 重新加载目标
+            loadGoals();
+            
+            // 显示成功提示
+            showToast('目标已完成！恭喜！');
+            
+            // 更新积分
+            updatePoints(20);
+        }
+        
+        // 删除目标
+        function deleteGoal(goalId) {
+            if (!confirm('确定要删除这个目标吗？')) return;
+            
+            let goals = JSON.parse(localStorage.getItem('goals') || '[]');
+            goals = goals.filter(goal => goal.id != goalId);
+            localStorage.setItem('goals', JSON.stringify(goals));
+            
+            // 重新加载目标
+            loadGoals();
+            
+            // 显示成功提示
+            showToast('目标已删除');
+        }
+        
+        // 清空目标表单
+        function clearGoalForm() {
+            document.getElementById('goal-name').value = '';
+            document.getElementById('goal-start-date').valueAsDate = new Date();
+            
+            const endDate = new Date();
+            endDate.setMonth(endDate.getMonth() + 3);
+            document.getElementById('goal-end-date').valueAsDate = endDate;
+            
+            document.getElementById('goal-category').value = 'career';
+            document.getElementById('goal-description').value = '';
+        }
+
+        // 数据看板功能
+        function initDashboard() {
+            // 设置导出报告按钮事件
+            document.getElementById('export-report').addEventListener('click', exportReport);
+            document.getElementById('export-raw-data').addEventListener('click', exportRawData);
+            
+            // 初始化看板数据
+            updateDashboardData();
+        }
+        
+        // 更新看板数据
+        function updateDashboardData() {
+            // 获取各模块数据
+            const tasks = JSON.parse(localStorage.getItem('tasks') || '[]');
+            const habits = JSON.parse(localStorage.getItem('habits') || '[]');
+            const goals = JSON.parse(localStorage.getItem('goals') || '[]');
+            const learningCards = JSON.parse(localStorage.getItem('learningCards') || '[]');
+            
+            // 更新关键指标
+            const completedTasks = tasks.filter(task => task.status === 'done').length;
+            const totalHabitStreak = habits.reduce((sum, habit) => sum + habit.currentStreak, 0);
+            const completedGoals = goals.filter(goal => goal.status === 'completed').length;
+            const learningHours = Math.round(learningCards.length * 0.5); // 假设每张卡片学习0.5小时
+            
+            document.getElementById('dashboard-tasks-completed').textContent = completedTasks;
+            document.getElementById('dashboard-habits-streak').textContent = totalHabitStreak;
+            document.getElementById('dashboard-goals-achieved').textContent = completedGoals;
+            document.getElementById('dashboard-learning-hours').textContent = learningHours;
+            
+            // 更新个性化建议
+            updatePersonalizedSuggestions(tasks, habits, goals, learningCards);
+            
+            // 更新图表
+            updateDashboardCharts(tasks, habits, goals, learningCards);
+        }
+        
+        // 更新个性化建议
+        function updatePersonalizedSuggestions(tasks, habits, goals, learningCards) {
+            const positiveFeedback = document.getElementById('positive-feedback');
+            const improvementSuggestions = document.getElementById('improvement-suggestions');
+            
+            let positiveText = '';
+            let improvementText = '';
+            
+            // 根据数据生成建议
+            if (tasks.length > 0) {
+                const completionRate = tasks.filter(task => task.status === 'done').length / tasks.length * 100;
+                if (completionRate > 70) {
+                    positiveText += '• 您的任务完成率很高，继续保持高效的工作节奏！\n';
+                } else if (completionRate < 30) {
+                    improvementText += '• 任务完成率较低，建议优先处理高优先级任务\n';
+                }
+            }
+            
+            if (habits.length > 0) {
+                const activeHabits = habits.filter(habit => habit.currentStreak > 0).length;
+                if (activeHabits > 0) {
+                    positiveText += '• 您正在积极培养' + activeHabits + '个习惯，坚持下去！\n';
+                } else {
+                    improvementText += '• 习惯养成需要持续坚持，建议从微小习惯开始\n';
+                }
+            }
+            
+            if (goals.length > 0) {
+                const activeGoals = goals.filter(goal => goal.status === 'active').length;
+                if (activeGoals > 0) {
+                    positiveText += '• 您有' + activeGoals + '个活跃目标，保持动力！\n';
+                } else {
+                    improvementText += '• 设定明确的目标可以帮助您保持方向感\n';
+                }
+            }
+            
+            if (learningCards.length > 0) {
+                positiveText += '• 您正在积极学习，知识积累是长期投资\n';
+            } else {
+                improvementText += '• 尝试添加一些学习卡片，持续学习是个人成长的关键\n';
+            }
+            
+            // 如果没有数据，显示默认提示
+            if (tasks.length === 0 && habits.length === 0 && goals.length === 0 && learningCards.length === 0) {
+                positiveText = '欢迎使用科学方法可视化分析系统！开始记录您的第一项活动吧。';
+                improvementText = '建议从"记录事情"模块开始，逐步探索其他功能。';
+            }
+            
+            positiveFeedback.textContent = positiveText || '请继续使用系统以获取更多个性化建议...';
+            improvementSuggestions.textContent = improvementText || '您做得很好！继续保持当前的学习和工作节奏。';
+        }
+        
+        // 更新看板图表
+        function updateDashboardCharts(tasks, habits, goals, learningCards) {
+            // 活动分布图表
+            const activityCtx = document.getElementById('activityDistributionChart').getContext('2d');
+            
+            const activityData = {
+                labels: ['任务', '习惯', '目标', '学习'],
+                datasets: [{
+                    label: '活动数量',
+                    data: [tasks.length, habits.length, goals.length, learningCards.length],
+                    backgroundColor: [
+                        'rgba(59, 130, 246, 0.7)',
+                        'rgba(34, 197, 94, 0.7)',
+                        'rgba(168, 85, 247, 0.7)',
+                        'rgba(245, 158, 11, 0.7)'
+                    ],
+                    borderColor: [
+                        'rgb(59, 130, 246)',
+                        'rgb(34, 197, 94)',
+                        'rgb(168, 85, 247)',
+                        'rgb(245, 158, 11)'
+                    ],
+                    borderWidth: 1
+                }]
+            };
+            
+            if (window.activityDistributionChart) {
+                window.activityDistributionChart.destroy();
+            }
+            
+            window.activityDistributionChart = new Chart(activityCtx, {
+                type: 'doughnut',
+                data: activityData,
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        }
+                    }
+                }
+            });
+            
+            // 效能趋势图表
+            const efficiencyCtx = document.getElementById('efficiencyTrendChart').getContext('2d');
+            
+            // 模拟效能趋势数据
+            const efficiencyData = {
+                labels: ['1月', '2月', '3月', '4月', '5月', '6月'],
+                datasets: [{
+                    label: '效能指数',
+                    data: [65, 70, 75, 80, 78, 85],
+                    borderColor: 'rgb(139, 92, 246)',
+                    backgroundColor: 'rgba(139, 92, 246, 0.1)',
+                    fill: true,
+                    tension: 0.4
+                }]
+            };
+            
+            if (window.efficiencyTrendChart) {
+                window.efficiencyTrendChart.destroy();
+            }
+            
+            window.efficiencyTrendChart = new Chart(efficiencyCtx, {
+                type: 'line',
+                data: efficiencyData,
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            min: 0,
+                            max: 100,
+                            title: {
+                                display: true,
+                                text: '效能指数'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        
+        // 导出报告
+        function exportReport() {
+            showToast('PDF报告生成功能正在开发中', 'warning');
+        }
+        
+        // 导出原始数据
+        function exportRawData() {
+            const data = {
+                tasks: JSON.parse(localStorage.getItem('tasks') || '[]'),
+                habits: JSON.parse(localStorage.getItem('habits') || '[]'),
+                goals: JSON.parse(localStorage.getItem('goals') || '[]'),
+                learningCards: JSON.parse(localStorage.getItem('learningCards') || '[]'),
+                reviews: JSON.parse(localStorage.getItem('reviews') || '[]'),
+                points: parseInt(localStorage.getItem('userPoints') || '0'),
+                achievements: JSON.parse(localStorage.getItem('achievements') || '[]'),
+                exportDate: new Date().toISOString()
+            };
+            
+            const dataStr = JSON.stringify(data, null, 2);
+            const dataBlob = new Blob([dataStr], {type: 'application/json'});
+            
+            const url = URL.createObjectURL(dataBlob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `科学方法系统数据_${new Date().toISOString().split('T')[0]}.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            
+            showToast('数据导出成功');
+        }
+
+        // 数据导出导入功能
+        function initDataExportImport() {
+            const exportBtn = document.getElementById('export-data');
+            const importBtn = document.getElementById('import-data');
+            const importFile = document.getElementById('import-file');
+            
+            exportBtn.addEventListener('click', exportData);
+            importBtn.addEventListener('click', () => importFile.click());
+            importFile.addEventListener('change', importData);
+        }
+
+        // 导出数据
+        function exportData() {
+            const data = {
+                tasks: JSON.parse(localStorage.getItem('tasks') || '[]'),
+                learningCards: JSON.parse(localStorage.getItem('learningCards') || '[]'),
+                habits: JSON.parse(localStorage.getItem('habits') || '[]'),
+                goals: JSON.parse(localStorage.getItem('goals') || '[]'),
+                reviews: JSON.parse(localStorage.getItem('reviews') || '[]'),
+                points: parseInt(localStorage.getItem('userPoints') || '0'),
+                achievements: JSON.parse(localStorage.getItem('achievements') || '[]'),
+                exportDate: new Date().toISOString()
+            };
+            
+            const dataStr = JSON.stringify(data, null, 2);
+            const dataBlob = new Blob([dataStr], {type: 'application/json'});
+            
+            const url = URL.createObjectURL(dataBlob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `科学方法系统数据_${new Date().toISOString().split('T')[0]}.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            
+            showToast('数据导出成功');
+        }
+
+        // 导入数据
+        function importData(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = JSON.parse(e.target.result);
+                    
+                    if (data.tasks) localStorage.setItem('tasks', JSON.stringify(data.tasks));
+                    if (data.learningCards) localStorage.setItem('learningCards', JSON.stringify(data.learningCards));
+                    if (data.habits) localStorage.setItem('habits', JSON.stringify(data.habits));
+                    if (data.goals) localStorage.setItem('goals', JSON.stringify(data.goals));
+                    if (data.reviews) localStorage.setItem('reviews', JSON.stringify(data.reviews));
+                    if (data.points) localStorage.setItem('userPoints', data.points.toString());
+                    if (data.achievements) localStorage.setItem('achievements', JSON.stringify(data.achievements));
+                    
+                    // 重新加载数据
+                    loadTasks();
+                    loadCards();
+                    loadHabits();
+                    loadGoals();
+                    loadReviews();
+                    updatePointsDisplay();
+                    updateAchievements();
+                    
+                    showToast('数据导入成功');
+                } catch (error) {
+                    showToast('数据导入失败，文件格式不正确', 'error');
+                }
+            };
+            reader.readAsText(file);
+            
+            // 清空文件输入，允许再次选择同一文件
+            event.target.value = '';
+        }
+
+        // 成就系统
+        function initAchievementSystem() {
+            updatePointsDisplay();
+            updateAchievements();
+            updateStreakCount();
+        }
+
+        // 更新积分显示
+        function updatePointsDisplay() {
+            const points = parseInt(localStorage.getItem('userPoints') || '0');
+            document.getElementById('user-points').textContent = points;
+        }
+
+        // 更新积分
+        function updatePoints(pointsToAdd) {
+            const currentPoints = parseInt(localStorage.getItem('userPoints') || '0');
+            const newPoints = currentPoints + pointsToAdd;
+            localStorage.setItem('userPoints', newPoints.toString());
+            updatePointsDisplay();
+            
+            // 检查是否有新成就解锁
+            checkAchievements();
+        }
+
+        // 检查成就
+        function checkAchievements() {
+            const points = parseInt(localStorage.getItem('userPoints') || '0');
+            const tasks = JSON.parse(localStorage.getItem('tasks') || '[]');
+            const completedTasks = tasks.filter(task => task.status === 'done').length;
+            const learningCards = JSON.parse(localStorage.getItem('learningCards') || '[]');
+            const habits = JSON.parse(localStorage.getItem('habits') || '[]');
+            const goals = JSON.parse(localStorage.getItem('goals') || '[]');
+            const reviews = JSON.parse(localStorage.getItem('reviews') || '[]');
+            
+            const achievements = JSON.parse(localStorage.getItem('achievements') || '[]');
+            const newAchievements = [];
+            
+            // 定义成就条件
+            const achievementConditions = [
+                { id: 'first_task', name: '初次尝试', description: '完成第一个事务', condition: completedTasks >= 1 },
+                { id: 'task_master', name: '事务达人', description: '完成10个事务', condition: completedTasks >= 10 },
+                { id: 'learning_beginner', name: '学习新手', description: '记录5次学习', condition: learningCards.length >= 5 },
+                { id: 'habit_starter', name: '习惯启动者', description: '创建第一个习惯', condition: habits.length >= 1 },
+                { id: 'goal_setter', name: '目标设定者', description: '设定第一个目标', condition: goals.length >= 1 },
+                { id: 'reviewer', name: '反思者', description: '完成第一次复盘', condition: reviews.length >= 1 },
+                { id: 'point_collector', name: '积分收集者', description: '获得100积分', condition: points >= 100 },
+                { id: 'consistency', name: '持之以恒', description: '连续3天使用系统', condition: getCurrentStreak() >= 3 }
+            ];
+            
+            // 检查成就条件
+            achievementConditions.forEach(achievement => {
+                if (achievement.condition && !achievements.includes(achievement.id)) {
+                    achievements.push(achievement.id);
+                    newAchievements.push(achievement);
+                }
+            });
+            
+            // 保存成就
+            localStorage.setItem('achievements', JSON.stringify(achievements));
+            
+            // 显示新成就
+            newAchievements.forEach(achievement => {
+                showAchievementToast(achievement.name, achievement.description);
+            });
+            
+            // 更新成就显示
+            updateAchievements();
+        }
+
+        // 显示成就提示
+        function showAchievementToast(name, description) {
+            const toast = document.getElementById('achievement-toast');
+            const message = document.getElementById('achievement-message');
+            
+            message.textContent = `${name}: ${description}`;
+            toast.classList.remove('hidden');
+            toast.classList.add('show');
+            
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => {
+                    toast.classList.add('hidden');
+                }, 300);
+            }, 5000);
+        }
+
+        // 更新成就显示
+        function updateAchievements() {
+            const achievements = JSON.parse(localStorage.getItem('achievements') || '[]');
+            const container = document.getElementById('achievement-container');
+            
+            // 成就定义
+            const achievementDefinitions = {
+                'first_task': { name: '初次尝试', icon: 'fa-star' },
+                'task_master': { name: '事务达人', icon: 'fa-tasks' },
+                'learning_beginner': { name: '学习新手', icon: 'fa-graduation-cap' },
+                'habit_starter': { name: '习惯启动者', icon: 'fa-calendar-check' },
+                'goal_setter': { name: '目标设定者', icon: 'fa-bullseye' },
+                'reviewer': { name: '反思者', icon: 'fa-refresh' },
+                'point_collector': { name: '积分收集者', icon: 'fa-trophy' },
+                'consistency': { name: '持之以恒', icon: 'fa-fire' }
+            };
+            
+            let achievementsHTML = '';
+            achievements.forEach(achievementId => {
+                const achievement = achievementDefinitions[achievementId];
+                if (achievement) {
+                    achievementsHTML += `
+                        <div class="achievement-badge">
+                            <i class="fa ${achievement.icon} mr-1"></i>
+                            <span>${achievement.name}</span>
+                        </div>
+                    `;
+                }
+            });
+            
+            container.innerHTML = achievementsHTML || '<span class="text-gray-500 dark:text-gray-400">暂无成就，继续努力！</span>';
+        }
+
+        // 获取连续使用天数
+        function getCurrentStreak() {
+            const lastLogin = localStorage.getItem('lastLogin');
+            const today = new Date().toDateString();
+            
+            if (!lastLogin) {
+                localStorage.setItem('lastLogin', today);
+                return 1;
+            }
+            
+            const lastLoginDate = new Date(lastLogin);
+            const todayDate = new Date(today);
+            const diffTime = todayDate - lastLoginDate;
+            const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+            
+            if (diffDays === 0) {
+                // 同一天，不增加连续天数
+                const streak = parseInt(localStorage.getItem('streakCount') || '0');
+                return streak;
+            } else if (diffDays === 1) {
+                // 连续使用
+                const streak = parseInt(localStorage.getItem('streakCount') || '0') + 1;
+                localStorage.setItem('streakCount', streak.toString());
+                localStorage.setItem('lastLogin', today);
+                return streak;
+            } else {
+                // 中断，重置连续天数
+                localStorage.setItem('streakCount', '1');
+                localStorage.setItem('lastLogin', today);
+                return 1;
+            }
+        }
+
+        // 更新连续天数显示
+        function updateStreakCount() {
+            const streak = getCurrentStreak();
+            document.getElementById('streak-count').textContent = streak;
+        }
+
+        // 更新图表和可视化
+        function updateChartsAndVisualizations() {
+            updateTaskCharts();
+            updateTaskMindMap();
+            updateTaskAnalysis();
+        }
+
+        // 更新任务图表
+        function updateTaskCharts() {
+            const tasks = JSON.parse(localStorage.getItem('tasks') || '[]');
+            
+            // 任务状态分布图表
+            const statusCtx = document.getElementById('taskStatusChart').getContext('2d');
+            const statusCounts = {
+                todo: tasks.filter(task => task.status === 'todo').length,
+                doing: tasks.filter(task => task.status === 'doing').length,
+                done: tasks.filter(task => task.status === 'done').length
+            };
+            
+            if (window.taskStatusChart) {
+                window.taskStatusChart.destroy();
+            }
+            
+            window.taskStatusChart = new Chart(statusCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['待办', '进行中', '已完成'],
+                    datasets: [{
+                        data: [statusCounts.todo, statusCounts.doing, statusCounts.done],
+                        backgroundColor: [
+                            'rgba(239, 68, 68, 0.7)',
+                            'rgba(245, 158, 11, 0.7)',
+                            'rgba(34, 197, 94, 0.7)'
+                        ],
+                        borderColor: [
+                            'rgb(239, 68, 68)',
+                            'rgb(245, 158, 11)',
+                            'rgb(34, 197, 94)'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        }
+                    }
+                }
+            });
+            
+            // 任务优先级分布图表
+            const priorityCtx = document.getElementById('taskPriorityChart').getContext('2d');
+            const priorityCounts = {
+                1: tasks.filter(task => task.priority === '1').length,
+                2: tasks.filter(task => task.priority === '2').length,
+                3: tasks.filter(task => task.priority === '3').length
+            };
+            
+            if (window.taskPriorityChart) {
+                window.taskPriorityChart.destroy();
+            }
+            
+            window.taskPriorityChart = new Chart(priorityCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['★', '★★', '★★★'],
+                    datasets: [{
+                        label: '任务数量',
+                        data: [priorityCounts[1], priorityCounts[2], priorityCounts[3]],
+                        backgroundColor: [
+                            'rgba(34, 197, 94, 0.7)',
+                            'rgba(245, 158, 11, 0.7)',
+                            'rgba(239, 68, 68, 0.7)'
+                        ],
+                        borderColor: [
+                            'rgb(34, 197, 94)',
+                            'rgb(245, 158, 11)',
+                            'rgb(239, 68, 68)'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                stepSize: 1
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // 更新任务思维导图
+        function updateTaskMindMap() {
+            const tasks = JSON.parse(localStorage.getItem('tasks') || '[]');
+            const todoTasks = tasks.filter(task => task.status === 'todo');
+            const doingTasks = tasks.filter(task => task.status === 'doing');
+            const doneTasks = tasks.filter(task => task.status === 'done');
+            
+            let mindMapHTML = `
+                graph TD
+                    A[事务记录] --> B[待办]
+                    A --> C[进行中]
+                    A --> D[已完成]
+            `;
+            
+            // 添加待办任务
+            todoTasks.forEach((task, index) => {
+                mindMapHTML += `\nB --> B${index}["${task.name}"]`;
+            });
+            
+            // 添加进行中任务
+            doingTasks.forEach((task, index) => {
+                mindMapHTML += `\nC --> C${index}["${task.name}"]`;
+            });
+            
+            // 添加已完成任务
+            doneTasks.forEach((task, index) => {
+                mindMapHTML += `\nD --> D${index}["${task.name}"]`;
+            });
+            
+            // 更新思维导图
+            const mindMapContainer = document.getElementById('task-mindmap');
+            mindMapContainer.innerHTML = `<div class="mermaid">${mindMapHTML}</div>`;
+            
+            // 重新渲染Mermaid图表
+            mermaid.init(undefined, mindMapContainer.querySelectorAll('.mermaid'));
+        }
+
+        // 更新任务分析
+        function updateTaskAnalysis() {
+            const tasks = JSON.parse(localStorage.getItem('tasks') || '[]');
+            const analysisResult = document.getElementById('task-analysis-result');
+            
+            if (tasks.length === 0) {
+                analysisResult.textContent = '请添加事务数据以获取分析结果...';
+                return;
+            }
+            
+            const totalTasks = tasks.length;
+            const completedTasks = tasks.filter(task => task.status === 'done').length;
+            const completionRate = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
+            
+            const highPriorityTasks = tasks.filter(task => task.priority === '3').length;
+            const mediumPriorityTasks = tasks.filter(task => task.priority === '2').length;
+            const lowPriorityTasks = tasks.filter(task => task.priority === '1').length;
+            
+            let analysisText = '';
+            
+            if (completionRate >= 80) {
+                analysisText = `您的任务完成率很高（${completionRate}%），继续保持高效的工作节奏！`;
+            } else if (completionRate >= 50) {
+                analysisText = `您的任务完成率为${completionRate}%，有进步空间，建议优先处理高优先级任务。`;
+            } else {
+                analysisText = `您的任务完成率较低（${completionRate}%），建议专注于少量高优先级任务，避免任务积压。`;
+            }
+            
+            analysisText += ` 您有${highPriorityTasks}个高优先级任务，${mediumPriorityTasks}个中等优先级任务，${lowPriorityTasks}个低优先级任务。`;
+            
+            if (highPriorityTasks > 0) {
+                analysisText += ` 建议优先完成${highPriorityTasks}个高优先级任务。`;
+            }
+            
+            analysisResult.textContent = analysisText;
+        }
+
+        // 显示提示消息
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toast');
+            const toastMessage = document.getElementById('toast-message');
+            
+            toastMessage.textContent = message;
+            toast.className = 'toast'; // 重置类名
+            
+            if (type === 'error') {
+                toast.classList.add('error');
+            } else if (type === 'warning') {
+                toast.classList.add('warning');
+            }
+            
+            toast.classList.add('show');
+            
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+    </script>
+</body>
+</html>

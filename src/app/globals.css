@@ -1,0 +1,573 @@
+/**
+ * 全局样式 - 升级版
+ * 比部署版更柔和、更丝滑、更有质感
+ */
+
+@import "tailwindcss";
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* ========== 基础样式 ========== */
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  background-color: #fff5f7;
+  color: #333;
+  transition: background-color 0.5s, color 0.5s;
+  /* 隐藏默认滚动条但保持可滚动 */
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 107, 157, 0.3) transparent;
+}
+
+/* 自定义颜色变量 */
+:root {
+  --primary-pink: #ff6b9d;
+  --primary-pink-light: #ffb8d0;
+  --primary-pink-dark: #e91e63;
+  --bg-pink: #fff5f7;
+  --text-dark: #333;
+  --text-gray: #666;
+  --text-light: #999;
+  --vinyl-black: #1a1a1a;
+  --vinyl-groove: #2a2a2a;
+}
+
+/* ========== 暗色模式样式 ========== */
+html.dark body {
+  background-color: #1a1a2e;
+  color: #e0e0e0;
+}
+
+html.dark .bg-white {
+  background-color: #16213e !important;
+}
+
+html.dark .bg-\[\#fff5f7\] {
+  background-color: #1a1a2e !important;
+}
+
+html.dark .text-gray-800 {
+  color: #e0e0e0 !important;
+}
+
+html.dark .text-gray-700 {
+  color: #d0d0d0 !important;
+}
+
+html.dark .text-gray-600 {
+  color: #b0b0b0 !important;
+}
+
+html.dark .text-gray-500 {
+  color: #909090 !important;
+}
+
+html.dark .border-gray-200 {
+  border-color: #2a2a4a !important;
+}
+
+html.dark .bg-gray-50 {
+  background-color: #1a1a2e !important;
+}
+
+/* ========== 升级版波浪动画 - 比部署版更柔和 ========== */
+@keyframes wave-gentle-right {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+@keyframes wave-gentle-left {
+  0% {
+    transform: translateX(-50%);
+  }
+  100% {
+    transform: translateX(0);
+  }
+}
+
+/* 三层波浪，更丰富的层次感 */
+.wave-container {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 260px;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.wave-layer {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 200%;
+  height: 100%;
+}
+
+/* 第一层 - 最淡最慢 */
+.wave-layer-1 {
+  opacity: 0.3;
+  animation: wave-gentle-right 20s linear infinite;
+}
+
+/* 第二层 - 中等 */
+.wave-layer-2 {
+  opacity: 0.5;
+  animation: wave-gentle-left 15s linear infinite;
+}
+
+/* 第三层 - 最清晰 */
+.wave-layer-3 {
+  opacity: 0.7;
+  animation: wave-gentle-right 12s linear infinite;
+}
+
+/* 波浪SVG路径更平滑 */
+.wave-layer svg {
+  width: 100%;
+  height: 100%;
+}
+
+/* ========== 黑胶唱片头像效果 - 比部署版更精致 ========== */
+.vinyl-avatar {
+  position: relative;
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  background: 
+    /* 中心标签 */
+    radial-gradient(circle at center, #fff 0%, #fff 18%, transparent 18%),
+    /* 唱片纹路 */
+    repeating-radial-gradient(
+      circle at center,
+      var(--vinyl-groove) 0px,
+      var(--vinyl-groove) 2px,
+      var(--vinyl-black) 2px,
+      var(--vinyl-black) 4px
+    );
+  background-color: var(--vinyl-black);
+  box-shadow: 
+    0 4px 15px rgba(0, 0, 0, 0.3),
+    inset 0 2px 5px rgba(255, 255, 255, 0.1);
+  padding: 8px;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.vinyl-avatar:hover {
+  transform: scale(1.05);
+  box-shadow: 
+    0 8px 30px rgba(255, 107, 157, 0.4),
+    inset 0 2px 5px rgba(255, 255, 255, 0.2);
+}
+
+.vinyl-avatar img {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+  animation: vinyl-spin 8s linear infinite;
+  transition: filter 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* 悬停时唱片加速旋转 */
+.vinyl-avatar:hover img {
+  animation: vinyl-spin 1.5s linear infinite;
+}
+
+@keyframes vinyl-spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* 唱片光泽效果 */
+.vinyl-avatar::before {
+  content: '';
+  position: absolute;
+  top: 10%;
+  left: 10%;
+  right: 10%;
+  bottom: 10%;
+  border-radius: 50%;
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.2) 0%,
+    transparent 50%,
+    rgba(255, 255, 255, 0.1) 100%
+  );
+  pointer-events: none;
+  z-index: 2;
+}
+
+/* ========== 升级版滚动条 - 更精致 ========== */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, rgba(255, 107, 157, 0.4), rgba(255, 184, 208, 0.4));
+  border-radius: 10px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, rgba(255, 107, 157, 0.6), rgba(255, 184, 208, 0.6));
+  border: 1px solid transparent;
+  background-clip: padding-box;
+}
+
+/* Firefox */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 107, 157, 0.4) transparent;
+}
+
+/* ========== 滚动进度指示器 - 全新设计 ========== */
+.scroll-progress {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 3px;
+  background: linear-gradient(90deg, var(--primary-pink), var(--primary-pink-light));
+  transform-origin: left;
+  transform: scaleX(0);
+  z-index: 9999;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.scroll-progress.visible {
+  opacity: 1;
+}
+
+/* ========== 弹跳箭头动画 - 更柔和 ========== */
+@keyframes bounce-arrow {
+  0%, 100% {
+    transform: translateY(0);
+    opacity: 0.8;
+  }
+  50% {
+    transform: translateY(8px);
+    opacity: 1;
+  }
+}
+
+.animate-bounce-arrow {
+  animation: bounce-arrow 2s ease-in-out infinite;
+}
+
+/* ========== 升级版卡片悬停效果 ========== */
+.card-hover {
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.card-hover:hover {
+  transform: translateY(-8px);
+  box-shadow: 
+    0 20px 40px rgba(255, 107, 157, 0.15),
+    0 0 0 1px rgba(255, 107, 157, 0.05);
+}
+
+/* ========== 打字机光标动画 ========== */
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+.typewriter-cursor {
+  animation: blink 1s step-end infinite;
+}
+
+/* ========== 升级版漂浮动画 - 更自然 ========== */
+@keyframes float-gentle {
+  0%, 100% {
+    transform: translateY(0) rotate(0deg);
+  }
+  25% {
+    transform: translateY(-6px) rotate(0.5deg);
+  }
+  50% {
+    transform: translateY(-12px) rotate(0deg);
+  }
+  75% {
+    transform: translateY(-6px) rotate(-0.5deg);
+  }
+}
+
+/* 许愿瓶浮动动画 */
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0) scale(1);
+  }
+  50% {
+    transform: translateY(-8px) scale(1.02);
+  }
+}
+
+.animate-float {
+  animation: float 3s ease-in-out infinite;
+}
+
+.wish-card {
+  animation: float-gentle 8s ease-in-out infinite;
+}
+
+.wish-card:nth-child(2n) { animation-delay: 1s; }
+.wish-card:nth-child(3n) { animation-delay: 2s; }
+.wish-card:nth-child(4n) { animation-delay: 3s; }
+
+/* ========== 图片放大效果 - 更丝滑 ========== */
+.image-zoom {
+  transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.image-zoom:hover {
+  transform: scale(1.08);
+}
+
+/* ========== 导航按钮悬停效果 ========== */
+.nav-btn {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.nav-btn:hover {
+  transform: scale(1.1) translateY(-2px);
+  background-color: rgba(255, 107, 157, 0.1);
+}
+
+/* ========== 搜索框焦点效果 ========== */
+.search-input {
+  transition: all 0.3s ease;
+}
+
+.search-input:focus {
+  box-shadow: 0 0 0 3px rgba(255, 107, 157, 0.2), 0 4px 20px rgba(255, 107, 157, 0.1);
+  transform: translateY(-1px);
+}
+
+/* ========== 标签样式 ========== */
+.tag {
+  background: linear-gradient(135deg, #ff6b9d, #ffb8d0);
+  color: white;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.tag:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(255, 107, 157, 0.3);
+}
+
+/* ========== 升级版渐变文字 ========== */
+.gradient-text {
+  background: linear-gradient(135deg, #ff6b9d, #e91e63, #ff6b9d, #c2185b);
+  background-size: 300% 300%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: gradient-shift 4s ease infinite;
+}
+
+@keyframes gradient-shift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* ========== 升级版玻璃态效果 ========== */
+.glass {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+html.dark .glass {
+  background: rgba(22, 33, 62, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* ========== 升级版爱心动画 ========== */
+@keyframes heartbeat {
+  0%, 100% { transform: scale(1); }
+  25% { transform: scale(1.05); }
+  50% { transform: scale(1.1); }
+  75% { transform: scale(1.05); }
+}
+
+.animate-heartbeat {
+  animation: heartbeat 1.5s ease-in-out infinite;
+}
+
+/* ========== 淡入上浮动画 ========== */
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in-up {
+  animation: fade-in-up 0.8s ease-out forwards;
+}
+
+/* ========== 延迟动画类 ========== */
+.delay-100 { animation-delay: 0.1s; }
+.delay-200 { animation-delay: 0.2s; }
+.delay-300 { animation-delay: 0.3s; }
+.delay-400 { animation-delay: 0.4s; }
+.delay-500 { animation-delay: 0.5s; }
+
+/* ========== 模态框背景 ========== */
+.modal-overlay {
+  background-color: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(8px);
+}
+
+/* ========== 鼠标跟随动画 ========== */
+@keyframes mouse-heart-float {
+  0% {
+    opacity: 1;
+    transform: translateY(0) translateX(0) scale(1);
+  }
+  50% {
+    opacity: 0.8;
+    transform: translateY(-40px) translateX(10px) scale(1.1);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-80px) translateX(-10px) scale(0.6);
+  }
+}
+
+.mouse-heart {
+  position: fixed;
+  pointer-events: none;
+  z-index: 9998;
+  animation: mouse-heart-float 1.5s ease-out forwards;
+  filter: drop-shadow(0 2px 4px rgba(255, 107, 157, 0.3));
+}
+
+/* ========== 轮播图动画 ========== */
+@keyframes carousel-fade-in {
+  from {
+    opacity: 0;
+    transform: scale(1.02);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.animate-carousel-fade-in {
+  animation: carousel-fade-in 0.6s ease-out forwards;
+}
+
+/* ========== 音乐条动画 ========== */
+@keyframes music-bar {
+  0%, 100% { height: 4px; opacity: 0.5; }
+  50% { height: 16px; opacity: 1; }
+}
+
+.animate-music-bar {
+  animation: music-bar 0.8s ease-in-out infinite;
+}
+
+/* ========== 慢速旋转动画 ========== */
+@keyframes spin-slow {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.animate-spin-slow {
+  animation: spin-slow 3s linear infinite;
+}
+
+/* ========== 慢速弹跳动画 ========== */
+@keyframes bounce-slow {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+.animate-bounce-slow {
+  animation: bounce-slow 2s ease-in-out infinite;
+}
+
+/* ========== 隐藏 Next.js 开发工具栏 ========== */
+#__next-build-watcher,
+#__next-dev-tools-overlay,
+.next-dev-tools-overlay {
+  display: none !important;
+  visibility: hidden !important;
+}
+
+/* ========== 微光效果 - 新增 ========== */
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.shimmer {
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.4) 50%,
+    transparent 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 2s infinite;
+}
+
+/* ========== 脉冲光晕效果 - 新增 ========== */
+@keyframes pulse-glow {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(255, 107, 157, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 20px 10px rgba(255, 107, 157, 0);
+  }
+}
+
+.pulse-glow {
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+
+/* ========== 悬浮阴影效果 - 新增 ========== */
+.hover-lift {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.hover-lift:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.1);
+}
+
+/* ========== 关于页面艺术字体 ========== */
+.font-dancing {
+  font-family: 'Dancing Script', cursive, serif;
+}
+
+/* ========== 平滑滚动 ========== */
+html {
+  scroll-behavior: smooth;
+}

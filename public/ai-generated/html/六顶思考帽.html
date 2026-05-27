@@ -1,0 +1,864 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>六顶思考帽 - 高效思维工具</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --white-hat: #f8f9fa;
+            --red-hat: #e74c3c;
+            --black-hat: #2c3e50;
+            --yellow-hat: #f1c40f;
+            --green-hat: #2ecc71;
+            --blue-hat: #3498db;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #f5f7fa;
+            color: #333;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        header {
+            text-align: center;
+            padding: 40px 0;
+            background: linear-gradient(135deg, #3498db, #2c3e50);
+            color: white;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            position: relative;
+        }
+        
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+        
+        .subtitle {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .timer-container {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            min-width: 150px;
+        }
+        
+        .timer-display {
+            font-size: 1.8rem;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        
+        .timer-controls {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+        }
+        
+        .timer-btn {
+            background: rgba(255, 255, 255, 0.3);
+            border: none;
+            color: white;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.3s;
+        }
+        
+        .timer-btn:hover {
+            background: rgba(255, 255, 255, 0.5);
+        }
+        
+        .hats-intro {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+        
+        .hat-card {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            transition: transform 0.3s ease;
+            border-top: 5px solid;
+            position: relative;
+        }
+        
+        .hat-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .hat-card.white {
+            border-color: var(--white-hat);
+        }
+        
+        .hat-card.red {
+            border-color: var(--red-hat);
+        }
+        
+        .hat-card.black {
+            border-color: var(--black-hat);
+        }
+        
+        .hat-card.yellow {
+            border-color: var(--yellow-hat);
+        }
+        
+        .hat-card.green {
+            border-color: var(--green-hat);
+        }
+        
+        .hat-card.blue {
+            border-color: var(--blue-hat);
+        }
+        
+        .hat-title {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .hat-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 10px;
+            color: white;
+            font-weight: bold;
+        }
+        
+        .white .hat-icon {
+            background-color: var(--white-hat);
+            color: #333;
+        }
+        
+        .red .hat-icon {
+            background-color: var(--red-hat);
+        }
+        
+        .black .hat-icon {
+            background-color: var(--black-hat);
+        }
+        
+        .yellow .hat-icon {
+            background-color: var(--yellow-hat);
+        }
+        
+        .green .hat-icon {
+            background-color: var(--green-hat);
+        }
+        
+        .blue .hat-icon {
+            background-color: var(--blue-hat);
+        }
+        
+        .scenarios {
+            margin-bottom: 40px;
+        }
+        
+        .scenario-tabs {
+            display: flex;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        .tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s ease;
+        }
+        
+        .tab.active {
+            border-bottom: 3px solid var(--blue-hat);
+            font-weight: bold;
+        }
+        
+        .scenario-content {
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        }
+        
+        .step {
+            display: flex;
+            margin-bottom: 20px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #eee;
+            position: relative;
+        }
+        
+        .step:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+        }
+        
+        .step-number {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: var(--blue-hat);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 15px;
+            flex-shrink: 0;
+        }
+        
+        .step-content h3 {
+            margin-bottom: 5px;
+        }
+        
+        .step-guide {
+            font-size: 0.9rem;
+            color: #666;
+            margin-top: 5px;
+            padding: 8px;
+            background-color: #f8f9fa;
+            border-left: 3px solid #3498db;
+            border-radius: 0 5px 5px 0;
+        }
+        
+        .step-duration {
+            position: absolute;
+            top: 0;
+            right: 0;
+            background: #3498db;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-size: 0.8rem;
+        }
+        
+        .custom-process {
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            margin-bottom: 40px;
+        }
+        
+        .hat-selector {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin: 20px 0;
+        }
+        
+        .hat-option {
+            padding: 8px 15px;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+        
+        .hat-option.white {
+            background-color: var(--white-hat);
+            border: 1px solid #ddd;
+        }
+        
+        .hat-option.red {
+            background-color: var(--red-hat);
+            color: white;
+        }
+        
+        .hat-option.black {
+            background-color: var(--black-hat);
+            color: white;
+        }
+        
+        .hat-option.yellow {
+            background-color: var(--yellow-hat);
+        }
+        
+        .hat-option.green {
+            background-color: var(--green-hat);
+            color: white;
+        }
+        
+        .hat-option.blue {
+            background-color: var(--blue-hat);
+            color: white;
+        }
+        
+        .hat-option.selected {
+            transform: scale(1.05);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+        
+        .selected-sequence {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin: 20px 0;
+            min-height: 60px;
+            border: 1px dashed #ddd;
+            padding: 15px;
+            border-radius: 10px;
+        }
+        
+        .sequence-item {
+            padding: 8px 15px;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .btn {
+            padding: 10px 20px;
+            background-color: var(--blue-hat);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: background-color 0.3s ease;
+        }
+        
+        .btn:hover {
+            background-color: #2980b9;
+        }
+        
+        .principles {
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        }
+        
+        .principle-item {
+            margin-bottom: 20px;
+        }
+        
+        footer {
+            text-align: center;
+            margin-top: 40px;
+            padding: 20px;
+            color: #777;
+            font-size: 0.9rem;
+        }
+        
+        @media (max-width: 768px) {
+            .hats-intro {
+                grid-template-columns: 1fr;
+            }
+            
+            .scenario-tabs {
+                flex-direction: column;
+            }
+            
+            .tab {
+                border-bottom: 1px solid #ddd;
+                border-left: 3px solid transparent;
+            }
+            
+            .tab.active {
+                border-left: 3px solid var(--blue-hat);
+                border-bottom: 1px solid #ddd;
+            }
+            
+            .timer-container {
+                position: static;
+                margin: 20px auto 0;
+                max-width: 200px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>六顶思考帽</h1>
+            <p class="subtitle">一种高效的平行思维工具，通过场景化思维组合，避免单一视角局限，让思考从"混乱争论"变成"有序推进"</p>
+            
+            <div class="timer-container">
+                <div class="timer-display" id="timer">05:00</div>
+                <div class="timer-controls">
+                    <button class="timer-btn" id="start-timer" title="开始计时">
+                        <i class="fas fa-play"></i>
+                    </button>
+                    <button class="timer-btn" id="pause-timer" title="暂停计时">
+                        <i class="fas fa-pause"></i>
+                    </button>
+                    <button class="timer-btn" id="reset-timer" title="重置计时">
+                        <i class="fas fa-redo"></i>
+                    </button>
+                </div>
+            </div>
+        </header>
+        
+        <section class="hats-intro">
+            <div class="hat-card white">
+                <div class="hat-title">
+                    <div class="hat-icon">白</div>
+                    <h2>白帽 - 事实与数据</h2>
+                </div>
+                <p>关注客观事实和数据，不掺杂个人观点。回答"我们有什么信息？""我们需要什么信息？"</p>
+            </div>
+            
+            <div class="hat-card red">
+                <div class="hat-title">
+                    <div class="hat-icon">红</div>
+                    <h2>红帽 - 直觉与情感</h2>
+                </div>
+                <p>表达直觉、感受和情绪，无需提供理由。回答"我对这个感觉如何？"</p>
+            </div>
+            
+            <div class="hat-card black">
+                <div class="hat-title">
+                    <div class="hat-icon">黑</div>
+                    <h2>黑帽 - 谨慎与风险</h2>
+                </div>
+                <p>关注潜在问题、风险和困难。回答"这可能出什么问题？""有哪些风险？"</p>
+            </div>
+            
+            <div class="hat-card yellow">
+                <div class="hat-title">
+                    <div class="hat-icon">黄</div>
+                    <h2>黄帽 - 乐观与价值</h2>
+                </div>
+                <p>寻找价值、优势和积极面。回答"这个想法有什么好处？""为什么可行？"</p>
+            </div>
+            
+            <div class="hat-card green">
+                <div class="hat-title">
+                    <div class="hat-icon">绿</div>
+                    <h2>绿帽 - 创新与可能</h2>
+                </div>
+                <p>提出新想法、替代方案和可能性。回答"有什么其他方法？""我们可以尝试什么新思路？"</p>
+            </div>
+            
+            <div class="hat-card blue">
+                <div class="hat-title">
+                    <div class="hat-icon">蓝</div>
+                    <h2>蓝帽 - 控制与组织</h2>
+                </div>
+                <p>管理思考过程，总结讨论，做出决策。回答"我们需要什么思考？""下一步是什么？"</p>
+            </div>
+        </section>
+        
+        <section class="scenarios">
+            <h2>实用场景搭配</h2>
+            <div class="scenario-tabs">
+                <div class="tab active" data-tab="problem-solving">日常问题解决</div>
+                <div class="tab" data-tab="project-review">项目复盘</div>
+                <div class="tab" data-tab="team-decision">团队决策</div>
+            </div>
+            
+            <div class="scenario-content" id="problem-solving">
+                <div class="step">
+                    <div class="step-number">1</div>
+                    <div class="step-content">
+                        <h3>白帽 - 收集事实</h3>
+                        <p>先收集客观数据，不掺杂观点。例如："过去3个月客户复购率下降了15%"</p>
+                        <div class="step-guide">引导话术：请只说数据，不说观点，例如"用户投诉量环比上升20%"</div>
+                    </div>
+                    <div class="step-duration">5分钟</div>
+                </div>
+                
+                <div class="step">
+                    <div class="step-number">2</div>
+                    <div class="step-content">
+                        <h3>黑帽 - 分析风险</h3>
+                        <p>分析现有方案的隐患或问题的负面影响。例如："直接降价可能导致利润下滑"</p>
+                        <div class="step-guide">引导话术：聚焦3个核心风险，避免发散过多细节</div>
+                    </div>
+                    <div class="step-duration">8分钟</div>
+                </div>
+                
+                <div class="step">
+                    <div class="step-number">3</div>
+                    <div class="step-content">
+                        <h3>绿帽 - 创意发散</h3>
+                        <p>针对问题发散解决方案，不评判对错。例如："推出老客户专属服务包"</p>
+                        <div class="step-guide">引导话术：鼓励所有想法，不评判可行性，追求数量</div>
+                    </div>
+                    <div class="step-duration">10分钟</div>
+                </div>
+                
+                <div class="step">
+                    <div class="step-number">4</div>
+                    <div class="step-content">
+                        <h3>黄帽 - 评估价值</h3>
+                        <p>评估绿帽方案的优势和可行性。例如："专属服务包能提升客户粘性，且成本可控"</p>
+                        <div class="step-guide">引导话术：每个方案至少找出2个优点，评估可行性</div>
+                    </div>
+                    <div class="step-duration">8分钟</div>
+                </div>
+                
+                <div class="step">
+                    <div class="step-number">5</div>
+                    <div class="step-content">
+                        <h3>红帽 - 直觉判断</h3>
+                        <p>凭直觉快速判断方案的接受度。例如："客户对服务包的反馈应该会不错"</p>
+                        <div class="step-guide">引导话术：快速表达感受，不需要解释原因</div>
+                    </div>
+                    <div class="step-duration">5分钟</div>
+                </div>
+                
+                <div class="step">
+                    <div class="step-number">6</div>
+                    <div class="step-content">
+                        <h3>蓝帽 - 总结决策</h3>
+                        <p>整合所有观点，确定最终行动方案。例如："优先执行'专属服务包'方案，1周内出具体细则"</p>
+                        <div class="step-guide">引导话术：总结关键观点，明确行动项和负责人</div>
+                    </div>
+                    <div class="step-duration">5分钟</div>
+                </div>
+            </div>
+            
+            <div class="scenario-content" id="project-review" style="display: none;">
+                <div class="step">
+                    <div class="step-number">1</div>
+                    <div class="step-content">
+                        <h3>黄帽 - 聚焦成果</h3>
+                        <p>先聚焦项目中的亮点和成功经验。例如："提前完成了核心功能开发"</p>
+                        <div class="step-guide">引导话术：每人分享1-2个成功点，不讨论问题</div>
+                    </div>
+                    <div class="step-duration">5分钟</div>
+                </div>
+                
+                <div class="step">
+                    <div class="step-number">2</div>
+                    <div class="step-content">
+                        <h3>黑帽 - 指出问题</h3>
+                        <p>客观指出不足和待改进点。例如："测试阶段遗漏了2个关键bug"</p>
+                        <div class="step-guide">引导话术：聚焦事实而非指责，描述具体问题</div>
+                    </div>
+                    <div class="step-duration">8分钟</div>
+                </div>
+                
+                <div class="step">
+                    <div class="step-number">3</div>
+                    <div class="step-content">
+                        <h3>白帽 - 数据支撑</h3>
+                        <p>用数据支撑黄帽和黑帽的结论。例如："需求变更次数达8次，导致返工"</p>
+                        <div class="step-guide">引导话术：用数据验证成功点和问题点</div>
+                    </div>
+                    <div class="step-duration">5分钟</div>
+                </div>
+                
+                <div class="step">
+                    <div class="step-number">4</div>
+                    <div class="step-content">
+                        <h3>绿帽 - 提出改进</h3>
+                        <p>针对问题提出具体优化方案。例如："下次测试增加交叉评审环节"</p>
+                        <div class="step-guide">引导话术：针对每个问题提出1-2个具体改进措施</div>
+                    </div>
+                    <div class="step-duration">10分钟</div>
+                </div>
+                
+                <div class="step">
+                    <div class="step-number">5</div>
+                    <div class="step-content">
+                        <h3>蓝帽 - 明确行动</h3>
+                        <p>明确后续行动的责任人、时间节点。例如："由测试组长负责制定交叉评审规则，3天内完成"</p>
+                        <div class="step-guide">引导话术：明确行动项、负责人和时间节点</div>
+                    </div>
+                    <div class="step-duration">5分钟</div>
+                </div>
+            </div>
+            
+            <div class="scenario-content" id="team-decision" style="display: none;">
+                <div class="step">
+                    <div class="step-number">1</div>
+                    <div class="step-content">
+                        <h3>蓝帽 - 明确议题</h3>
+                        <p>明确决策目标和范围。例如："是否应该投入资源开发新功能X"</p>
+                        <div class="step-guide">引导话术：清晰定义决策问题，确保所有人理解一致</div>
+                    </div>
+                    <div class="step-duration">3分钟</div>
+                </div>
+                
+                <div class="step">
+                    <div class="step-number">2</div>
+                    <div class="step-content">
+                        <h3>白帽 - 收集信息</h3>
+                        <p>收集相关数据和事实。例如："开发此功能需要2周时间，预计提升用户留存5%"</p>
+                        <div class="step-guide">引导话术：只分享客观数据，不表达个人观点</div>
+                    </div>
+                    <div class="step-duration">5分钟</div>
+                </div>
+                
+                <div class="step">
+                    <div class="step-number">3</div>
+                    <div class="step-content">
+                        <h3>黄帽 - 分析价值</h3>
+                        <p>分析决策的潜在价值和收益。例如："该功能能增强用户粘性，提升竞争力"</p>
+                        <div class="step-guide">引导话术：聚焦积极面，找出至少3个价值点</div>
+                    </div>
+                    <div class="step-duration">5分钟</div>
+                </div>
+                
+                <div class="step">
+                    <div class="step-number">4</div>
+                    <div class="step-content">
+                        <h3>黑帽 - 评估风险</h3>
+                        <p>识别潜在问题和风险。例如："可能影响现有功能稳定性，增加维护成本"</p>
+                        <div class="step-guide">引导话术：客观分析风险，不夸大也不忽视</div>
+                    </div>
+                    <div class="step-duration">5分钟</div>
+                </div>
+                
+                <div class="step">
+                    <div class="step-number">5</div>
+                    <div class="step-content">
+                        <h3>绿帽 - 探索替代</h3>
+                        <p>探索可能的替代方案。例如："是否可以简化功能，缩短开发时间"</p>
+                        <div class="step-guide">引导话术：鼓励创新想法，考虑不同可能性</div>
+                    </div>
+                    <div class="step-duration">8分钟</div>
+                </div>
+                
+                <div class="step">
+                    <div class="step-number">6</div>
+                    <div class="step-content">
+                        <h3>红帽 - 直觉感受</h3>
+                        <p>表达对各个方案的直觉感受。例如："我对简化版方案更有信心"</p>
+                        <div class="step-guide">引导话术：快速表达个人偏好，不需要解释</div>
+                    </div>
+                    <div class="step-duration">3分钟</div>
+                </div>
+                
+                <div class="step">
+                    <div class="step-number">7</div>
+                    <div class="step-content">
+                        <h3>蓝帽 - 做出决策</h3>
+                        <p>综合所有信息，做出最终决策。例如："决定开发简化版功能，下周一启动"</p>
+                        <div class="step-guide">引导话术：总结关键观点，明确决策和后续步骤</div>
+                    </div>
+                    <div class="step-duration">5分钟</div>
+                </div>
+            </div>
+        </section>
+        
+        <section class="custom-process">
+            <h2>自定义思考流程</h2>
+            <p>根据您的具体需求，创建个性化的思考流程：</p>
+            
+            <div class="hat-selector">
+                <div class="hat-option white" data-hat="white">白帽 - 事实</div>
+                <div class="hat-option red" data-hat="red">红帽 - 感受</div>
+                <div class="hat-option black" data-hat="black">黑帽 - 风险</div>
+                <div class="hat-option yellow" data-hat="yellow">黄帽 - 价值</div>
+                <div class="hat-option green" data-hat="green">绿帽 - 创意</div>
+                <div class="hat-option blue" data-hat="blue">蓝帽 - 总结</div>
+            </div>
+            
+            <p>选择思考顺序（点击帽子添加到序列）：</p>
+            <div class="selected-sequence" id="sequence-container">
+                <p style="color: #999; width: 100%; text-align: center;">点击上方帽子创建思考序列</p>
+            </div>
+            
+            <button class="btn" id="start-process">开始思考流程</button>
+            <button class="btn" id="reset-sequence" style="background-color: #95a5a6; margin-left: 10px;">重置序列</button>
+            <button class="btn" id="export-pdf" style="background-color: #27ae60; margin-left: 10px;">导出流程</button>
+        </section>
+        
+        <section class="principles">
+            <h2>搭配核心原则</h2>
+            
+            <div class="principle-item">
+                <h3>蓝帽必须"控场"</h3>
+                <p>蓝帽（总结/引导）通常放在开头（定目标）和结尾（做决策），避免思考偏离方向。</p>
+            </div>
+            
+            <div class="principle-item">
+                <h3>避免"单一颜色"过载</h3>
+                <p>不要连续用黑帽否定所有观点，也不要用绿帽发散太久不落地，每种颜色的使用时间建议控制在5-10分钟。</p>
+            </div>
+            
+            <div class="principle-item">
+                <h3>按"逻辑递进"组合</h3>
+                <p>一般遵循"事实（白）→ 分析（黄/黑）→ 创意（绿）→ 决策（红/蓝）"的顺序，符合人类从理性到感性、从分析到行动的思考习惯。</p>
+            </div>
+        </section>
+        
+        <footer>
+            <p>六顶思考帽思维工具 - 基于爱德华·德·博诺的理论</p>
+        </footer>
+    </div>
+
+    <script>
+        // 计时器功能
+        let timerInterval;
+        let timerSeconds = 300; // 5分钟
+        let isTimerRunning = false;
+        
+        const timerDisplay = document.getElementById('timer');
+        const startTimerBtn = document.getElementById('start-timer');
+        const pauseTimerBtn = document.getElementById('pause-timer');
+        const resetTimerBtn = document.getElementById('reset-timer');
+        
+        function updateTimerDisplay() {
+            const minutes = Math.floor(timerSeconds / 60);
+            const seconds = timerSeconds % 60;
+            timerDisplay.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        }
+        
+        function startTimer() {
+            if (isTimerRunning) return;
+            
+            isTimerRunning = true;
+            timerInterval = setInterval(() => {
+                if (timerSeconds > 0) {
+                    timerSeconds--;
+                    updateTimerDisplay();
+                    
+                    // 时间到提醒
+                    if (timerSeconds === 0) {
+                        clearInterval(timerInterval);
+                        alert('时间到！请进入下一阶段讨论。');
+                        isTimerRunning = false;
+                    }
+                }
+            }, 1000);
+        }
+        
+        function pauseTimer() {
+            clearInterval(timerInterval);
+            isTimerRunning = false;
+        }
+        
+        function resetTimer() {
+            clearInterval(timerInterval);
+            timerSeconds = 300; // 重置为5分钟
+            isTimerRunning = false;
+            updateTimerDisplay();
+        }
+        
+        startTimerBtn.addEventListener('click', startTimer);
+        pauseTimerBtn.addEventListener('click', pauseTimer);
+        resetTimerBtn.addEventListener('click', resetTimer);
+        
+        // 场景切换功能
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', function() {
+                // 移除所有active类
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                // 隐藏所有场景内容
+                document.querySelectorAll('.scenario-content').forEach(content => content.style.display = 'none');
+                
+                // 激活当前标签
+                this.classList.add('active');
+                // 显示对应内容
+                const tabId = this.getAttribute('data-tab');
+                document.getElementById(tabId).style.display = 'block';
+            });
+        });
+        
+        // 自定义流程功能
+        const hatOptions = document.querySelectorAll('.hat-option');
+        const sequenceContainer = document.getElementById('sequence-container');
+        const startButton = document.getElementById('start-process');
+        const resetButton = document.getElementById('reset-sequence');
+        const exportButton = document.getElementById('export-pdf');
+        
+        let selectedSequence = [];
+        
+        hatOptions.forEach(option => {
+            option.addEventListener('click', function() {
+                const hatType = this.getAttribute('data-hat');
+                const hatName = this.textContent.split(' - ')[1];
+                
+                // 添加到序列
+                selectedSequence.push({type: hatType, name: hatName});
+                updateSequenceDisplay();
+            });
+        });
+        
+        function updateSequenceDisplay() {
+            sequenceContainer.innerHTML = '';
+            
+            if (selectedSequence.length === 0) {
+                sequenceContainer.innerHTML = '<p style="color: #999; width: 100%; text-align: center;">点击上方帽子创建思考序列</p>';
+                return;
+            }
+            
+            selectedSequence.forEach((hat, index) => {
+                const hatElement = document.createElement('div');
+                hatElement.className = `sequence-item ${hat.type}`;
+                hatElement.innerHTML = `
+                    <span>${index + 1}. ${hat.name}</span>
+                    <button class="remove-btn" data-index="${index}" style="margin-left: 8px; background: none; border: none; cursor: pointer; color: #e74c3c;">×</button>
+                `;
+                sequenceContainer.appendChild(hatElement);
+            });
+            
+            // 添加删除按钮事件
+            document.querySelectorAll('.remove-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const index = parseInt(this.getAttribute('data-index'));
+                    selectedSequence.splice(index, 1);
+                    updateSequenceDisplay();
+                });
+            });
+        }
+        
+        startButton.addEventListener('click', function() {
+            if (selectedSequence.length === 0) {
+                alert('请先选择思考序列！');
+                return;
+            }
+            
+            alert(`开始按照以下顺序思考：\n${selectedSequence.map((hat, index) => `${index + 1}. ${hat.name}`).join('\n')}\n\n点击右上角计时器开始时间控制。`);
+            // 在实际应用中，这里可以跳转到具体的思考流程页面
+        });
+        
+        resetButton.addEventListener('click', function() {
+            selectedSequence = [];
+            updateSequenceDisplay();
+        });
+        
+        exportButton.addEventListener('click', function() {
+            if (selectedSequence.length === 0) {
+                alert('请先创建思考序列！');
+                return;
+            }
+            
+            alert('已生成PDF文件供下载（演示功能）');
+            // 在实际应用中，这里可以调用PDF生成库
+        });
+        
+        // 初始化计时器显示
+        updateTimerDisplay();
+    </script>
+</body>
+</html>

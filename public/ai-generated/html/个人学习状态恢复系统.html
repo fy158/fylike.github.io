@@ -1,0 +1,1249 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>个人学习状态恢复系统</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --primary: #6C63FF;
+            --secondary: #FF6584;
+            --accent: #36D1DC;
+            --success: #4CD964;
+            --warning: #FF9F43;
+            --light: #F8F9FF;
+            --dark: #2D3047;
+            --english: #A78BFA;
+            --programming: #4F9CF9;
+            --text: #4A5568;
+            --overlay: rgba(255, 255, 255, 0.85); /* 内容区域半透明背景 */
+            --card-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #000;
+            background-image: url('https://p3-flow-imagex-download-sign.byteimg.com/tos-cn-i-a9rns2rl98/ebf66fe5571d45d0af1324b5310a3d3b.jpg~tplv-a9rns2rl98-24:720:720.image?rcl=2025102917190930F87C0CB0B8A696AFA0&rk3s=8e244e95&rrcfp=8a172a1a&x-expires=1762334349&x-signature=XnF5Q2cdDpPmjlivwpUL9ZrTHQw%3D');
+            background-size: cover;
+            background-attachment: fixed;
+            background-position: center;
+            color: var(--text);
+            line-height: 1.6;
+            min-height: 100vh;
+            padding: 20px 0;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+        
+        header {
+            background: linear-gradient(135deg, rgba(108, 99, 255, 0.9), rgba(54, 209, 220, 0.9));
+            color: white;
+            padding: 2.5rem 0;
+            border-radius: 15px;
+            margin-bottom: 2rem;
+            box-shadow: 0 15px 30px rgba(108, 99, 255, 0.3);
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: url('https://p3-flow-imagex-download-sign.byteimg.com/tos-cn-i-a9rns2rl98/d3973e620a4f4193871e51e781c56eba.jpg~tplv-a9rns2rl98-24:720:720.image?rcl=2025102917190930F87C0CB0B8A696AFA0&rk3s=8e244e95&rrcfp=8a172a1a&x-expires=1762334349&x-signature=iiO332%2BfXQ%2FGi1w0gGlVpLt%2FhyE%3D');
+            background-size: cover;
+            background-position: center;
+            opacity: 0.15;
+            z-index: 0;
+        }
+        
+        header h1, header .subtitle {
+            position: relative;
+            z-index: 1;
+        }
+        
+        h1 {
+            font-size: 2.8rem;
+            margin-bottom: 0.8rem;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+        }
+        
+        .subtitle {
+            font-size: 1.2rem;
+            opacity: 0.95;
+            max-width: 800px;
+            margin: 0 auto;
+            text-shadow: 0 1px 5px rgba(0, 0, 0, 0.1);
+        }
+        
+        .nav-tabs {
+            display: flex;
+            background: var(--overlay);
+            border-radius: 12px;
+            overflow: hidden;
+            margin-bottom: 2rem;
+            box-shadow: var(--card-shadow);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .tab {
+            flex: 1;
+            padding: 1.2rem 1rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+            color: var(--dark);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .tab::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: linear-gradient(90deg, var(--primary), var(--accent));
+            transform: scaleX(0);
+            transition: transform 0.3s ease;
+        }
+        
+        .tab:hover {
+            background-color: rgba(255, 255, 255, 0.5);
+        }
+        
+        .tab.active {
+            color: var(--primary);
+        }
+        
+        .tab.active::after {
+            transform: scaleX(1);
+        }
+        
+        .tab-content {
+            display: none;
+            background: var(--overlay);
+            padding: 2.5rem;
+            border-radius: 15px;
+            box-shadow: var(--card-shadow);
+            margin-bottom: 2rem;
+            animation: fadeIn 0.5s ease;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .tab-content::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 300px;
+            height: 300px;
+            background-size: contain;
+            background-repeat: no-repeat;
+            opacity: 0.05;
+            z-index: 0;
+            transform: translate(30%, -30%);
+        }
+        
+        #overview.tab-content::before {
+            background-image: url('https://p3-flow-imagex-download-sign.byteimg.com/tos-cn-i-a9rns2rl98/055dd1b9690447658b5be3554aab3e28.jpg~tplv-a9rns2rl98-24:720:720.image?rcl=2025102917190930F87C0CB0B8A696AFA0&rk3s=8e244e95&rrcfp=8a172a1a&x-expires=1762334349&x-signature=KNAJ4tjQYiD%2BxeuFvrI3TnFZMIc%3D');
+        }
+        
+        #phases.tab-content::before {
+            background-image: url('https://p3-flow-imagex-download-sign.byteimg.com/tos-cn-i-a9rns2rl98/62d579261c56448086e3fddc6d9323a9.jpg~tplv-a9rns2rl98-24:720:720.image?rcl=2025102917190930F87C0CB0B8A696AFA0&rk3s=8e244e95&rrcfp=8a172a1a&x-expires=1762334349&x-signature=6YqKDCMFzB%2BSaVGKTLeHDt46cv8%3D');
+        }
+        
+        #tools.tab-content::before {
+            background-image: url('https://p3-flow-imagex-download-sign.byteimg.com/tos-cn-i-a9rns2rl98/cc084a63a9e24be1ac7625fdade57f57.jpg~tplv-a9rns2rl98-24:720:720.image?rcl=2025102917190930F87C0CB0B8A696AFA0&rk3s=8e244e95&rrcfp=8a172a1a&x-expires=1762334349&x-signature=UBde2nmev7FyCTivL3S20ZhgbMc%3D');
+        }
+        
+        #progress.tab-content::before {
+            background-image: url('https://p3-flow-imagex-download-sign.byteimg.com/tos-cn-i-a9rns2rl98/904cd3e1d7a64813be15a0fb87352e56.jpg~tplv-a9rns2rl98-24:720:720.image?rcl=2025102917190930F87C0CB0B8A696AFA0&rk3s=8e244e95&rrcfp=8a172a1a&x-expires=1762334349&x-signature=CVYt8GSYTHmvpKAm1EfPSED7wjk%3D');
+        }
+        
+        #emergency.tab-content::before {
+            background-image: url('https://p3-flow-imagex-download-sign.byteimg.com/tos-cn-i-a9rns2rl98/fd0cff43fdcd40f998d68c3e4e272cc8.jpg~tplv-a9rns2rl98-24:720:720.image?rcl=2025102917190930F87C0CB0B8A696AFA0&rk3s=8e244e95&rrcfp=8a172a1a&x-expires=1762334349&x-signature=1mFQopuQSOyJDUggZF8fidQhzyU%3D');
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .phase-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.8rem;
+            margin-bottom: 2.5rem;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .phase-card {
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 12px;
+            padding: 1.8rem;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+            transition: all 0.4s ease;
+            border-top: 5px solid var(--primary);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .phase-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 100px;
+            height: 100px;
+            background-size: contain;
+            background-repeat: no-repeat;
+            opacity: 0.07;
+            z-index: 0;
+        }
+        
+        .phase-card:nth-child(1)::before {
+            background-image: url('https://p3-flow-imagex-download-sign.byteimg.com/tos-cn-i-a9rns2rl98/2287d5fa33554b58b3e2de1189a5c249.jpg~tplv-a9rns2rl98-24:720:720.image?rcl=2025102917190930F87C0CB0B8A696AFA0&rk3s=8e244e95&rrcfp=8a172a1a&x-expires=1762334349&x-signature=Wcq0soTQ0WDJe%2BfgFa5vtwurP1Q%3D');
+        }
+        
+        .phase-card:nth-child(2)::before {
+            background-image: url('https://p3-flow-imagex-download-sign.byteimg.com/tos-cn-i-a9rns2rl98/c96c418268f34a94983f8f2206d7e8b5.jpg~tplv-a9rns2rl98-24:720:720.image?rcl=2025102917190930F87C0CB0B8A696AFA0&rk3s=8e244e95&rrcfp=8a172a1a&x-expires=1762334349&x-signature=NulbZmGroYXp%2BR7IXWuKBRsnkwc%3D');
+        }
+        
+        .phase-card:nth-child(3)::before {
+            background-image: url('https://p3-flow-imagex-download-sign.byteimg.com/tos-cn-i-a9rns2rl98/0cc12bcc68544f37855fd8ecbd8409ca.jpg~tplv-a9rns2rl98-24:720:720.image?rcl=2025102917190930F87C0CB0B8A696AFA0&rk3s=8e244e95&rrcfp=8a172a1a&x-expires=1762334349&x-signature=yieXjLNWNx5fcnI7N8ygVeLe1wI%3D');
+        }
+        
+        .phase-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.12);
+        }
+        
+        .btn {
+            padding: 0.8rem 1.6rem;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            position: relative;
+            overflow: hidden;
+            z-index: 1;
+        }
+        
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.2);
+            transition: left 0.3s ease;
+            z-index: -1;
+        }
+        
+        .btn:hover::before {
+            left: 100%;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(108, 99, 255, 0.4);
+        }
+        
+        .progress-container {
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 12px;
+            padding: 1.8rem;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+            margin-bottom: 2.5rem;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .progress-bar {
+            height: 12px;
+            background: rgba(220, 220, 220, 0.5);
+            border-radius: 10px;
+            margin: 1rem 0;
+            overflow: hidden;
+            box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+        
+        .progress {
+            height: 100%;
+            background: linear-gradient(90deg, var(--success), var(--accent));
+            border-radius: 10px;
+            transition: width 0.5s ease;
+            box-shadow: 0 0 10px rgba(54, 209, 220, 0.5);
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.8rem;
+            margin-bottom: 2.5rem;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .stat-card {
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 12px;
+            padding: 1.8rem;
+            text-align: center;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .stat-card::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: linear-gradient(90deg, var(--primary), var(--accent));
+            transform: scaleX(0);
+            transition: transform 0.3s ease;
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 25px rgba(0, 0, 0, 0.1);
+        }
+        
+        .stat-card:hover::after {
+            transform: scaleX(1);
+        }
+        
+        .stat-value {
+            font-size: 2.2rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin: 0.8rem 0;
+            text-shadow: 0 2px 10px rgba(108, 99, 255, 0.15);
+        }
+        
+        .timer-container {
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 12px;
+            padding: 2.2rem;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+            text-align: center;
+            margin-bottom: 2.5rem;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .timer {
+            font-size: 3.5rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin: 1.8rem 0;
+            text-shadow: 0 3px 15px rgba(108, 99, 255, 0.15);
+            font-variant-numeric: tabular-nums; /* 等宽数字，避免跳动 */
+        }
+        
+        .timer-controls {
+            display: flex;
+            justify-content: center;
+            gap: 1.2rem;
+            margin-top: 1.8rem;
+        }
+        
+        .emergency-kit {
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 12px;
+            padding: 2.2rem;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+            margin-bottom: 2.5rem;
+            border-left: 5px solid var(--warning);
+            position: relative;
+            z-index: 1;
+        }
+        
+        .kit-items {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.8rem;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .kit-item {
+            background: var(--light);
+            border-radius: 12px;
+            padding: 1.8rem;
+            text-align: center;
+            transition: all 0.4s ease;
+            border: 1px solid rgba(255, 255, 255, 0.5);
+        }
+        
+        .kit-item:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        }
+        
+        .kit-item i {
+            font-size: 2.2rem;
+            margin-bottom: 1rem;
+            color: var(--warning);
+            text-shadow: 0 2px 10px rgba(255, 159, 67, 0.2);
+        }
+        
+        .reflection-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+            backdrop-filter: blur(5px);
+        }
+        
+        .reflection-modal.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        .reflection-content {
+            background: white;
+            border-radius: 15px;
+            padding: 2.5rem;
+            max-width: 500px;
+            width: 90%;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+            transform: translateY(30px);
+            transition: transform 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .reflection-modal.active .reflection-content {
+            transform: translateY(0);
+        }
+        
+        .reflection-content::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 150px;
+            height: 150px;
+            background-image: url('https://p3-flow-imagex-download-sign.byteimg.com/tos-cn-i-a9rns2rl98/ebf66fe5571d45d0af1324b5310a3d3b.jpg~tplv-a9rns2rl98-24:720:720.image?rcl=2025102917190930F87C0CB0B8A696AFA0&rk3s=8e244e95&rrcfp=8a172a1a&x-expires=1762334349&x-signature=XnF5Q2cdDpPmjlivwpUL9ZrTHQw%3D');
+            background-size: contain;
+            background-repeat: no-repeat;
+            opacity: 0.05;
+            z-index: 0;
+        }
+        
+        .section-title {
+            font-size: 1.8rem;
+            margin-bottom: 1.8rem;
+            color: var(--dark);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .section-title i {
+            color: var(--primary);
+            text-shadow: 0 2px 10px rgba(108, 99, 255, 0.2);
+        }
+        
+        @media (max-width: 768px) {
+            .nav-tabs {
+                flex-direction: column;
+            }
+            
+            .phase-cards, .stats-grid, .kit-items {
+                grid-template-columns: 1fr;
+            }
+            
+            h1 {
+                font-size: 2.2rem;
+            }
+            
+            .timer {
+                font-size: 2.8rem;
+            }
+            
+            .tab-content {
+                padding: 1.8rem;
+            }
+            
+            .section-title {
+                font-size: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1><i class="fas fa-brain"></i> 个人学习状态恢复系统</h1>
+            <p class="subtitle">基于心理学原理，帮助您从学习抵触状态逐步恢复到积极学习状态</p>
+        </header>
+        
+        <div class="nav-tabs">
+            <div class="tab active" data-tab="overview">系统概览</div>
+            <div class="tab" data-tab="phases">恢复阶段</div>
+            <div class="tab" data-tab="tools">学习工具</div>
+            <div class="tab" data-tab="progress">进度追踪</div>
+            <div class="tab" data-tab="emergency">状态急救包</div>
+        </div>
+        
+        <!-- 系统概览 -->
+        <div id="overview" class="tab-content active">
+            <h2 class="section-title"><i class="fas fa-info-circle"></i> 系统介绍</h2>
+            
+            <div class="progress-container">
+                <h3><i class="fas fa-tasks"></i> 您的学习状态恢复进度</h3>
+                <div class="progress-bar">
+                    <div class="progress" id="overall-progress"></div>
+                </div>
+                <p>当前阶段: <strong id="current-phase">第一阶段 - 生理脱敏与心理解绑</strong></p>
+                <button class="btn btn-primary" id="start-assessment"><i class="fas fa-play-circle"></i> 开始状态评估</button>
+            </div>
+            
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <i class="fas fa-clock" style="color: var(--primary); font-size: 2rem;"></i>
+                    <div class="stat-value" id="study-time">0 min</div>
+                    <div class="stat-label">今日学习时间</div>
+                </div>
+                <div class="stat-card">
+                    <i class="fas fa-fire" style="color: var(--warning); font-size: 2rem;"></i>
+                    <div class="stat-value" id="streak-days">0</div>
+                    <div class="stat-label">连续学习天数</div>
+                </div>
+                <div class="stat-card">
+                    <i class="fas fa-check-circle" style="color: var(--success); font-size: 2rem;"></i>
+                    <div class="stat-value" id="completed-tasks">0</div>
+                    <div class="stat-label">已完成任务</div>
+                </div>
+                <div class="stat-card">
+                    <i class="fas fa-brain" style="color: var(--accent); font-size: 2rem;"></i>
+                    <div class="stat-value" id="focus-score">0%</div>
+                    <div class="stat-label">平均专注度</div>
+                </div>
+            </div>
+            
+            <div class="emergency-kit">
+                <h2><i class="fas fa-first-aid"></i> 快速启动指南</h2>
+                <p>如果您现在感到学习抵触或头痛，请立即尝试以下方法：</p>
+                <div class="kit-items">
+                    <div class="kit-item">
+                        <i class="fas fa-stopwatch"></i>
+                        <h3>5分钟法则</h3>
+                        <p>只承诺学习5分钟，时间到就停止</p>
+                        <button class="btn btn-primary" style="margin-top: 1rem;" id="start-5min"><i class="fas fa-play"></i> 启动5分钟计时</button>
+                    </div>
+                    <div class="kit-item">
+                        <i class="fas fa-exchange-alt"></i>
+                        <h3>环境重置法</h3>
+                        <p>换个位置或房间开始学习</p>
+                        <button class="btn btn-primary" style="margin-top: 1rem;" id="change-environment"><i class="fas fa-random"></i> 获取环境建议</button>
+                    </div>
+                    <div class="kit-item">
+                        <i class="fas fa-pencil-alt"></i>
+                        <h3>微任务启动</h3>
+                        <p>从一个极简单的任务开始</p>
+                        <button class="btn btn-primary" style="margin-top: 1rem;" id="show-microtasks"><i class="fas fa-tasks"></i> 查看微任务</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 恢复阶段 -->
+        <div id="phases" class="tab-content">
+            <h2 class="section-title"><i class="fas fa-road"></i> 四阶段恢复路径</h2>
+            
+            <div class="phase-cards">
+                <div class="phase-card">
+                    <h3><i class="fas fa-heartbeat"></i> 第一阶段：生理脱敏与心理解绑</h3>
+                    <p>目标：切断"学习=痛苦"的条件反射</p>
+                    <ul>
+                        <li>5分钟无害接触训练</li>
+                        <li>环境重塑与感官锚定</li>
+                        <li>压力源识别与释放</li>
+                    </ul>
+                    <button class="btn btn-primary start-phase" data-phase="1"><i class="fas fa-play"></i> 开始此阶段</button>
+                </div>
+                
+                <div class="phase-card">
+                    <h3><i class="fas fa-cogs"></i> 第二阶段：认知重构与动机重建</h3>
+                    <p>目标：将学习重新定义为"可掌控、有意义"的活动</p>
+                    <ul>
+                        <li>显微镜式任务拆解</li>
+                        <li>价值挖掘与意义赋予</li>
+                        <li>内在动机培养</li>
+                    </ul>
+                    <button class="btn btn-primary start-phase" data-phase="2"><i class="fas fa-play"></i> 开始此阶段</button>
+                </div>
+                
+                <div class="phase-card">
+                    <h3><i class="fas fa-tachometer-alt"></i> 第三阶段：状态管理与能量优化</h3>
+                    <p>目标：建立可持续的学习节奏和能量管理策略</p>
+                    <ul>
+                        <li>个性化能量节律监测</li>
+                        <li>番茄工作法应用</li>
+                        <li>状态急救包准备</li>
+                    </ul>
+                    <button class="btn btn-primary start-phase" data-phase="3"><i class="fas fa-play"></i> 开始此阶段</button>
+                </div>
+                
+                <div class="phase-card">
+                    <h3><i class="fas fa-rocket"></i> 第四阶段：系统支持与习惯固化</h3>
+                    <p>目标：建立抗挫折的学习生态系统</p>
+                    <ul>
+                        <li>进步显微镜记录系统</li>
+                        <li>支持系统协同优化</li>
+                        <li>学习习惯自动化</li>
+                    </ul>
+                    <button class="btn btn-primary start-phase" data-phase="4"><i class="fas fa-play"></i> 开始此阶段</button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 学习工具 -->
+        <div id="tools" class="tab-content">
+            <h2 class="section-title"><i class="fas fa-tools"></i> 学习工具与资源</h2>
+            
+            <div class="timer-container">
+                <h3><i class="fas fa-hourglass-half"></i> 专注计时器</h3>
+                <p>使用番茄工作法提高学习效率</p>
+                <div class="timer" id="timer-display">25:00</div>
+                <div class="timer-controls">
+                    <button class="btn btn-primary" id="start-timer"><i class="fas fa-play"></i> 开始</button>
+                    <button class="btn btn-primary" id="pause-timer"><i class="fas fa-pause"></i> 暂停</button>
+                    <button class="btn btn-primary" id="reset-timer"><i class="fas fa-redo"></i> 重置</button>
+                </div>
+                <div style="margin-top: 1.5rem;">
+                    <button class="btn btn-primary" data-time="25">25分钟</button>
+                    <button class="btn btn-primary" data-time="15">15分钟</button>
+                    <button class="btn btn-primary" data-time="10">10分钟</button>
+                    <button class="btn btn-primary" data-time="5">5分钟</button>
+                </div>
+            </div>
+            
+            <div class="progress-container">
+                <h3><i class="fas fa-th-large"></i> 学习环境库</h3>
+                <p>切换学习环境可以帮助打破"学习=痛苦"的条件反射</p>
+                <div id="environment-suggestions">
+                    <!-- 环境建议将动态加载 -->
+                </div>
+                <button class="btn btn-primary" style="margin-top: 1.5rem;" id="random-environment"><i class="fas fa-random"></i> 随机推荐一个环境</button>
+            </div>
+            
+            <div class="progress-container">
+                <h3><i class="fas fa-tasks"></i> 微任务生成器</h3>
+                <p>当您感到学习抵触时，从这些极简单的任务开始：</p>
+                <div id="microtasks-list">
+                    <!-- 微任务将动态加载 -->
+                </div>
+                <button class="btn btn-primary" style="margin-top: 1.5rem;" id="generate-microtasks"><i class="fas fa-sync"></i> 生成新任务</button>
+            </div>
+        </div>
+        
+        <!-- 进度追踪 -->
+        <div id="progress" class="tab-content">
+            <h2 class="section-title"><i class="fas fa-chart-line"></i> 学习进度追踪</h2>
+            
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <i class="fas fa-book" style="color: var(--english); font-size: 2rem;"></i>
+                    <div class="stat-value" id="english-progress">0%</div>
+                    <div class="stat-label">英语学习进度</div>
+                </div>
+                <div class="stat-card">
+                    <i class="fas fa-laptop-code" style="color: var(--programming); font-size: 2rem;"></i>
+                    <div class="stat-value" id="programming-progress">0%</div>
+                    <div class="stat-label">编程学习进度</div>
+                </div>
+                <div class="stat-card">
+                    <i class="fas fa-brain" style="color: var(--primary); font-size: 2rem;"></i>
+                    <div class="stat-value" id="state-improvement">0%</div>
+                    <div class="stat-label">学习状态改善</div>
+                </div>
+                <div class="stat-card">
+                    <i class="fas fa-medal" style="color: var(--warning); font-size: 2rem;"></i>
+                    <div class="stat-value" id="achievement-count">0</div>
+                    <div class="stat-label">已达成成就</div>
+                </div>
+            </div>
+            
+            <div class="progress-container">
+                <h3><i class="fas fa-history"></i> 学习记录</h3>
+                <div id="learning-records">
+                    <!-- 学习记录将动态加载 -->
+                </div>
+                <button class="btn btn-primary" style="margin-top: 1.5rem;" id="add-record"><i class="fas fa-plus"></i> 添加学习记录</button>
+            </div>
+        </div>
+        
+        <!-- 状态急救包 -->
+        <div id="emergency" class="tab-content">
+            <h2 class="section-title"><i class="fas fa-first-aid"></i> 学习状态急救包</h2>
+            
+            <div class="emergency-kit">
+                <h2><i class="fas fa-bolt"></i> 快速恢复方法</h2>
+                <div class="kit-items">
+                    <div class="kit-item">
+                        <i class="fas fa-stopwatch"></i>
+                        <h3>5分钟脱敏法</h3>
+                        <p>设置5分钟定时器，只做最简单的学习任务，时间到立即停止</p>
+                        <button class="btn btn-primary" style="margin-top: 1rem;" id="emergency-5min"><i class="fas fa-play"></i> 启动5分钟计时</button>
+                    </div>
+                    <div class="kit-item">
+                        <i class="fas fa-sync-alt"></i>
+                        <h3>环境重置法</h3>
+                        <p>立即改变学习环境：换个房间、调整灯光或播放背景音乐</p>
+                        <button class="btn btn-primary" style="margin-top: 1rem;" id="emergency-environment"><i class="fas fa-random"></i> 获取环境建议</button>
+                    </div>
+                    <div class="kit-item">
+                        <i class="fas fa-dumbbell"></i>
+                        <h3>身体激活法</h3>
+                        <p>进行2-3分钟的身体活动：拉伸、深蹲或快步走</p>
+                        <button class="btn btn-primary" style="margin-top: 1rem;" id="show-exercises"><i class="fas fa-running"></i> 查看激活练习</button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="progress-container">
+                <h3><i class="fas fa-head-side-virus"></i> 头痛缓解指南</h3>
+                <p>学习引起的头痛通常源于紧张和压力，尝试以下方法：</p>
+                <ul>
+                    <li>闭上眼睛，用指尖轻轻按摩太阳穴1分钟</li>
+                    <li>进行4-7-8呼吸法：吸气4秒，屏息7秒，呼气8秒</li>
+                    <li>喝一杯水，轻微脱水会加剧头痛</li>
+                    <li>调整屏幕亮度和对比度，减少眼睛疲劳</li>
+                    <li>使用20-20-20规则：每20分钟看20英尺外物体20秒</li>
+                </ul>
+            </div>
+            
+            <div class="progress-container">
+                <h3><i class="fas fa-history"></i> 状态恢复记录</h3>
+                <p>记录您使用急救方法的效果，帮助识别最适合您的恢复策略</p>
+                <div id="recovery-records">
+                    <!-- 恢复记录将动态加载 -->
+                </div>
+                <button class="btn btn-primary" style="margin-top: 1.5rem;" id="add-recovery-record"><i class="fas fa-plus"></i> 添加恢复记录</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 反思弹窗 -->
+    <div class="reflection-modal" id="reflection-modal">
+        <div class="reflection-content">
+            <h3><i class="fas fa-brain"></i> 学习反思</h3>
+            <p class="reflection-question">在这次学习中，哪个瞬间让您感觉最轻松或最有成就感？</p>
+            
+            <div class="reflection-options">
+                <div class="reflection-option">刚开始的5分钟，发现任务比想象中简单</div>
+                <div class="reflection-option">完成一个小任务后的成就感</div>
+                <div class="reflection-option">理解了一个新概念的时刻</div>
+                <div class="reflection-option">没有特别轻松的时刻</div>
+            </div>
+            
+            <div style="display: flex; justify-content: space-between; margin-top: 1.5rem;">
+                <button class="btn" id="skip-reflection">跳过</button>
+                <button class="btn btn-primary" id="submit-reflection">提交反思</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 初始化数据
+        let userData = {
+            currentPhase: 1,
+            studyTime: 0,
+            streakDays: 0,
+            completedTasks: 0,
+            focusScore: 0,
+            englishProgress: 0,
+            programmingProgress: 0,
+            stateImprovement: 0,
+            achievementCount: 0,
+            learningRecords: [],
+            recoveryRecords: [],
+            lastStudyDate: null
+        };
+        
+        let timerInterval;
+        let timerSeconds = 25 * 60;
+        let isTimerRunning = false;
+        
+        // 环境建议库
+        const environments = [
+            "在阳台或窗边学习，享受自然光线",
+            "换到客厅的沙发或舒适椅子上",
+            "在咖啡厅或图书馆等公共场所",
+            "整理书桌，创造一个整洁的学习空间",
+            "播放轻柔的背景音乐或白噪音",
+            "调整灯光，使用暖色调台灯",
+            "在户外如公园或庭院学习"
+        ];
+        
+        // 微任务库
+        const microtasks = {
+            english: [
+                "朗读一首喜欢的英文诗歌",
+                "用荧光笔标记5个熟悉的单词",
+                "听一首英文歌曲并跟唱副歌",
+                "阅读一篇简短的英文文章",
+                "学习3个与兴趣相关的单词",
+                "用英语描述昨天做的一件事"
+            ],
+            programming: [
+                "整理代码编辑器主题和字体",
+                "运行一个简单的'Hello World'程序",
+                "浏览GitHub上感兴趣的项目",
+                "修改代码注释的颜色或格式",
+                "学习一个基础概念并写注释",
+                "完成一个小型编程练习"
+            ]
+        };
+        
+        // 页面加载完成后初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            loadUserData();
+            initializeEventListeners();
+            updateUI();
+            generateMicrotasks();
+            generateEnvironmentSuggestions();
+            loadLearningRecords();
+            loadRecoveryRecords();
+        });
+        
+        // 加载用户数据
+        function loadUserData() {
+            const savedData = localStorage.getItem('learningRecoveryData');
+            if (savedData) {
+                userData = JSON.parse(savedData);
+                
+                // 检查连续学习天数
+                checkStreak();
+            }
+        }
+        
+        // 保存用户数据
+        function saveUserData() {
+            localStorage.setItem('learningRecoveryData', JSON.stringify(userData));
+        }
+        
+        // 检查连续学习天数
+        function checkStreak() {
+            const today = new Date().toDateString();
+            if (userData.lastStudyDate !== today) {
+                const yesterday = new Date();
+                yesterday.setDate(yesterday.getDate() - 1);
+                
+                if (userData.lastStudyDate === yesterday.toDateString()) {
+                    userData.streakDays++;
+                } else if (userData.lastStudyDate !== today) {
+                    userData.streakDays = 1;
+                }
+                
+                userData.lastStudyDate = today;
+                saveUserData();
+            }
+        }
+        
+        // 初始化事件监听器
+        function initializeEventListeners() {
+            // 标签切换
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.addEventListener('click', function() {
+                    // 移除所有active类
+                    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                    
+                    // 添加active类到当前标签
+                    this.classList.add('active');
+                    const tabId = this.dataset.tab;
+                    document.getElementById(tabId).classList.add('active');
+                });
+            });
+            
+            // 开始评估按钮
+            document.getElementById('start-assessment').addEventListener('click', function() {
+                alert('学习状态评估功能正在开发中，即将推出！');
+            });
+            
+            // 5分钟计时按钮
+            document.getElementById('start-5min').addEventListener('click', function() {
+                start5MinuteTimer();
+            });
+            
+            document.getElementById('emergency-5min').addEventListener('click', function() {
+                start5MinuteTimer();
+            });
+            
+            // 环境建议按钮
+            document.getElementById('change-environment').addEventListener('click', function() {
+                generateEnvironmentSuggestions();
+            });
+            
+            document.getElementById('emergency-environment').addEventListener('click', function() {
+                generateEnvironmentSuggestions();
+            });
+            
+            document.getElementById('random-environment').addEventListener('click', function() {
+                const randomEnv = environments[Math.floor(Math.random() * environments.length)];
+                alert(`环境建议：${randomEnv}`);
+            });
+            
+            // 微任务按钮
+            document.getElementById('show-microtasks').addEventListener('click', function() {
+                document.querySelector('.tab[data-tab="tools"]').click();
+            });
+            
+            document.getElementById('generate-microtasks').addEventListener('click', function() {
+                generateMicrotasks();
+            });
+            
+            // 阶段开始按钮
+            document.querySelectorAll('.start-phase').forEach(button => {
+                button.addEventListener('click', function() {
+                    const phase = parseInt(this.dataset.phase);
+                    userData.currentPhase = phase;
+                    saveUserData();
+                    updateUI();
+                    alert(`已切换到第${phase}阶段！`);
+                });
+            });
+            
+            // 计时器控制
+            document.getElementById('start-timer').addEventListener('click', startTimer);
+            document.getElementById('pause-timer').addEventListener('click', pauseTimer);
+            document.getElementById('reset-timer').addEventListener('click', resetTimer);
+            
+            // 时间选择按钮
+            document.querySelectorAll('.timer-container .btn[data-time]').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const minutes = parseInt(this.dataset.time);
+                    timerSeconds = minutes * 60;
+                    updateTimerDisplay();
+                    if (isTimerRunning) {
+                        pauseTimer();
+                    }
+                });
+            });
+            
+            // 练习按钮
+            document.getElementById('show-exercises').addEventListener('click', function() {
+                alert('激活练习：\n1. 站立伸展：双手向上伸展，保持10秒\n2. 颈部转动：缓慢转动头部，每侧5次\n3. 深呼吸：深吸气4秒，屏息4秒，呼气6秒\n4. 快步走：在房间内快速走2分钟');
+            });
+            
+            // 学习记录按钮
+            document.getElementById('add-record').addEventListener('click', function() {
+                addLearningRecord();
+            });
+            
+            // 恢复记录按钮
+            document.getElementById('add-recovery-record').addEventListener('click', function() {
+                addRecoveryRecord();
+            });
+            
+            // 反思弹窗控制
+            document.getElementById('skip-reflection').addEventListener('click', function() {
+                document.getElementById('reflection-modal').classList.remove('active');
+            });
+            
+            document.getElementById('submit-reflection').addEventListener('click', function() {
+                document.getElementById('reflection-modal').classList.remove('active');
+                // 在实际应用中，这里会保存反思结果
+                alert('反思已保存！继续坚持，您正在建立积极的学习习惯。');
+            });
+        }
+        
+        // 更新UI
+        function updateUI() {
+            // 更新进度条
+            const progressPercentage = (userData.currentPhase - 1) * 25 + 25;
+            document.getElementById('overall-progress').style.width = `${progressPercentage}%`;
+            
+            // 更新当前阶段
+            const phaseNames = [
+                "第一阶段 - 生理脱敏与心理解绑",
+                "第二阶段 - 认知重构与动机重建",
+                "第三阶段 - 状态管理与能量优化",
+                "第四阶段 - 系统支持与习惯固化"
+            ];
+            document.getElementById('current-phase').textContent = phaseNames[userData.currentPhase - 1];
+            
+            // 更新统计数据
+            document.getElementById('study-time').textContent = `${userData.studyTime} min`;
+            document.getElementById('streak-days').textContent = userData.streakDays;
+            document.getElementById('completed-tasks').textContent = userData.completedTasks;
+            document.getElementById('focus-score').textContent = `${userData.focusScore}%`;
+            document.getElementById('english-progress').textContent = `${userData.englishProgress}%`;
+            document.getElementById('programming-progress').textContent = `${userData.programmingProgress}%`;
+            document.getElementById('state-improvement').textContent = `+${userData.stateImprovement}%`;
+            document.getElementById('achievement-count').textContent = userData.achievementCount;
+        }
+        
+        // 开始5分钟计时器
+        function start5MinuteTimer() {
+            timerSeconds = 5 * 60;
+            updateTimerDisplay();
+            startTimer();
+            
+            // 显示微任务
+            generateMicrotasks();
+        }
+        
+        // 计时器功能
+        function startTimer() {
+            if (!isTimerRunning) {
+                isTimerRunning = true;
+                timerInterval = setInterval(function() {
+                    timerSeconds--;
+                    updateTimerDisplay();
+                    
+                    if (timerSeconds <= 0) {
+                        clearInterval(timerInterval);
+                        isTimerRunning = false;
+                        
+                        // 更新学习数据
+                        userData.studyTime += 5;
+                        userData.completedTasks++;
+                        checkStreak();
+                        saveUserData();
+                        updateUI();
+                        
+                        // 显示反思弹窗
+                        document.getElementById('reflection-modal').classList.add('active');
+                    }
+                }, 1000);
+            }
+        }
+        
+        function pauseTimer() {
+            clearInterval(timerInterval);
+            isTimerRunning = false;
+        }
+        
+        function resetTimer() {
+            clearInterval(timerInterval);
+            isTimerRunning = false;
+            timerSeconds = 25 * 60;
+            updateTimerDisplay();
+        }
+        
+        function updateTimerDisplay() {
+            const minutes = Math.floor(timerSeconds / 60);
+            const seconds = timerSeconds % 60;
+            document.getElementById('timer-display').textContent = 
+                `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        }
+        
+        // 生成环境建议
+        function generateEnvironmentSuggestions() {
+            const container = document.getElementById('environment-suggestions');
+            container.innerHTML = '';
+            
+            // 随机选择3个环境建议
+            const shuffled = [...environments].sort(() => 0.5 - Math.random());
+            const selected = shuffled.slice(0, 3);
+            
+            selected.forEach(env => {
+                const envElement = document.createElement('div');
+                envElement.style.padding = '0.5rem';
+                envElement.style.borderLeft = '3px solid var(--primary)';
+                envElement.style.marginBottom = '0.5rem';
+                envElement.style.backgroundColor = 'var(--light)';
+                envElement.textContent = env;
+                container.appendChild(envElement);
+            });
+        }
+        
+        // 生成微任务
+        function generateMicrotasks() {
+            const container = document.getElementById('microtasks-list');
+            container.innerHTML = '';
+            
+            // 随机选择2个英语和2个编程微任务
+            const englishTasks = [...microtasks.english].sort(() => 0.5 - Math.random()).slice(0, 2);
+            const programmingTasks = [...microtasks.programming].sort(() => 0.5 - Math.random()).slice(0, 2);
+            
+            englishTasks.forEach(task => {
+                const taskElement = document.createElement('div');
+                taskElement.style.padding = '0.5rem';
+                taskElement.style.borderLeft = '3px solid var(--english)';
+                taskElement.style.marginBottom = '0.5rem';
+                taskElement.style.backgroundColor = 'var(--light)';
+                taskElement.innerHTML = `<i class="fas fa-language"></i> ${task}`;
+                container.appendChild(taskElement);
+            });
+            
+            programmingTasks.forEach(task => {
+                const taskElement = document.createElement('div');
+                taskElement.style.padding = '0.5rem';
+                taskElement.style.borderLeft = '3px solid var(--programming)';
+                taskElement.style.marginBottom = '0.5rem';
+                taskElement.style.backgroundColor = 'var(--light)';
+                taskElement.innerHTML = `<i class="fas fa-code"></i> ${task}`;
+                container.appendChild(taskElement);
+            });
+        }
+        
+        // 加载学习记录
+        function loadLearningRecords() {
+            const container = document.getElementById('learning-records');
+            container.innerHTML = '';
+            
+            if (userData.learningRecords.length === 0) {
+                container.innerHTML = '<p>暂无学习记录</p>';
+                return;
+            }
+            
+            userData.learningRecords.slice(-5).reverse().forEach(record => {
+                const recordElement = document.createElement('div');
+                recordElement.style.padding = '1rem';
+                recordElement.style.borderBottom = '1px solid #eee';
+                recordElement.innerHTML = `
+                    <p><strong>${record.date}</strong></p>
+                    <p>学习时间: ${record.duration}分钟 | 专注度: ${record.focus}%</p>
+                    <p>${record.note}</p>
+                `;
+                container.appendChild(recordElement);
+            });
+        }
+        
+        // 添加学习记录
+        function addLearningRecord() {
+            const duration = prompt('请输入学习时间（分钟）:');
+            if (!duration) return;
+            
+            const focus = prompt('请输入专注度（0-100）:');
+            if (!focus) return;
+            
+            const note = prompt('请输入学习内容备注:') || '无备注';
+            
+            const newRecord = {
+                date: new Date().toLocaleDateString(),
+                duration: parseInt(duration),
+                focus: parseInt(focus),
+                note: note
+            };
+            
+            userData.learningRecords.push(newRecord);
+            saveUserData();
+            loadLearningRecords();
+            
+            // 更新统计数据
+            userData.studyTime += parseInt(duration);
+            userData.completedTasks++;
+            userData.focusScore = Math.round((userData.focusScore + parseInt(focus)) / 2);
+            userData.englishProgress = Math.min(100, userData.englishProgress + 5);
+            userData.programmingProgress = Math.min(100, userData.programmingProgress + 5);
+            userData.stateImprovement = Math.min(100, userData.stateImprovement + 2);
+            userData.achievementCount = Math.floor(userData.completedTasks / 5);
+            
+            saveUserData();
+            updateUI();
+            
+            alert('学习记录已添加！');
+        }
+        
+        // 加载恢复记录
+        function loadRecoveryRecords() {
+            const container = document.getElementById('recovery-records');
+            container.innerHTML = '';
+            
+            if (userData.recoveryRecords.length === 0) {
+                container.innerHTML = '<p>暂无恢复记录</p>';
+                return;
+            }
+            
+            userData.recoveryRecords.slice(-5).reverse().forEach(record => {
+                const recordElement = document.createElement('div');
+                recordElement.style.padding = '1rem';
+                recordElement.style.borderBottom = '1px solid #eee';
+                recordElement.innerHTML = `
+                    <p><strong>${record.date}</strong></p>
+                    <p>方法: ${record.method} | 效果: ${record.effect}</p>
+                    <p>${record.note}</p>
+                `;
+                container.appendChild(recordElement);
+            });
+        }
+        
+        // 添加恢复记录
+        function addRecoveryRecord() {
+            const method = prompt('请输入使用的恢复方法:');
+            if (!method) return;
+            
+            const effect = prompt('请输入效果评价（1-5星）:');
+            if (!effect) return;
+            
+            const note = prompt('请输入备注:') || '无备注';
+            
+            const newRecord = {
+                date: new Date().toLocaleDateString(),
+                method: method,
+                effect: effect,
+                note: note
+            };
+            
+            userData.recoveryRecords.push(newRecord);
+            saveUserData();
+            loadRecoveryRecords();
+            
+            alert('恢复记录已添加！');
+        }
+    </script>
+</body>
+</html>

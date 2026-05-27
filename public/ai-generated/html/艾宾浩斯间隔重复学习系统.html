@@ -1,0 +1,3491 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>艾宾浩斯间隔重复学习系统</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.8/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#4f46e5',
+                        secondary: '#7c3aed',
+                        success: '#10b981',
+                        danger: '#ef4444',
+                        warning: '#f59e0b',
+                        info: '#06b6d4',
+                        dark: '#1f2937'
+                    },
+                    fontFamily: {
+                        inter: ['Inter', 'sans-serif'],
+                    },
+                    boxShadow: {
+                        'card': '0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.03)',
+                        'card-hover': '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
+                    },
+                    animation: {
+                        'fadeIn': 'fadeIn 0.5s ease forwards',
+                        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                        'slideIn': 'slideIn 0.3s ease-out forwards'
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <style>
+        /* 卡片翻转动画 */
+        .flashcard {
+            perspective: 1500px;
+        }
+        .flashcard-inner {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            text-align: center;
+            transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+            transform-style: preserve-3d;
+        }
+        .flashcard.flipped .flashcard-inner {
+            transform: rotateY(180deg);
+        }
+        .flashcard-front, .flashcard-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            border-radius: 16px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        }
+        .flashcard-front {
+            background: linear-gradient(135deg, #ffffff, #f8fafc);
+            color: #1f2937;
+            border: 1px solid #e5e7eb;
+        }
+        .flashcard-back {
+            background: linear-gradient(135deg, #4f46e5, #7c3aed);
+            color: white;
+            transform: rotateY(180deg);
+        }
+        
+        /* 平滑滚动 */
+        html {
+            scroll-behavior: smooth;
+        }
+        
+        /* 加载动画 */
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        /* 卡片出现动画 */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(-10px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        
+        /* 移动端优化 */
+        @media (max-width: 768px) {
+            .flashcard {
+                height: 250px !important;
+            }
+            .review-controls {
+                flex-direction: column;
+            }
+            .review-controls button {
+                margin-bottom: 8px;
+            }
+        }
+        
+        .card-shadow {
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            transition: all 0.3s ease;
+        }
+        .card-shadow:hover {
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.12);
+        }
+        .card-hover {
+            transition: all 0.3s ease;
+        }
+        .card-hover:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.15);
+        }
+        .btn-effect {
+            transition: all 0.2s ease;
+        }
+        .btn-effect:active {
+            transform: scale(0.96);
+        }
+        .progress-bar {
+            height: 8px;
+            border-radius: 4px;
+            background-color: #e5e7eb;
+            overflow: hidden;
+        }
+        .progress-fill {
+            height: 100%;
+            transition: width 0.5s ease;
+        }
+        
+        /* 标签样式 */
+        .tag {
+            display: inline-block;
+            padding: 0.25rem 0.5rem;
+            border-radius: 999px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            background-color: rgba(79, 70, 229, 0.1);
+            color: #4f46e5;
+            margin-right: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        /* 导航标签样式 */
+        .tab {
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+        .tab::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 0;
+            height: 3px;
+            background-color: #4f46e5;
+            transition: width 0.3s ease;
+        }
+        .tab.active::after {
+            width: 100%;
+        }
+        
+        /* 表单输入聚焦效果 */
+        input:focus, textarea:focus, select:focus {
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.2);
+            border-color: #4f46e5;
+        }
+        
+        /* 渐变背景 */
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        
+        /* 自定义滚动条 */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9;
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+
+        /* 确保内容居中 */
+        .container-center {
+            margin-left: auto;
+            margin-right: auto;
+            max-width: 1200px;
+        }
+        
+        /* 新增样式：对称居中 */
+        .centered-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+        }
+        
+        /* 卡片列表居中 */
+        .cards-list-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        /* 统计卡片居中 */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            justify-items: center;
+        }
+        
+        /* 复习控制按钮居中 */
+        .review-controls-centered {
+            display: flex;
+            justify-content: center;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+        
+        /* 模态框居中 */
+        .modal-centered {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        /* 新增：功能模块居中 */
+        .module-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+        }
+        
+        .module-content {
+            width: 100%;
+            max-width: 800px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .form-centered {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+        }
+        
+        .form-centered .form-group {
+            width: 100%;
+            max-width: 500px;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 font-inter text-gray-800 min-h-screen">
+    <div class="container mx-auto px-4 py-6 container-center">
+        <!-- 顶部导航 -->
+        <header class="gradient-bg text-white rounded-2xl p-6 mb-6 shadow-lg overflow-hidden relative module-container">
+            <div class="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -mr-32 -mt-32"></div>
+            <div class="absolute bottom-0 left-0 w-40 h-40 bg-white/5 rounded-full -ml-20 -mb-20"></div>
+            
+            <div class="text-center relative z-10 module-content">
+                <h1 class="text-[clamp(1.8rem,4vw,2.5rem)] font-bold mb-3">艾宾浩斯间隔重复学习系统</h1>
+                <p class="text-white/90 text-[clamp(1rem,2vw,1.2rem)] max-w-2xl">
+                    基于遗忘曲线的科学记忆方法，通过精准间隔重复，提升学习效率与记忆持久性
+                </p>
+            </div>
+        </header>
+        
+        <!-- 标签导航 -->
+        <nav class="flex flex-wrap border-b border-gray-200 mb-6 bg-white rounded-xl p-1 shadow-sm module-container" role="tablist">
+            <div class="module-content">
+                <button class="tab active py-3 px-6 cursor-pointer font-medium text-primary transition-all focus:outline-none focus:ring-2 focus:ring-primary/30 rounded-lg" 
+                        data-tab="review" role="tab" aria-selected="true" aria-controls="review-tab">
+                    <i class="fa fa-refresh mr-2" aria-hidden="true"></i>复习
+                </button>
+                <button class="tab py-3 px-6 cursor-pointer font-medium text-gray-500 hover:text-primary transition-all focus:outline-none focus:ring-2 focus:ring-primary/30 rounded-lg" 
+                        data-tab="create" role="tab" aria-selected="false" aria-controls="create-tab">
+                    <i class="fa fa-plus-circle mr-2" aria-hidden="true"></i>创建卡片
+                </button>
+                <button class="tab py-3 px-6 cursor-pointer font-medium text-gray-500 hover:text-primary transition-all focus:outline-none focus:ring-2 focus:ring-primary/30 rounded-lg" 
+                        data-tab="stats" role="tab" aria-selected="false" aria-controls="stats-tab">
+                    <i class="fa fa-bar-chart mr-2" aria-hidden="true"></i>统计分析
+                </button>
+            </div>
+        </nav>
+        
+        <div class="module-container">
+            <div class="module-content">
+                <!-- 复习界面 -->
+                <section id="review-tab" class="tab-content active w-full" role="tabpanel" aria-labelledby="review-tab">
+                    <div class="bg-white rounded-2xl p-6 card-shadow mb-6 card-hover centered-container w-full">
+                        <h2 class="text-xl font-semibold text-primary mb-4 pb-2 border-b border-gray-100 flex items-center">
+                            <i class="fa fa-calendar-check-o mr-2" aria-hidden="true"></i>今日复习
+                            <span id="today-reviews-count" class="ml-2 text-sm bg-primary/10 text-primary px-2 py-0.5 rounded-full">0张卡片</span>
+                        </h2>
+                        
+                        <div id="no-cards" class="text-center py-12 text-gray-500">
+                            <div class="text-6xl mb-4 opacity-30 animate-pulse-slow" aria-hidden="true">📚</div>
+                            <h3 class="text-lg font-medium mb-2">暂无需要复习的卡片</h3>
+                            <p class="mb-4">去创建一些学习卡片，或查看未来的复习安排</p>
+                            <button class="mt-2 bg-primary text-white px-4 py-2 rounded-lg btn-effect focus:outline-none focus:ring-2 focus:ring-primary/50" 
+                                    onclick="app.switchTab('create')">
+                                创建第一张卡片
+                            </button>
+                        </div>
+                        
+                        <div id="review-container" class="hidden w-full module-content">
+                            <div class="mb-4 w-full">
+                                <div class="progress-bar" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">
+                                    <div id="review-progress" class="progress-fill bg-primary" style="width: 0%"></div>
+                                </div>
+                                <div class="flex justify-between text-sm text-gray-500 mt-2">
+                                    <span>进度: <span id="current-card">1</span>/<span id="total-cards">0</span></span>
+                                    <span id="mastery-indicator" class="text-success">掌握度: 0%</span>
+                                </div>
+                            </div>
+                            
+                            <div class="flashcard h-[300px] mb-6 cursor-pointer animate-fadeIn w-full max-w-md" id="flashcard">
+                                <div class="flashcard-inner">
+                                    <div class="flashcard-front">
+                                        <div class="absolute top-4 left-4 text-xs text-gray-500">点击卡片或按空格键翻转</div>
+                                        <div class="flashcard-content text-xl mb-6 px-4" id="question-content">问题将显示在这里</div>
+                                        <button id="show-answer" class="bg-primary text-white px-4 py-2 rounded-lg btn-effect focus:outline-none focus:ring-2 focus:ring-primary/50">
+                                            <i class="fa fa-eye mr-1" aria-hidden="true"></i> 显示答案
+                                        </button>
+                                    </div>
+                                    <div class="flashcard-back">
+                                        <div class="flashcard-content text-xl mb-6 px-4" id="answer-content">答案将显示在这里</div>
+                                        <button id="show-question" class="bg-white text-primary px-4 py-2 rounded-lg btn-effect focus:outline-none focus:ring-2 focus:ring-primary/50">
+                                            <i class="fa fa-undo mr-1" aria-hidden="true"></i> 显示问题
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="review-controls-centered w-full" role="group" aria-label="复习评价">
+                                <button class="bg-danger text-white flex-1 py-3 px-4 rounded-lg font-medium btn-effect focus:outline-none focus:ring-2 focus:ring-danger/50 min-w-[120px]" 
+                                        id="difficult" data-rating="again" title="1键 - 完全忘记 - 20分钟后重新复习">
+                                    <i class="fa fa-times mr-1" aria-hidden="true"></i> 忘记
+                                </button>
+                                <button class="bg-warning text-white flex-1 py-3 px-4 rounded-lg font-medium btn-effect focus:outline-none focus:ring-2 focus:ring-warning/50 min-w-[120px]" 
+                                        id="hard" data-rating="hard" title="2键 - 记得很困难 - 间隔1天">
+                                    <i class="fa fa-hourglass-half mr-1" aria-hidden="true"></i> 困难
+                                </button>
+                                <button class="bg-success text-white flex-1 py-3 px-4 rounded-lg font-medium btn-effect focus:outline-none focus:ring-2 focus:ring-success/50 min-w-[120px]" 
+                                        id="good" data-rating="good" title="3键 - 记得很清楚 - 间隔3天">
+                                    <i class="fa fa-check mr-1" aria-hidden="true"></i> 良好
+                                </button>
+                                <button class="bg-primary text-white flex-1 py-3 px-4 rounded-lg font-medium btn-effect focus:outline-none focus:ring-2 focus:ring-primary/50 min-w-[120px]" 
+                                        id="easy" data-rating="easy" title="4键 - 非常熟悉 - 间隔7天">
+                                    <i class="fa fa-check-circle mr-1" aria-hidden="true"></i> 简单
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-white rounded-2xl p-6 card-shadow card-hover centered-container w-full">
+                        <h2 class="text-xl font-semibold text-primary mb-4 pb-2 border-b border-gray-100">
+                            <i class="fa fa-calendar mr-2" aria-hidden="true"></i>复习安排
+                        </h2>
+                        
+                        <div id="schedule-container" class="space-y-2 max-h-80 overflow-y-auto p-2 w-full module-content">
+                            <!-- 复习日程将在这里动态生成 -->
+                        </div>
+                    </div>
+                </section>
+                
+                <!-- 创建卡片界面 -->
+                <section id="create-tab" class="tab-content hidden w-full" role="tabpanel" aria-labelledby="create-tab">
+                    <div class="bg-white rounded-2xl p-6 card-shadow mb-6 card-hover centered-container w-full">
+                        <h2 class="text-xl font-semibold text-primary mb-4 pb-2 border-b border-gray-100">
+                            <i class="fa fa-pencil-square-o mr-2" aria-hidden="true"></i>创建学习卡片
+                        </h2>
+                        
+                        <form id="card-form" class="space-y-4 w-full form-centered">
+                            <div class="form-group">
+                                <label for="question" class="block text-gray-700 font-medium mb-2">问题/提示 <span class="text-danger">*</span></label>
+                                <textarea id="question" placeholder="输入问题或提示..." required 
+                                    class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all resize-none min-h-[100px]"></textarea>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="answer" class="block text-gray-700 font-medium mb-2">答案/内容 <span class="text-danger">*</span></label>
+                                <textarea id="answer" placeholder="输入答案或详细内容..." required 
+                                    class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all resize-none min-h-[100px]"></textarea>
+                            </div>
+                            
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 w-full max-w-lg">
+                                <div class="form-group">
+                                    <label for="category" class="block text-gray-700 font-medium mb-2">分类</label>
+                                    <input type="text" id="category" placeholder="例如: 数学、英语、历史..." list="category-list"
+                                        class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all">
+                                    <datalist id="category-list">
+                                        <!-- 分类选项将动态生成 -->
+                                    </datalist>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="tags" class="block text-gray-700 font-medium mb-2">标签 (逗号分隔)</label>
+                                    <input type="text" id="tags" placeholder="例如: 公式,重点,易错..." 
+                                        class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all">
+                                </div>
+                            </div>
+                            
+                            <button type="submit" class="bg-primary text-white py-3 px-6 rounded-lg font-medium btn-effect focus:outline-none focus:ring-2 focus:ring-primary/50 w-full max-w-lg">
+                                <i class="fa fa-save mr-1" aria-hidden="true"></i> 创建卡片
+                            </button>
+                        </form>
+                    </div>
+                    
+                    <!-- 批量导入卡片 -->
+                    <div class="bg-white rounded-2xl p-6 card-shadow mb-6 card-hover centered-container w-full">
+                        <div class="flex justify-between items-center mb-4 w-full module-content">
+                            <h2 class="text-xl font-semibold text-primary pb-2 border-b border-gray-100">
+                                <i class="fa fa-upload mr-2" aria-hidden="true"></i>批量导入卡片
+                            </h2>
+                            <button id="download-template" class="text-primary hover:text-secondary text-sm transition-colors focus:outline-none focus:ring-2 focus:ring-primary/30">
+                                <i class="fa fa-download mr-1" aria-hidden="true"></i> 下载模板
+                            </button>
+                        </div>
+                        
+                        <div class="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center mb-4 hover:border-primary hover:bg-primary/5 transition-all cursor-pointer w-full max-w-lg" 
+                             id="import-dropzone" role="button" tabindex="0" aria-label="拖放区域，点击或拖拽文件到这里">
+                            <i class="fa fa-cloud-upload text-4xl text-gray-400 mb-3" aria-hidden="true"></i>
+                            <p class="mb-2">拖拽文件到此处，或 <span class="text-primary font-medium">选择文件</span></p>
+                            <p class="text-sm text-gray-500">支持 CSV 格式</p>
+                            <input type="file" id="import-file" class="hidden" accept=".csv">
+                        </div>
+                        
+                        <div id="import-progress" class="mb-4 hidden w-full max-w-lg">
+                            <div class="progress-bar">
+                                <div id="import-progress-bar" class="progress-fill bg-primary" style="width: 0%"></div>
+                            </div>
+                            <div class="text-sm text-gray-500 mt-1" id="import-progress-text">准备导入...</div>
+                        </div>
+                        
+                        <div id="import-options" class="mb-4 hidden w-full max-w-lg">
+                            <h3 class="text-lg font-medium text-gray-700 mb-2">导入选项</h3>
+                            <div class="space-y-2">
+                                <div class="flex items-center">
+                                    <input type="radio" id="handle-keep" name="conflict-handle" value="keep" checked class="mr-2">
+                                    <label for="handle-keep" class="text-gray-700">保留现有卡片（跳过重复）</label>
+                                </div>
+                                <div class="flex items-center">
+                                    <input type="radio" id="handle-overwrite" name="conflict-handle" value="overwrite" class="mr-2">
+                                    <label for="handle-overwrite" class="text-gray-700">覆盖重复卡片</label>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <button id="process-import" class="bg-primary text-white py-2 px-4 rounded-lg font-medium btn-effect focus:outline-none focus:ring-2 focus:ring-primary/50 hidden w-full max-w-lg">
+                            <i class="fa fa-check mr-1" aria-hidden="true"></i> 确认导入
+                        </button>
+                        
+                        <div id="import-result" class="mt-4 hidden w-full max-w-lg"></div>
+                    </div>
+                    
+                    <div class="bg-white rounded-2xl p-6 card-shadow card-hover centered-container w-full">
+                        <div class="flex flex-wrap justify-between items-center mb-4 w-full module-content">
+                            <h2 class="text-xl font-semibold text-primary pb-2 border-b border-gray-100">
+                                <i class="fa fa-list mr-2" aria-hidden="true"></i>我的卡片
+                            </h2>
+                            <div class="flex flex-wrap gap-2 mt-2 justify-center">
+                                <div class="relative">
+                                    <input type="text" id="card-search" placeholder="搜索卡片..." 
+                                        class="pl-8 border border-gray-300 rounded-lg px-3 py-1 text-sm focus:ring-2 focus:ring-primary/50 focus:border-primary">
+                                    <i class="fa fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" aria-hidden="true"></i>
+                                </div>
+                                <select id="filter-category" class="border border-gray-300 rounded-lg px-3 py-1 text-sm focus:ring-2 focus:ring-primary/50 focus:border-primary">
+                                    <option value="">所有分类</option>
+                                </select>
+                                <select id="filter-due" class="border border-gray-300 rounded-lg px-3 py-1 text-sm focus:ring-2 focus:ring-primary/50 focus:border-primary">
+                                    <option value="all">所有卡片</option>
+                                    <option value="due">待复习</option>
+                                    <option value="new">新卡片</option>
+                                </select>
+                                <button id="export-all" class="text-primary hover:text-secondary text-sm transition-colors focus:outline-none focus:ring-2 focus:ring-primary/30">
+                                    <i class="fa fa-download mr-1" aria-hidden="true"></i> 导出CSV
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <!-- 批量操作控件 -->
+                        <div id="batch-controls" class="mb-4 hidden w-full module-content">
+                            <div class="flex items-center justify-between bg-gray-50 p-3 rounded-lg">
+                                <div class="flex items-center">
+                                    <input type="checkbox" id="select-all-cards" class="mr-2">
+                                    <label for="select-all-cards" class="text-sm text-gray-700">全选所有卡片</label>
+                                    <span class="ml-4 text-sm text-gray-500" id="selected-count">已选择 0 张卡片</span>
+                                </div>
+                                <button id="delete-selected" class="bg-danger text-white px-3 py-1 rounded text-sm btn-effect focus:outline-none focus:ring-2 focus:ring-danger/50">
+                                    <i class="fa fa-trash mr-1" aria-hidden="true"></i> 删除选中
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <!-- 分页控件 -->
+                        <div id="pagination-controls" class="flex justify-between items-center mb-4 hidden w-full module-content">
+                            <div class="text-sm text-gray-500">
+                                显示 <span id="showing-range">1-10</span> 条，共 <span id="total-cards-count-pagination">0</span> 条
+                            </div>
+                            <div class="flex gap-2">
+                                <button id="prev-page" class="px-3 py-1 border border-gray-300 rounded-lg text-sm disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+                                    <i class="fa fa-chevron-left" aria-hidden="true"></i>
+                                </button>
+                                <button id="next-page" class="px-3 py-1 border border-gray-300 rounded-lg text-sm disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+                                    <i class="fa fa-chevron-right" aria-hidden="true"></i>
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div id="cards-list" class="space-y-4 max-h-[500px] overflow-y-auto p-2 w-full cards-list-container">
+                            <!-- 卡片列表将在这里动态生成 -->
+                        </div>
+                        
+                        <!-- 加载中状态 -->
+                        <div id="cards-loading" class="hidden text-center py-10 w-full">
+                            <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                            <p class="mt-2 text-gray-500">加载中...</p>
+                        </div>
+                        
+                        <!-- 无结果状态 -->
+                        <div id="no-cards-result" class="hidden text-center py-10 text-gray-500 w-full">
+                            <div class="text-5xl mb-3 opacity-30">🔍</div>
+                            <p>没有找到匹配的卡片</p>
+                        </div>
+                    </div>
+                </section>
+                
+                <!-- 统计界面 -->
+                <section id="stats-tab" class="tab-content hidden w-full" role="tabpanel" aria-labelledby="stats-tab">
+                    <div class="bg-white rounded-2xl p-6 card-shadow mb-6 card-hover centered-container w-full">
+                        <h2 class="text-xl font-semibold text-primary mb-4 pb-2 border-b border-gray-100">
+                            <i class="fa fa-tachometer mr-2" aria-hidden="true"></i>学习统计
+                        </h2>
+                        
+                        <div class="stats-grid mb-6 w-full">
+                            <div class="stat-item bg-gradient-to-br from-primary/5 to-primary/10 rounded-lg p-4 text-center card-hover">
+                                <div class="stat-value text-2xl font-bold text-primary mb-1" id="total-cards-count">0</div>
+                                <div class="stat-label text-gray-600 text-sm">总卡片数</div>
+                            </div>
+                            <div class="stat-item bg-gradient-to-br from-warning/5 to-warning/10 rounded-lg p-4 text-center card-hover">
+                                <div class="stat-value text-2xl font-bold text-warning mb-1" id="reviewed-today">0</div>
+                                <div class="stat-label text-gray-600 text-sm">今日复习</div>
+                            </div>
+                            <div class="stat-item bg-gradient-to-br from-success/5 to-success/10 rounded-lg p-4 text-center card-hover">
+                                <div class="stat-value text-2xl font-bold text-success mb-1" id="mastery-rate">0%</div>
+                                <div class="stat-label text-gray-600 text-sm">掌握率</div>
+                            </div>
+                            <div class="stat-item bg-gradient-to-br from-secondary/5 to-secondary/10 rounded-lg p-4 text-center card-hover">
+                                <div class="stat-value text-2xl font-bold text-secondary mb-1" id="streak-count">0</div>
+                                <div class="stat-label text-gray-600 text-sm">连续天数</div>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-6 w-full module-content">
+                            <h3 class="text-lg font-medium text-gray-700 mb-3 text-center">学习趋势</h3>
+                            <div class="h-[200px] bg-gray-50 p-2 rounded-lg w-full">
+                                <canvas id="daily-review-chart" role="img" aria-label="每日复习量图表"></canvas>
+                            </div>
+                        </div>
+                        
+                        <div class="w-full module-content">
+                            <h3 class="text-lg font-medium text-gray-700 mb-3 text-center">分类分布</h3>
+                            <div class="h-[200px] bg-gray-50 p-2 rounded-lg w-full">
+                                <canvas id="category-chart" role="img" aria-label="分类分布图表"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-white rounded-2xl p-6 card-shadow card-hover centered-container w-full">
+                        <h2 class="text-xl font-semibold text-primary mb-4 pb-2 border-b border-gray-100">
+                            <i class="fa fa-line-chart mr-2" aria-hidden="true"></i>记忆曲线分析
+                        </h2>
+                        
+                        <div class="mb-4 w-full module-content">
+                            <label for="curve-range" class="block text-gray-700 font-medium mb-2 text-center">时间范围</label>
+                            <select id="curve-range" class="w-full max-w-md p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all">
+                                <option value="7">近7天</option>
+                                <option value="30" selected>近30天</option>
+                                <option value="90">近90天</option>
+                                <option value="365">近1年</option>
+                            </select>
+                        </div>
+                        
+                        <div class="h-[300px] bg-gray-50 p-2 rounded-lg w-full module-content">
+                            <canvas id="memory-curve-chart" role="img" aria-label="记忆曲线图表"></canvas>
+                        </div>
+                        
+                        <div class="mt-4 text-sm text-gray-600 bg-gray-50 p-3 rounded-lg w-full module-content">
+                            <p><i class="fa fa-info-circle text-primary mr-1" aria-hidden="true"></i> 
+                            蓝色线：理论遗忘曲线 | 橙色线：您的实际记忆曲线</p>
+                            <p class="mt-1"><i class="fa fa-lightbulb-o text-warning mr-1" aria-hidden="true"></i> 
+                            艾宾浩斯研究表明，新信息在20分钟后会遗忘约42%，1小时后遗忘约56%，通过科学复习可显著提高记忆保留率</p>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 编辑卡片模态框 -->
+    <div id="edit-modal" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 hidden opacity-0 transition-opacity duration-300 modal-centered">
+        <div class="bg-white rounded-2xl p-6 max-w-md w-full mx-4 transform scale-95 transition-all duration-300" id="modal-content">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-xl font-semibold text-primary">编辑卡片</h3>
+                <button id="close-modal" class="text-gray-500 hover:text-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-300 rounded-full p-1">
+                    <i class="fa fa-times text-xl"></i>
+                </button>
+            </div>
+            
+            <form id="edit-form" class="space-y-4">
+                <input type="hidden" id="edit-card-id">
+                
+                <div class="form-group">
+                    <label for="edit-question" class="block text-gray-700 font-medium mb-2">问题/提示 <span class="text-danger">*</span></label>
+                    <textarea id="edit-question" required 
+                        class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all resize-none min-h-[100px]"></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label for="edit-answer" class="block text-gray-700 font-medium mb-2">答案/内容 <span class="text-danger">*</span></label>
+                    <textarea id="edit-answer" required 
+                        class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all resize-none min-h-[100px]"></textarea>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="form-group">
+                        <label for="edit-category" class="block text-gray-700 font-medium mb-2">分类</label>
+                        <input type="text" id="edit-category" list="edit-category-list"
+                            class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all">
+                        <datalist id="edit-category-list">
+                            <!-- 分类选项将动态生成 -->
+                        </datalist>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="edit-tags" class="block text-gray-700 font-medium mb-2">标签 (逗号分隔)</label>
+                        <input type="text" id="edit-tags" 
+                            class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all">
+                    </div>
+                </div>
+                
+                <div class="flex justify-end gap-3">
+                    <button type="button" id="cancel-edit" class="bg-gray-200 text-gray-700 py-2 px-4 rounded-lg font-medium btn-effect focus:outline-none focus:ring-2 focus:ring-gray-300">
+                        取消
+                    </button>
+                    <button type="submit" class="bg-primary text-white py-2 px-4 rounded-lg font-medium btn-effect focus:outline-none focus:ring-2 focus:ring-primary/50">
+                        <i class="fa fa-save mr-1" aria-hidden="true"></i> 保存修改
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- 通知提示组件 -->
+    <div id="toast" class="fixed bottom-6 right-6 px-6 py-3 rounded-lg shadow-lg transform translate-y-20 opacity-0 transition-all duration-300 z-50" 
+         role="alert" aria-live="polite"></div>
+
+    <script>
+        // 工具类 - 负责通用功能
+        class Utils {
+            // 格式化日期为本地字符串
+            static formatDate(date, options = { month: 'short', day: 'numeric' }) {
+                return new Date(date).toLocaleDateString('zh-CN', options);
+            }
+            
+            // 显示提示消息
+            static showToast(message, type = 'info') {
+                const toast = document.getElementById('toast');
+                toast.textContent = message;
+                toast.className = 'fixed bottom-6 right-6 px-6 py-3 rounded-lg shadow-lg transform translate-y-20 opacity-0 transition-all duration-300 z-50';
+                
+                switch(type) {
+                    case 'success':
+                        toast.classList.add('bg-success', 'text-white');
+                        break;
+                    case 'error':
+                        toast.classList.add('bg-danger', 'text-white');
+                        break;
+                    default:
+                        toast.classList.add('bg-primary', 'text-white');
+                }
+                
+                toast.classList.remove('translate-y-20', 'opacity-0');
+                
+                setTimeout(() => {
+                    toast.classList.add('translate-y-20', 'opacity-0');
+                }, 3000);
+            }
+            
+            // 检查是否为同一天（UTC）
+            static isSameDay(date1, date2) {
+                return new Date(date1).toISOString().split('T')[0] === 
+                       new Date(date2).toISOString().split('T')[0];
+            }
+            
+            // 计算两个日期之间的天数差
+            static getDayDiff(date1, date2) {
+                const oneDay = 24 * 60 * 60 * 1000;
+                const firstDate = new Date(date1);
+                const secondDate = new Date(date2);
+                return Math.round(Math.abs((firstDate - secondDate) / oneDay));
+            }
+            
+            // 转义CSV字段
+            static escapeCSVField(field) {
+                if (field === null || field === undefined) return '';
+                const str = String(field);
+                if (str.includes(',') || str.includes('"') || str.includes('\n') || str.includes('\r')) {
+                    return '"' + str.replace(/"/g, '""') + '"';
+                }
+                return str;
+            }
+            
+            // 将数组转换为CSV行
+            static arrayToCSVRow(array) {
+                return array.map(field => this.escapeCSVField(field)).join(',');
+            }
+        }
+
+        // IndexedDB 存储管理器
+        class DatabaseManager {
+            constructor() {
+                this.dbName = 'EbbinghausAppDB';
+                this.version = 3;
+                this.db = null;
+            }
+            
+            // 打开数据库
+            async open() {
+                return new Promise((resolve, reject) => {
+                    const request = indexedDB.open(this.dbName, this.version);
+                    
+                    request.onerror = () => reject(request.error);
+                    request.onsuccess = () => {
+                        this.db = request.result;
+                        resolve(this.db);
+                    };
+                    
+                    request.onupgradeneeded = (event) => {
+                        const db = event.target.result;
+                        
+                        // 创建卡片存储
+                        if (!db.objectStoreNames.contains('cards')) {
+                            const store = db.createObjectStore('cards', { keyPath: 'id', autoIncrement: true });
+                            store.createIndex('category', 'category', { unique: false });
+                            store.createIndex('nextReview', 'nextReview', { unique: false });
+                        }
+                        
+                        // 创建学习记录存储
+                        if (!db.objectStoreNames.contains('studyRecords')) {
+                            const store = db.createObjectStore('studyRecords', { keyPath: 'id', autoIncrement: true });
+                            store.createIndex('date', 'date', { unique: false });
+                        }
+                        
+                        // 创建用户设置存储
+                        if (!db.objectStoreNames.contains('settings')) {
+                            db.createObjectStore('settings', { keyPath: 'id' });
+                        }
+                    };
+                });
+            }
+            
+            // 保存卡片
+            async saveCard(card) {
+                await this.open();
+                
+                // 为新卡片设置初始复习时间和间隔
+                if (!card.id) {
+                    const now = new Date();
+                    card.createdAt = now.toISOString();
+                    card.nextReview = now.toISOString(); // 新卡片立即需要复习
+                    card.interval = 0;
+                    card.easiness = 2.5;
+                    card.repetitions = 0;
+                    card.lastReviewed = null;
+                }
+                
+                return new Promise((resolve, reject) => {
+                    const transaction = this.db.transaction('cards', 'readwrite');
+                    const store = transaction.objectStore('cards');
+                    const request = store.put(card);
+                    
+                    request.onsuccess = () => resolve(request.result);
+                    request.onerror = () => reject(request.error);
+                });
+            }
+            
+            // 批量保存卡片
+            async saveCards(cards) {
+                await this.open();
+                
+                return new Promise((resolve, reject) => {
+                    const transaction = this.db.transaction('cards', 'readwrite');
+                    const store = transaction.objectStore('cards');
+                    
+                    let completed = 0;
+                    let errors = [];
+                    
+                    cards.forEach(card => {
+                        // 为新卡片设置初始值
+                        if (!card.id) {
+                            const now = new Date();
+                            card.createdAt = now.toISOString();
+                            card.nextReview = now.toISOString();
+                            card.interval = 0;
+                            card.easiness = 2.5;
+                            card.repetitions = 0;
+                            card.lastReviewed = null;
+                        }
+                        
+                        const request = store.put(card);
+                        request.onsuccess = () => {
+                            completed++;
+                            if (completed === cards.length) {
+                                if (errors.length > 0) {
+                                    reject(new Error(`Failed to save ${errors.length} cards`));
+                                } else {
+                                    resolve(cards.length);
+                                }
+                            }
+                        };
+                        request.onerror = () => {
+                            errors.push(card);
+                            completed++;
+                            if (completed === cards.length) {
+                                if (errors.length > 0) {
+                                    reject(new Error(`Failed to save ${errors.length} cards`));
+                                } else {
+                                    resolve(cards.length);
+                                }
+                            }
+                        };
+                    });
+                });
+            }
+            
+            // 获取所有卡片
+            async getAllCards() {
+                await this.open();
+                
+                return new Promise((resolve, reject) => {
+                    const transaction = this.db.transaction('cards', 'readonly');
+                    const store = transaction.objectStore('cards');
+                    const request = store.getAll();
+                    
+                    request.onsuccess = () => resolve(request.result);
+                    request.onerror = () => reject(request.error);
+                });
+            }
+            
+            // 获取今日需要复习的卡片
+            async getTodaysCards() {
+                await this.open();
+                
+                return new Promise((resolve, reject) => {
+                    const today = new Date();
+                    today.setHours(0, 0, 0, 0);
+                    const endOfDay = new Date(today);
+                    endOfDay.setHours(23, 59, 59, 999);
+                    
+                    const transaction = this.db.transaction('cards', 'readonly');
+                    const store = transaction.objectStore('cards');
+                    const index = store.index('nextReview');
+                    
+                    const range = IDBKeyRange.bound(
+                        today.toISOString(),
+                        endOfDay.toISOString()
+                    );
+                    
+                    const request = index.getAll(range);
+                    
+                    request.onsuccess = () => resolve(request.result);
+                    request.onerror = () => reject(request.error);
+                });
+            }
+            
+            // 获取卡片总数
+            async getTotalCardsCount() {
+                await this.open();
+                
+                return new Promise((resolve, reject) => {
+                    const transaction = this.db.transaction('cards', 'readonly');
+                    const store = transaction.objectStore('cards');
+                    const request = store.count();
+                    
+                    request.onsuccess = () => resolve(request.result);
+                    request.onerror = () => reject(request.error);
+                });
+            }
+            
+            // 根据ID获取卡片
+            async getCardById(id) {
+                await this.open();
+                
+                return new Promise((resolve, reject) => {
+                    const transaction = this.db.transaction('cards', 'readonly');
+                    const store = transaction.objectStore('cards');
+                    const request = store.get(id);
+                    
+                    request.onsuccess = () => resolve(request.result);
+                    request.onerror = () => reject(request.error);
+                });
+            }
+            
+            // 删除卡片
+            async deleteCard(id) {
+                await this.open();
+                
+                return new Promise((resolve, reject) => {
+                    const transaction = this.db.transaction('cards', 'readwrite');
+                    const store = transaction.objectStore('cards');
+                    const request = store.delete(id);
+                    
+                    request.onsuccess = () => resolve();
+                    request.onerror = () => reject(request.error);
+                });
+            }
+            
+            // 批量删除卡片
+            async deleteCards(ids) {
+                await this.open();
+                
+                return new Promise((resolve, reject) => {
+                    const transaction = this.db.transaction('cards', 'readwrite');
+                    const store = transaction.objectStore('cards');
+                    
+                    let completed = 0;
+                    let errors = [];
+                    
+                    ids.forEach(id => {
+                        const request = store.delete(id);
+                        request.onsuccess = () => {
+                            completed++;
+                            if (completed === ids.length) {
+                                if (errors.length > 0) {
+                                    reject(new Error(`Failed to delete ${errors.length} cards`));
+                                } else {
+                                    resolve();
+                                }
+                            }
+                        };
+                        request.onerror = () => {
+                            errors.push(id);
+                            completed++;
+                            if (completed === ids.length) {
+                                if (errors.length > 0) {
+                                    reject(new Error(`Failed to delete ${errors.length} cards`));
+                                } else {
+                                    resolve();
+                                }
+                            }
+                        };
+                    });
+                });
+            }
+            
+            // 保存学习记录
+            async saveStudyRecord(record) {
+                await this.open();
+                
+                record.date = new Date().toISOString();
+                
+                return new Promise((resolve, reject) => {
+                    const transaction = this.db.transaction('studyRecords', 'readwrite');
+                    const store = transaction.objectStore('studyRecords');
+                    const request = store.put(record);
+                    
+                    request.onsuccess = () => resolve(request.result);
+                    request.onerror = () => reject(request.error);
+                });
+            }
+            
+            // 获取今日学习记录数
+            async getTodaysStudyCount() {
+                await this.open();
+                
+                return new Promise((resolve, reject) => {
+                    const today = new Date();
+                    today.setHours(0, 0, 0, 0);
+                    const endOfDay = new Date(today);
+                    endOfDay.setHours(23, 59, 59, 999);
+                    
+                    const transaction = this.db.transaction('studyRecords', 'readonly');
+                    const store = transaction.objectStore('studyRecords');
+                    const index = store.index('date');
+                    
+                    const range = IDBKeyRange.bound(
+                        today.toISOString(),
+                        endOfDay.toISOString()
+                    );
+                    
+                    const request = index.count(range);
+                    
+                    request.onsuccess = () => resolve(request.result);
+                    request.onerror = () => reject(request.error);
+                });
+            }
+            
+            // 获取所有学习记录
+            async getAllStudyRecords() {
+                await this.open();
+                
+                return new Promise((resolve, reject) => {
+                    const transaction = this.db.transaction('studyRecords', 'readonly');
+                    const store = transaction.objectStore('studyRecords');
+                    const request = store.getAll();
+                    
+                    request.onsuccess = () => resolve(request.result);
+                    request.onerror = () => reject(request.error);
+                });
+            }
+        }
+
+        // 艾宾浩斯算法管理器 - 基于SM-2算法
+        class EbbinghausManager {
+            // 根据用户评分计算下一次复习时间 - 修复版
+            calculateNextReview(card, rating) {
+                let { interval, easiness, repetitions } = card;
+                
+                // 根据艾宾浩斯遗忘曲线和SM-2算法调整参数
+                switch(rating) {
+                    case 'again': // 完全忘记 - 20分钟后重新复习
+                        repetitions = 0;
+                        interval = 0;
+                        easiness = Math.max(1.3, easiness - 0.2);
+                        
+                        // 设置20分钟后复习
+                        const nextReview = new Date();
+                        nextReview.setMinutes(nextReview.getMinutes() + 20);
+                        return {
+                            interval,
+                            easiness,
+                            repetitions,
+                            nextReview: nextReview.toISOString(),
+                            lastReviewed: new Date().toISOString()
+                        };
+                    case 'hard': // 记得很困难 - 间隔1天
+                        repetitions = Math.max(0, repetitions);
+                        if (repetitions <= 1) {
+                            interval = 1; // 1天后
+                        } else {
+                            interval = Math.round(interval * 1.2);
+                        }
+                        easiness = Math.max(1.3, easiness - 0.15);
+                        break;
+                    case 'good': // 记得很清楚 - 间隔3天
+                        repetitions += 1;
+                        if (repetitions === 1) {
+                            interval = 3; // 3天后
+                        } else if (repetitions === 2) {
+                            interval = 7; // 7天后
+                        } else {
+                            interval = Math.round(interval * easiness);
+                        }
+                        easiness = Math.max(1.3, easiness + 0.1);
+                        break;
+                    case 'easy': // 非常熟悉 - 间隔7天
+                        repetitions += 1;
+                        if (repetitions === 1) {
+                            interval = 7; // 7天后
+                        } else if (repetitions === 2) {
+                            interval = 16; // 16天后
+                        } else if (repetitions === 3) {
+                            interval = 35; // 35天后
+                        } else {
+                            interval = Math.round(interval * easiness * 1.3);
+                        }
+                        easiness = Math.max(1.3, easiness + 0.2);
+                        break;
+                }
+                
+                // 确保间隔至少为1天
+                interval = Math.max(1, interval);
+                
+                // 计算下一次复习日期
+                const nextReview = new Date();
+                nextReview.setDate(nextReview.getDate() + interval);
+                
+                return {
+                    interval,
+                    easiness,
+                    repetitions,
+                    nextReview: nextReview.toISOString(),
+                    lastReviewed: new Date().toISOString()
+                };
+            }
+            
+            // 获取理论遗忘曲线数据
+            getTheoreticalForgettingCurve(days = 30) {
+                const data = [];
+                for (let i = 0; i <= days; i++) {
+                    // 艾宾浩斯遗忘曲线公式：R = e^(-t/S)
+                    // 其中R是记忆保留率，t是时间，S是记忆强度
+                    const retention = Math.exp(-i / 7) * 100;
+                    data.push(Math.max(0, retention));
+                }
+                return data;
+            }
+        }
+
+        // 应用主控制器
+        class App {
+            constructor() {
+                this.db = new DatabaseManager();
+                this.ebbinghaus = new EbbinghausManager();
+                this.currentTab = 'review';
+                this.reviewQueue = [];
+                this.currentCardIndex = 0;
+                this.reviewedCards = 0;
+                this.masteryScore = 0;
+                this.cardsPerPage = 10;
+                this.currentPage = 1;
+                this.filteredCards = [];
+                this.selectedCardIds = [];
+                
+                this.init();
+            }
+            
+            async init() {
+                // 初始化事件监听
+                this.initEventListeners();
+                
+                // 加载初始数据
+                await this.loadReviewCards();
+                await this.loadCategories();
+                await this.updateStats();
+                await this.loadSchedule();
+                await this.loadCardsList();
+                
+                // 自动导入CSV数据
+                await this.autoImportCSVData();
+                
+                // 显示加载完成提示
+                Utils.showToast('艾宾浩斯学习系统已准备就绪', 'success');
+            }
+            
+            // 自动导入CSV数据
+            async autoImportCSVData() {
+                try {
+                    const cards = await this.db.getAllCards();
+                    // 如果数据库中没有卡片，则自动导入CSV数据
+                    if (cards.length === 0) {
+                        const csvData = `question,answer,category,tags
+什么是HTML?,HTML是超文本标记语言,编程,"基础,重要"
+abandon,抛弃，放弃,英语词汇,
+above,在...上面,英语词汇,
+absence,缺席,英语词汇,
+absolute,绝对的,英语词汇,
+absorb,吸收,英语词汇,
+abstract,抽象的,英语词汇,
+accept,接受,英语词汇,
+accomplishment,成就,英语词汇,
+accord,符合,英语词汇,
+account,账户,英语词汇,
+adapt,适应,英语词汇,
+addition,附加,英语词汇,
+adopt,采用,英语词汇,
+adult,成人,英语词汇,
+advance,前进,英语词汇,
+advantage,优势,英语词汇,
+advertise,广告,英语词汇,
+affect,影响,英语词汇,
+against,反对,英语词汇,
+agreement,协议,英语词汇,
+ahead,向前,英语词汇,
+aid,帮助,英语词汇,
+already,已经,英语词汇,
+among,在...之中,英语词汇,
+amount,数量,英语词汇,
+anger,愤怒,英语词汇,
+announce,宣布,英语词汇,
+another,另一个,英语词汇,
+application,申请,英语词汇,
+apply,应用,英语词汇,
+approach,方法,英语词汇,
+argue,争论,英语词汇,
+argument,论点,英语词汇,
+arrange,安排,英语词汇,
+ask,问,英语词汇,
+atmosphere,气氛,英语词汇,
+attack,攻击,英语词汇,
+attempt,尝试,英语词汇,
+attitude,态度,英语词汇,
+author,作者,英语词汇,
+auto,汽车,英语词汇,
+average,平均,英语词汇,
+avoid,避免,英语词汇,
+bake,烘焙,英语词汇,
+beat,打败,英语词汇,
+behavior,行为,英语词汇,
+behind,在后面,英语词汇,
+benefit,好处,英语词汇,
+bill,账单,英语词汇,
+birth,出生,英语词汇,
+bit,一点,英语词汇,
+blind,盲的,英语词汇,
+block,块,英语词汇,
+blood,血液,英语词汇,
+bottom,底部,英语词汇,
+brain,大脑,英语词汇,
+branch,分支,英语词汇,
+bread,面包,英语词汇,
+brief,简要的,英语词汇,
+bring,带来,英语词汇,
+broad,宽阔的,英语词汇,
+building,建筑,英语词汇,
+burn,燃烧,英语词汇,
+business,商业,英语词汇,
+cancel,取消,英语词汇,
+candidate,候选人,英语词汇,
+capability,能力,英语词汇,
+capital,资本,英语词汇,
+career,职业,英语词汇,
+carry,携带,英语词汇,
+case,案例,英语词汇,
+cash,现金,英语词汇,
+catch,抓住,英语词汇,
+cause,原因,英语词汇,
+celebrate,庆祝,英语词汇,
+central,中心的,英语词汇,
+century,世纪,英语词汇,
+ceremony,仪式,英语词汇,
+certain,某些,英语词汇,
+certificate,证书,英语词汇,
+chain,链条,英语词汇,
+challenge,挑战,英语词汇,
+chance,机会,英语词汇,
+change,改变,英语词汇,
+character,字符,英语词汇,
+charge,收费,英语词汇,
+claim,声称,英语词汇,
+class,班级,英语词汇,
+climate,气候,英语词汇,
+clock,时钟,英语词汇,
+clothes,衣服,英语词汇,
+cloud,云,英语词汇,
+coast,海岸,英语词汇,
+code,代码,编程,
+cold,冷的,英语词汇,
+collect,收集,英语词汇,
+college,大学,英语词汇,
+command,命令,英语词汇,
+comment,评论,英语词汇,
+commit,承诺,英语词汇,
+commitment,承诺,英语词汇,
+common,常见的,英语词汇,
+community,社区,英语词汇,
+compare,比较,英语词汇,
+compensation,补偿,英语词汇,
+compete,竞争,英语词汇,
+complete,完成,英语词汇,
+complex,复杂的,英语词汇,
+compromise,妥协,英语词汇,
+concern,关心,英语词汇,
+condition,条件,英语词汇,
+conference,会议,英语词汇,
+confidence,信心,英语词汇,
+confirm,确认,英语词汇,
+conflict,冲突,英语词汇,
+connect,连接,英语词汇,
+consideration,考虑,英语词汇,
+consist,组成,英语词汇,
+constant,常数,英语词汇,
+construct,建造,英语词汇,
+constructive,建设性的,英语词汇,
+consume,消耗,英语词汇,
+consumption,消耗,英语词汇,
+contact,接触,英语词汇,
+contain,包含,英语词汇,
+content,内容,英语词汇,
+contract,合同,英语词汇,
+conversation,对话,英语词汇,
+cool,凉爽的,英语词汇,
+copy,复制,英语词汇,
+core,核心,英语词汇,
+corner,角落,英语词汇,
+correct,正确的,英语词汇,
+cost,成本,英语词汇,
+council,理事会,英语词汇,
+count,计数,英语词汇,
+course,课程,英语词汇,
+court,法院,英语词汇,
+credit,信用,英语词汇,
+crime,犯罪,英语词汇,
+crisis,危机,英语词汇,
+critic,批评家,英语词汇,
+critical,关键的,英语词汇,
+crop,作物,英语词汇,
+cross,交叉,英语词汇,
+crowd,人群,英语词汇,
+culture,文化,英语词汇,
+current,当前的,英语词汇,
+customary,习惯的,英语词汇,
+daily,每日的,英语词汇,
+damage,损害,英语词汇,
+deal,处理,英语词汇,
+debate,辩论,英语词汇,
+decade,十年,英语词汇,
+decide,决定,英语词汇,
+decision,决定,英语词汇,
+defect,缺陷,英语词汇,
+deficit,赤字,英语词汇,
+define,定义,英语词汇,
+degree,程度,英语词汇,
+delay,延迟,英语词汇,
+delight,高兴,英语词汇,
+deliver,交付,英语词汇,
+demand,需求,英语词汇,
+department,部门,英语词汇,
+depend,依赖,英语词汇,
+depth,深度,英语词汇,
+describe,描述,英语词汇,
+design,设计,英语词汇,
+desire,欲望,英语词汇,
+detail,细节,英语词汇,
+determine,确定,英语词汇,
+develop,发展,英语词汇,
+device,设备,英语词汇,
+devote,奉献,英语词汇,
+diagram,图表,英语词汇,
+dialogue,对话,英语词汇,
+diet,饮食,英语词汇,
+dig,挖,英语词汇,
+dimension,维度,英语词汇,
+dinner,晚餐,英语词汇,
+direct,直接的,英语词汇,
+direction,方向,英语词汇,
+director,导演,英语词汇,
+dirt,泥土,英语词汇,
+disaster,灾难,英语词汇,
+discipline,纪律,英语词汇,
+discover,发现,英语词汇,
+discuss,讨论,英语词汇,
+disease,疾病,英语词汇,
+dish,盘子,英语词汇,
+dismiss,解散,英语词汇,
+display,显示,英语词汇,
+distance,距离,英语词汇,
+distinct,独特的,英语词汇,
+distract,分心,英语词汇,
+distribute,分布,英语词汇,
+district,区域,英语词汇,
+divide,划分,英语词汇,
+document,文档,英语词汇,
+doubt,怀疑,英语词汇,
+draft,草案,英语词汇,
+drag,拖拽,英语词汇,
+drama,戏剧,英语词汇,
+draw,画,英语词汇,
+drop,掉落,英语词汇,
+dry,干的,英语词汇,
+due,由于,英语词汇,
+during,在...期间,英语词汇,
+duty,责任,英语词汇,
+each,每个,英语词汇,
+early,早的,英语词汇,
+earn,赚取,英语词汇,
+ease,轻松,英语词汇,
+east,东,英语词汇,
+economic,经济的,英语词汇,
+economy,经济,英语词汇,
+edge,边缘,英语词汇,
+effective,有效的,英语词汇,
+effort,努力,英语词汇,
+either,要么,英语词汇,
+elect,选举,英语词汇,
+electric,电的,英语词汇,
+electronic,电子的,英语词汇,
+element,元素,英语词汇,
+else,其他,英语词汇,
+embarrass,尴尬,英语词汇,
+emerge,出现,英语词汇,
+emotion,情感,英语词汇,
+emphasis,强调,英语词汇,
+employ,雇佣,英语词汇,
+empty,空的,英语词汇,
+enable,使能够,英语词汇,
+encounter,遭遇,英语词汇,
+encourage,鼓励,英语词汇,
+enemy,敌人,英语词汇,
+energy,能量,英语词汇,
+enforce,执行,英语词汇,
+engage,从事,英语词汇,
+engine,引擎,英语词汇,
+ensure,确保,英语词汇,
+enter,进入,英语词汇,
+entire,整个的,英语词汇,
+entrance,入口,英语词汇,
+entry,条目,英语词汇,
+equipment,设备,英语词汇,
+escape,逃跑,英语词汇,
+essential,必要的,英语词汇,
+establish,建立,英语词汇,
+estimate,估计,英语词汇,
+evidence,证据,英语词汇,
+exact,精确的,英语词汇,
+exceed,超过,英语词汇,
+excellent,优秀的,英语词汇,
+except,除了,英语词汇,
+exchange,交换,英语词汇,
+excite,兴奋,英语词汇,
+excuse,借口,英语词汇,
+execute,执行,英语词汇,
+exercise,练习,英语词汇,
+exist,存在,英语词汇,
+expect,期望,英语词汇,
+expense,费用,英语词汇,
+expensive,昂贵的,英语词汇,
+experience,经验,英语词汇,
+experiment,实验,英语词汇,
+expert,专家,英语词汇,
+explicit,明确的,英语词汇,
+express,表达,英语词汇,
+extend,扩展,英语词汇,
+extra,额外的,英语词汇,
+factor,因素,英语词汇,
+fail,失败,英语词汇,
+fair,公平的,英语词汇,
+faith,信仰,英语词汇,
+fall,落下,英语词汇,
+FALSE,错误的,英语词汇,
+fan,风扇,英语词汇,
+farm,农场,英语词汇,
+fear,恐惧,英语词汇,
+feature,特征,英语词汇,
+federal,联邦的,英语词汇,
+fee,费用,英语词汇,
+feed,喂养,英语词汇,
+fellow,伙伴,英语词汇,
+female,女性,英语词汇,
+few,很少,英语词汇,
+figure,数字,英语词汇,
+file,文件,英语词汇,
+fill,填充,英语词汇,
+film,电影,英语词汇,
+final,最终的,英语词汇,
+financial,金融的,英语词汇,
+fine,好的,英语词汇,
+fire,火,英语词汇,
+firm,公司,英语词汇,
+fit,适合,英语词汇,
+flat,平的,英语词汇,
+floor,地板,英语词汇,
+flow,流动,英语词汇,
+flower,花,英语词汇,
+focus,焦点,英语词汇,
+force,力量,英语词汇,
+foreign,外国的,英语词汇,
+forest,森林,英语词汇,
+forget,忘记,英语词汇,
+form,形式,英语词汇,
+formal,正式的,英语词汇,
+former,以前的,英语词汇,
+forth,向前,英语词汇,
+fortune,财富,英语词汇,
+free,免费的,英语词汇,
+free-trade,zone 自由贸易区,英语词汇,
+frequent,频繁的,英语词汇,
+front,前面,英语词汇,
+fruit,水果,英语词汇,
+fuel,燃料,英语词汇,
+fund,资金,英语词汇,
+gain,获得,英语词汇,
+garden,花园,英语词汇,
+gas,气体,英语词汇,
+gate,大门,英语词汇,
+gather,聚集,英语词汇,
+general,一般的,英语词汇,
+generate,生成,英语词汇,
+goal,目标,英语词汇,
+gold,黄金,英语词汇,
+grab,抓取,英语词汇,
+grade,等级,英语词汇,
+gradual,逐渐的,英语词汇,
+grain,谷物,英语词汇,
+grand,宏伟的,英语词汇,
+grant,授予,英语词汇,
+grass,草,英语词汇,
+grave,严重的,英语词汇,
+gray,灰色的,英语词汇,
+group,组,英语词汇,
+guard,守卫,英语词汇,
+guess,猜测,英语词汇,
+guest,客人,英语词汇,
+guy,家伙,英语词汇,
+habit,习惯,英语词汇,
+handle,处理,英语词汇,
+hard,硬的,英语词汇,
+hardly,几乎不,英语词汇,
+harm,伤害,英语词汇,
+hate,恨,英语词汇,
+heat,热,英语词汇,
+hell,地狱,英语词汇,
+hide,隐藏,英语词汇,
+highlight,突出,英语词汇,
+hold,持有,英语词汇,
+hole,洞,英语词汇,
+honest,诚实的,英语词汇,
+honor,荣誉,英语词汇,
+host,主人,英语词汇,
+household,家庭,英语词汇,
+huge,巨大的,英语词汇,
+hunt,狩猎,英语词汇,
+hurry,匆忙,英语词汇,
+hypothesis,假设,英语词汇,
+identify,识别,英语词汇,
+ignore,忽略,英语词汇,
+illegal,非法的,英语词汇,
+imagine,想象,英语词汇,
+immediate,立即的,英语词汇,
+impact,影响,英语词汇,
+implement,实施,英语词汇,
+impossible,不可能的,英语词汇,
+improve,改进,英语词汇,
+inch,英寸,英语词汇,
+income,收入,英语词汇,
+increase,增加,英语词汇,
+indeed,确实,英语词汇,
+indicate,指示,英语词汇,
+individual,个人,英语词汇,
+industry,工业,英语词汇,
+influence,影响,英语词汇,
+inform,通知,英语词汇,
+information,信息,英语词汇,
+initial,最初的,英语词汇,
+initiative,倡议,英语词汇,
+injury,伤害,英语词汇,
+inner,内部的,英语词汇,
+innocent,无辜的,英语词汇,
+innovation,创新,英语词汇,
+insist,坚持,英语词汇,
+inspire,激励,英语词汇,
+install,安装,英语词汇,
+instance,实例,英语词汇,
+instead,代替,英语词汇,
+institute,研究所,英语词汇,
+instruction,指令,英语词汇,
+instrument,仪器,英语词汇,
+insurance,保险,英语词汇,
+intend,打算,英语词汇,
+intense,强烈的,英语词汇,
+international,国际的,英语词汇,
+interpret,解释,英语词汇,
+interrupt,打断,英语词汇,
+into,进入,英语词汇,
+introduce,介绍,英语词汇,
+invention,发明,英语词汇,
+invest,投资,英语词汇,
+investment,投资,英语词汇,
+involve,涉及,英语词汇,
+island,岛屿,英语词汇,
+issue,问题,英语词汇,
+jam,果酱,英语词汇,
+joint,联合的,英语词汇,
+journal,期刊,英语词汇,
+joy,快乐,英语词汇,
+judge,判断,英语词汇,
+juice,果汁,英语词汇,
+junior,初级的,英语词汇,
+knee,膝盖,英语词汇,
+knock,敲,英语词汇,
+lab,实验室,英语词汇,
+label,标签,英语词汇,
+labor,劳动,英语词汇,
+lack,缺乏,英语词汇,
+lake,湖,英语词汇,
+law,法律,英语词汇,
+lay,放置,英语词汇,
+layer,层,英语词汇,
+leadership,领导能力,英语词汇,
+legal,法律的,英语词汇,
+legalese,法律术语,英语词汇,
+letter,信,英语词汇,
+lie,谎言,英语词汇,
+lift,举起,英语词汇,
+likely,可能的,英语词汇,
+limit,限制,英语词汇,
+list,列表,英语词汇,
+literal,字面的,英语词汇,
+little,小的,英语词汇,
+load,负载,英语词汇,
+loan,贷款,英语词汇,
+local,当地的,英语词汇,
+locate,位于,英语词汇,
+location,位置,英语词汇,
+lock,锁,英语词汇,
+loose,宽松的,英语词汇,
+magazine,杂志,英语词汇,
+maintain,维持,英语词汇,
+male,男性,英语词汇,
+manage,管理,英语词汇,
+manager,经理,英语词汇,
+manner,方式,英语词汇,
+march,行进,英语词汇,
+market,市场,英语词汇,
+marriage,婚姻,英语词汇,
+mass,质量,英语词汇,
+master,主人,英语词汇,
+match,匹配,英语词汇,
+material,材料,英语词汇,
+matter,事情,英语词汇,
+mean,意思,英语词汇,
+measure,测量,英语词汇,
+media,媒体,英语词汇,
+medical,医疗的,英语词汇,
+memory,记忆,英语词汇,
+mental,精神的,英语词汇,
+mention,提到,英语词汇,
+merge,合并,英语词汇,
+method,方法,英语词汇,
+mile,英里,英语词汇,
+military,军事的,英语词汇,
+million,百万,英语词汇,
+mind,心灵,英语词汇,
+minimum,最小值,英语词汇,
+minor,次要的,英语词汇,
+mix,混合,英语词汇,
+moment,时刻,英语词汇,
+mood,情绪,英语词汇,
+motion,运动,英语词汇,
+nation,国家,英语词汇,
+national,国家的,英语词汇,
+native,本地的,英语词汇,
+near,靠近,英语词汇,
+nearly,几乎,英语词汇,
+negative,负面的,英语词汇,
+negotiate,谈判,英语词汇,
+neither,也不,英语词汇,
+nerve,神经,英语词汇,
+noble,高贵的,英语词汇,
+nod,点头,英语词汇,
+noise,噪音,英语词汇,
+nor,也不,英语词汇,
+north,北,英语词汇,
+nose,鼻子,英语词汇,
+note,笔记,英语词汇,
+notice,通知,英语词汇,
+novel,小说,英语词汇,
+numerous,众多的,英语词汇,
+object,物体,英语词汇,
+observe,观察,英语词汇,
+obtain,获得,英语词汇,
+obvious,明显的,英语词汇,
+occasion,场合,英语词汇,
+occur,发生,英语词汇,
+ocean,海洋,英语词汇,
+offer,提供,英语词汇,
+officer,官员,英语词汇,
+official,官方的,英语词汇,
+onto,到...上,英语词汇,
+operate,操作,英语词汇,
+opportunity,机会,英语词汇,
+oppose,反对,英语词汇,
+original,原始的,英语词汇,
+overcome,克服,英语词汇,
+overlook,overlook,英语词汇,
+owner,所有者,英语词汇,
+pain,疼痛,英语词汇,
+paint,油漆,英语词汇,
+pair,一对,英语词汇,
+paragraph,段落,英语词汇,
+participant,参与者,英语词汇,
+particular,特别的,英语词汇,
+particularly,特别地,英语词汇,
+partner,伙伴,英语词汇,
+passage,通道,英语词汇,
+passenger,乘客,英语词汇,
+past,过去,英语词汇,
+path,路径,英语词汇,
+patient,病人,英语词汇,
+pattern,模式,英语词汇,
+peace,和平,英语词汇,
+perform,执行,英语词汇,
+performance,表现,英语词汇,
+perhaps,也许,英语词汇,
+period,时期,英语词汇,
+permission,许可,英语词汇,
+permit,允许,英语词汇,
+person,人,英语词汇,
+personal,个人的,英语词汇,
+persuade,说服,英语词汇,
+phase,阶段,英语词汇,
+physical,身体的,英语词汇,
+pick,挑选,英语词汇,
+piece,片,英语词汇,
+place,地方,英语词汇,
+plastic,塑料的,英语词汇,
+plate,盘子,英语词汇,
+pleasure,愉悦,英语词汇,
+plenty,大量,英语词汇,
+plot,情节,英语词汇,
+plus,加,英语词汇,
+point,点,英语词汇,
+police,警察,英语词汇,
+policy,政策,英语词汇,
+political,政治的,英语词汇,
+politics,政治,英语词汇,
+poll,投票,英语词汇,
+population,人口,英语词汇,
+portion,部分,英语词汇,
+position,位置,英语词汇,
+positive,积极的,英语词汇,
+post,帖子,英语词汇,
+pot,锅,英语词汇,
+potential,潜力,英语词汇,
+pound,磅,英语词汇,
+present,现在,英语词汇,
+president,总统,英语词汇,
+pretty,漂亮的,英语词汇,
+prevent,防止,英语词汇,
+prime,主要的,英语词汇,
+principal,校长,英语词汇,
+principle,原则,英语词汇,
+print,打印,英语词汇,
+prior,先前的,英语词汇,
+private,私人的,英语词汇,
+prize,奖品,英语词汇,
+procedure,程序,英语词汇,
+process,过程,英语词汇,
+product,产品,英语词汇,
+professional,专业的,英语词汇,
+professor,教授,英语词汇,
+profit,利润,英语词汇,
+program,程序,英语词汇,
+progress,进步,英语词汇,
+promise,承诺,英语词汇,
+promote,促进,英语词汇,
+proof,证明,英语词汇,
+property,财产,英语词汇,
+propose,提议,英语词汇,
+protect,保护,英语词汇,
+prove,证明,英语词汇,
+provide,提供,英语词汇,
+public,公共的,英语词汇,
+pull,拉,英语词汇,
+punch,拳击,英语词汇,
+purchase,购买,英语词汇,
+purpose,目的,英语词汇,
+push,推,英语词汇,
+quality,质量,英语词汇,
+quantity,数量,英语词汇,
+quarter,四分之一,英语词汇,
+quick,快的,英语词汇,
+quite,相当,英语词汇,
+raise,提高,英语词汇,
+range,范围,英语词汇,
+rank,等级,英语词汇,
+rapid,迅速的,英语词汇,
+rare,稀有的,英语词汇,
+rate,速率,英语词汇,
+rather,相当,英语词汇,
+ratio,比率,英语词汇,
+raw,生的,英语词汇,
+reach,到达,英语词汇,
+react,反应,英语词汇,
+receive,接收,英语词汇,
+recent,最近的,英语词汇,
+recognize,识别,英语词汇,
+recommend,推荐,英语词汇,
+record,记录,英语词汇,
+reduce,减少,英语词汇,
+refer,参考,英语词汇,
+reference,参考,英语词汇,
+reflect,反映,英语词汇,
+region,区域,英语词汇,
+register,注册,英语词汇,
+regret,后悔,英语词汇,
+regular,规则的,英语词汇,
+release,释放,英语词汇,
+relevant,相关的,英语词汇,
+relief,缓解,英语词汇,
+rely,依赖,英语词汇,
+remain,保持,英语词汇,
+remove,移除,英语词汇,
+rent,租金,英语词汇,
+repair,修复,英语词汇,
+repeat,重复,英语词汇,
+replace,替换,英语词汇,
+reply,回复,英语词汇,
+report,报告,英语词汇,
+represent,代表,英语词汇,
+republican,共和党的,英语词汇,
+require,要求,英语词汇,
+research,研究,英语词汇,
+resource,资源,英语词汇,
+respect,尊重,英语词汇,
+respond,回应,英语词汇,
+response,响应,英语词汇,
+return,返回,英语词汇,
+reveal,揭示,英语词汇,
+revenue,收入,英语词汇,
+review,审查,英语词汇,
+revolution,革命,英语词汇,
+reward,奖励,英语词汇,
+ride,骑,英语词汇,
+risk,风险,英语词汇,
+role,角色,英语词汇,
+roll,滚动,英语词汇,
+root,根,英语词汇,
+rose,玫瑰,英语词汇,
+rough,粗糙的,英语词汇,
+round,圆的,英语词汇,
+route,路线,英语词汇,
+row,行,英语词汇,
+rubber,橡胶,英语词汇,
+rule,规则,英语词汇,
+rural,农村的,英语词汇,
+rush,匆忙,英语词汇,
+safe,安全的,英语词汇,
+safety,安全,英语词汇,
+said,说,英语词汇,
+sail,航行,英语词汇,
+salt,盐,英语词汇,
+sample,样本,英语词汇,
+sand,沙子,英语词汇,
+save,保存,英语词汇,
+scale,规模,英语词汇,
+scene,场景,英语词汇,
+score,分数,英语词汇,
+seat,座位,英语词汇,
+secret,秘密,英语词汇,
+security,安全,英语词汇,
+seed,种子,英语词汇,
+seek,寻求,英语词汇,
+select,选择,英语词汇,
+sell,卖,英语词汇,
+send,发送,英语词汇,
+senior,高级的,英语词汇,
+sense,感觉,英语词汇,
+sensitive,敏感的,英语词汇,
+separate,分开,英语词汇,
+series,系列,英语词汇,
+serious,严重的,英语词汇,
+set,设置,英语词汇,
+settle,解决,英语词汇,
+several,几个,英语词汇,
+severe,严重的,英语词汇,
+sex,性别,英语词汇,
+shade,阴影,英语词汇,
+shall,将,英语词汇,
+sheet,床单,英语词汇,
+shelf,架子,英语词汇,
+shell,贝壳,英语词汇,
+shelter,庇护所,英语词汇,
+shift,转移,英语词汇,
+shine,闪耀,英语词汇,
+ship,船,英语词汇,
+shop,商店,英语词汇,
+shot,射击,英语词汇,
+shoulder,肩膀,英语词汇,
+shout,喊叫,英语词汇,
+sick,生病的,英语词汇,
+signal,信号,英语词汇,
+significant,重要的,英语词汇,
+silence,沉默,英语词汇,
+silent,沉默的,英语词汇,
+silver,银,英语词汇,
+similar,相似的,英语词汇,
+simple,简单的,英语词汇,
+simply,简单地,英语词汇,
+since,自从,英语词汇,
+sink,下沉,英语词汇,
+sit,坐,英语词汇,
+site,站点,英语词汇,
+situation,情况,英语词汇,
+slave,奴隶,英语词汇,
+slide,滑动,英语词汇,
+slight,轻微的,英语词汇,
+smell,闻,英语词汇,
+smooth,平滑的,英语词汇,
+snake,蛇,英语词汇,
+snow,雪,英语词汇,
+social,社会的,英语词汇,
+society,社会,英语词汇,
+soil,土壤,英语词汇,
+solar,太阳的,英语词汇,
+soldier,士兵,英语词汇,
+sound,声音,英语词汇,
+source,来源,英语词汇,
+specific,具体的,英语词汇,
+speech,演讲,英语词汇,
+speed,速度,英语词汇,
+spend,花费,英语词汇,
+spirit,精神,英语词汇,
+spot,地点,英语词汇,
+spread,传播,英语词汇,
+square,平方,英语词汇,
+standard,标准,英语词汇,
+state,状态,英语词汇,
+statement,陈述,英语词汇,
+still,仍然,英语词汇,
+stock,股票,英语词汇,
+store,商店,英语词汇,
+straight,直的,英语词汇,
+strange,奇怪的,英语词汇,
+strategy,策略,英语词汇,
+strength,力量,英语词汇,
+stress,压力,英语词汇,
+stretch,伸展,英语词汇,
+strike,打击,英语词汇,
+structure,结构,英语词汇,
+stuff,东西,英语词汇,
+subject,主题,英语词汇,
+substance,物质,英语词汇,
+such,这样的,英语词汇,
+sudden,突然的,英语词汇,
+suggest,建议,英语词汇,
+supply,供应,英语词汇,
+support,支持,英语词汇,
+suppose,假设,英语词汇,
+surface,表面,英语词汇,
+surround,包围,英语词汇,
+survey,调查,英语词汇,
+survive,生存,英语词汇,
+suspect,怀疑,英语词汇,
+sustain,维持,英语词汇,
+swallow,吞咽,英语词汇,
+swear,发誓,英语词汇,
+sweep,打扫,英语词汇,
+sweet,甜的,英语词汇,
+swing,摇摆,英语词汇,
+switch,开关,英语词汇,
+symbol,符号,英语词汇,
+system,系统,英语词汇,
+tall,高的,英语词汇,
+target,目标,英语词汇,
+task,任务,英语词汇,
+taste,味道,英语词汇,
+tax,税,英语词汇,
+tear,眼泪,英语词汇,
+technical,技术的,英语词汇,
+term,术语,英语词汇,
+test,测试,英语词汇,
+theory,理论,英语词汇,
+thick,厚的,英语词汇,
+thin,薄的,英语词汇,
+third,第三,英语词汇,
+thought,思想,英语词汇,
+thousand,千,英语词汇,
+threat,威胁,英语词汇,
+thus,因此,英语词汇,
+tiny,微小的,英语词汇,
+tip,小费,英语词汇,
+tire,轮胎,英语词汇,
+title,标题,英语词汇,
+toilet,厕所,英语词汇,
+tolerance,容忍,英语词汇,
+tone,音调,英语词汇,
+tool,工具,英语词汇,
+topic,话题,英语词汇,
+total,总的,英语词汇,
+track,轨道,英语词汇,
+trade,贸易,英语词汇,
+tradition,传统,英语词汇,
+traditional,传统的,英语词汇,
+transfer,转移,英语词汇,
+treat,对待,英语词汇,
+trial,试验,英语词汇,
+truck,卡车,英语词汇,
+trust,信任,英语词汇,
+truth,真理,英语词汇,
+tube,管子,英语词汇,
+twice,两次,英语词汇,
+type,类型,英语词汇,
+unless,除非,英语词汇,
+until,直到,英语词汇,
+upon,在...上,英语词汇,
+valley,山谷,英语词汇,
+variety,多样,英语词汇,
+various,各种的,英语词汇,
+vary,变化,英语词汇,
+vehicle,车辆,英语词汇,
+venture,冒险,英语词汇,
+version,版本,英语词汇,
+via,通过,英语词汇,
+victim,受害者,英语词汇,
+view,观点,英语词汇,
+village,村庄,英语词汇,
+violate,违反,英语词汇,
+violence,暴力,英语词汇,
+visit,访问,英语词汇,
+visual,视觉的,英语词汇,
+voice,声音,英语词汇,
+volume,体积,英语词汇,
+vote,投票,英语词汇,
+wake,醒来,英语词汇,
+warn,警告,英语词汇,
+wash,洗,英语词汇,
+wave,波浪,英语词汇,
+way,方式,英语词汇,
+wealth,财富,英语词汇,
+weapon,武器,英语词汇,
+weight,重量,英语词汇,
+west,西,英语词汇,
+whether,是否,英语词汇,
+while,而,英语词汇,
+whole,整个,英语词汇,
+whose,谁的,英语词汇,
+wild,野生的,英语词汇,
+wine,葡萄酒,英语词汇,
+wing,翅膀,英语词汇,
+winner,赢家,英语词汇,
+winter,冬天,英语词汇,
+within,在...内,英语词汇,
+wonder,奇迹,英语词汇,
+worker,工人,英语词汇,
+worry,担心,英语词汇,
+worth,值得,英语词汇,
+would,会,英语词汇,
+wrong,错误的,英语词汇,
+yeah,是的,英语词汇,
+zone,区域,英语词汇,`;
+
+                        // 解析CSV数据
+                        const results = Papa.parse(csvData, {
+                            header: true,
+                            skipEmptyLines: true,
+                            encoding: 'UTF-8' // 明确指定UTF-8编码
+                        });
+
+                        const cardsToImport = results.data.map(cardData => {
+                            // 基本验证
+                            if (!cardData.question || !cardData.answer) {
+                                return null;
+                            }
+
+                            return {
+                                question: cardData.question.trim(),
+                                answer: cardData.answer.trim(),
+                                category: cardData.category ? cardData.category.trim() : '未分类',
+                                tags: cardData.tags ? cardData.tags.split(',').map(t => t.trim()) : []
+                            };
+                        }).filter(card => card !== null);
+
+                        // 批量保存卡片
+                        if (cardsToImport.length > 0) {
+                            await this.db.saveCards(cardsToImport);
+                            Utils.showToast(`已自动导入 ${cardsToImport.length} 张单词卡片`, 'success');
+                            
+                            // 刷新数据
+                            this.loadCardsList();
+                            this.loadReviewCards();
+                            this.loadCategories();
+                            this.updateStats();
+                        }
+                    }
+                } catch (error) {
+                    console.error('自动导入CSV数据失败:', error);
+                }
+            }
+            
+            // 初始化事件监听
+            initEventListeners() {
+                // 标签切换 - 修复事件绑定
+                document.querySelectorAll('.tab').forEach(tab => {
+                    tab.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        this.switchTab(tab.dataset.tab);
+                    });
+                });
+                
+                // 卡片表单提交
+                document.getElementById('card-form').addEventListener('submit', async (e) => {
+                    e.preventDefault();
+                    await this.handleCreateCard();
+                });
+                
+                // 编辑表单提交
+                document.getElementById('edit-form').addEventListener('submit', async (e) => {
+                    e.preventDefault();
+                    await this.handleUpdateCard();
+                });
+                
+                // 关闭编辑模态框
+                document.getElementById('close-modal').addEventListener('click', () => {
+                    this.closeModal();
+                });
+                
+                document.getElementById('cancel-edit').addEventListener('click', () => {
+                    this.closeModal();
+                });
+                
+                // 卡片翻转
+                document.getElementById('flashcard').addEventListener('click', () => {
+                    this.flipCard();
+                });
+                
+                // 显示答案/问题按钮
+                document.getElementById('show-answer').addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    this.flipCard();
+                });
+                
+                document.getElementById('show-question').addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    this.flipCard();
+                });
+                
+                // 键盘快捷键
+                document.addEventListener('keydown', (e) => {
+                    // 空格键翻转卡片
+                    if (e.code === 'Space' && document.getElementById('review-container').classList.contains('hidden') === false) {
+                        e.preventDefault();
+                        this.flipCard();
+                    }
+                    
+                    // 数字键1-4对应复习评价
+                    if (['Digit1', 'Digit2', 'Digit3', 'Digit4'].includes(e.code) && 
+                        document.getElementById('review-container').classList.contains('hidden') === false) {
+                        e.preventDefault();
+                        const ratings = ['again', 'hard', 'good', 'easy'];
+                        const rating = ratings[parseInt(e.key) - 1];
+                        this.handleReview(rating);
+                    }
+                    
+                    // ESC键关闭模态框
+                    if (e.code === 'Escape' && !document.getElementById('edit-modal').classList.contains('hidden')) {
+                        this.closeModal();
+                    }
+                });
+                
+                // 复习评价按钮 - 修复事件绑定
+                document.querySelectorAll('#review-container button[data-rating]').forEach(button => {
+                    button.addEventListener('click', () => {
+                        this.handleReview(button.dataset.rating);
+                    });
+                });
+                
+                // 导入区域点击事件
+                document.getElementById('import-dropzone').addEventListener('click', () => {
+                    document.getElementById('import-file').click();
+                });
+                
+                // 文件选择事件
+                document.getElementById('import-file').addEventListener('change', (e) => {
+                    this.handleFileSelection(e);
+                });
+                
+                // 拖放事件
+                const dropzone = document.getElementById('import-dropzone');
+                dropzone.addEventListener('dragover', (e) => {
+                    e.preventDefault();
+                    dropzone.classList.add('border-primary', 'bg-primary/5');
+                });
+                
+                dropzone.addEventListener('dragleave', () => {
+                    dropzone.classList.remove('border-primary', 'bg-primary/5');
+                });
+                
+                dropzone.addEventListener('drop', (e) => {
+                    e.preventDefault();
+                    dropzone.classList.remove('border-primary', 'bg-primary/5');
+                    
+                    if (e.dataTransfer.files.length) {
+                        this.processImportFile(e.dataTransfer.files[0]);
+                    }
+                });
+                
+                // 处理导入按钮
+                document.getElementById('process-import').addEventListener('click', () => {
+                    this.processImport();
+                });
+                
+                // 下载模板按钮
+                document.getElementById('download-template').addEventListener('click', () => {
+                    this.downloadTemplate();
+                });
+                
+                // 导出所有卡片
+                document.getElementById('export-all').addEventListener('click', () => {
+                    this.exportAllCards();
+                });
+                
+                // 搜索和筛选
+                document.getElementById('card-search').addEventListener('input', () => {
+                    this.debounce(() => this.loadCardsList(), 300);
+                });
+                
+                document.getElementById('filter-category').addEventListener('change', () => {
+                    this.loadCardsList();
+                });
+                
+                document.getElementById('filter-due').addEventListener('change', () => {
+                    this.loadCardsList();
+                });
+                
+                // 全选卡片
+                document.getElementById('select-all-cards').addEventListener('change', (e) => {
+                    this.toggleSelectAll(e.target.checked);
+                });
+                
+                // 删除选中卡片
+                document.getElementById('delete-selected').addEventListener('click', () => {
+                    this.deleteSelectedCards();
+                });
+                
+                // 分页控制
+                document.getElementById('prev-page').addEventListener('click', () => {
+                    this.prevPage();
+                });
+                
+                document.getElementById('next-page').addEventListener('click', () => {
+                    this.nextPage();
+                });
+                
+                // 记忆曲线范围选择
+                document.getElementById('curve-range').addEventListener('change', () => {
+                    this.updateMemoryCurveChart();
+                });
+            }
+            
+            // 防抖函数
+            debounce(func, wait) {
+                let timeout;
+                return function executedFunction(...args) {
+                    const later = () => {
+                        clearTimeout(timeout);
+                        func(...args);
+                    };
+                    clearTimeout(timeout);
+                    timeout = setTimeout(later, wait);
+                };
+            }
+            
+            // 切换标签页 - 修复版
+            switchTab(tabName) {
+                if (this.currentTab === tabName) return;
+                
+                // 更新标签状态
+                document.querySelectorAll('.tab').forEach(tab => {
+                    if (tab.dataset.tab === tabName) {
+                        tab.classList.add('active', 'text-primary');
+                        tab.classList.remove('text-gray-500');
+                        tab.setAttribute('aria-selected', 'true');
+                    } else {
+                        tab.classList.remove('active', 'text-primary');
+                        tab.classList.add('text-gray-500');
+                        tab.setAttribute('aria-selected', 'false');
+                    }
+                });
+                
+                // 更新内容区域
+                document.querySelectorAll('.tab-content').forEach(content => {
+                    if (content.id === `${tabName}-tab`) {
+                        content.classList.remove('hidden');
+                        content.classList.add('active');
+                    } else {
+                        content.classList.add('hidden');
+                        content.classList.remove('active');
+                    }
+                });
+                
+                this.currentTab = tabName;
+                
+                // 如果切换到统计标签，更新图表
+                if (tabName === 'stats') {
+                    setTimeout(() => {
+                        this.updateCharts();
+                    }, 100);
+                }
+            }
+            
+            // 加载复习卡片 - 修复显示问题
+            async loadReviewCards() {
+                try {
+                    this.reviewQueue = await this.db.getTodaysCards();
+                    this.currentCardIndex = 0;
+                    this.reviewedCards = 0;
+                    this.masteryScore = 0;
+                    
+                    // 更新今日复习数量显示
+                    document.getElementById('today-reviews-count').textContent = 
+                        `${this.reviewQueue.length}张卡片`;
+                    
+                    // 显示或隐藏复习区域
+                    if (this.reviewQueue.length > 0) {
+                        document.getElementById('no-cards').classList.add('hidden');
+                        document.getElementById('review-container').classList.remove('hidden');
+                        document.getElementById('total-cards').textContent = this.reviewQueue.length;
+                        this.showCurrentCard();
+                        this.updateProgress();
+                    } else {
+                        document.getElementById('no-cards').classList.remove('hidden');
+                        document.getElementById('review-container').classList.add('hidden');
+                    }
+                } catch (error) {
+                    console.error('加载复习卡片失败:', error);
+                    Utils.showToast('加载复习卡片失败', 'error');
+                }
+            }
+            
+            // 显示当前卡片 - 修复显示问题
+            showCurrentCard() {
+                if (this.currentCardIndex >= this.reviewQueue.length) return;
+                
+                const card = this.reviewQueue[this.currentCardIndex];
+                document.getElementById('question-content').textContent = card.question;
+                document.getElementById('answer-content').textContent = card.answer;
+                
+                // 重置卡片状态
+                document.getElementById('flashcard').classList.remove('flipped');
+                
+                // 更新当前卡片索引显示
+                document.getElementById('current-card').textContent = this.currentCardIndex + 1;
+            }
+            
+            // 翻转卡片
+            flipCard() {
+                const flashcard = document.getElementById('flashcard');
+                flashcard.classList.toggle('flipped');
+            }
+            
+            // 处理复习评价 - 使用修复的间隔算法
+            async handleReview(rating) {
+                if (this.currentCardIndex >= this.reviewQueue.length) return;
+                
+                const card = this.reviewQueue[this.currentCardIndex];
+                
+                // 计算下一次复习时间
+                const updatedFields = this.ebbinghaus.calculateNextReview(card, rating);
+                
+                // 更新卡片
+                const updatedCard = { ...card, ...updatedFields };
+                await this.db.saveCard(updatedCard);
+                
+                // 记录学习记录
+                await this.db.saveStudyRecord({
+                    cardId: card.id,
+                    rating,
+                    interval: updatedFields.interval
+                });
+                
+                // 更新掌握度评分
+                this.reviewedCards++;
+                const ratingScores = { 'again': 0, 'hard': 1, 'good': 2, 'easy': 3 };
+                this.masteryScore += ratingScores[rating];
+                const masteryPercent = Math.round((this.masteryScore / (this.reviewedCards * 3)) * 100);
+                document.getElementById('mastery-indicator').textContent = `掌握度: ${masteryPercent}%`;
+                
+                // 移动到下一张卡片
+                this.currentCardIndex++;
+                this.updateProgress();
+                
+                if (this.currentCardIndex < this.reviewQueue.length) {
+                    // 延迟显示下一张卡片，增强用户体验
+                    setTimeout(() => {
+                        this.showCurrentCard();
+                    }, 300);
+                } else {
+                    // 所有卡片复习完毕
+                    document.getElementById('review-container').classList.add('hidden');
+                    
+                    // 显示完成消息
+                    const completionMessage = document.createElement('div');
+                    completionMessage.className = 'text-center py-10 animate-fadeIn';
+                    completionMessage.innerHTML = `
+                        <div class="text-6xl mb-4">🎉</div>
+                        <h3 class="text-xl font-medium mb-2">今日复习完成！</h3>
+                        <p class="mb-6 text-gray-600">你已完成所有复习任务，掌握度: ${masteryPercent}%</p>
+                        <button class="bg-primary text-white px-6 py-2 rounded-lg btn-effect" onclick="location.reload()">
+                            重新加载
+                        </button>
+                    `;
+                    
+                    const reviewTab = document.querySelector('#review-tab > div:first-child');
+                    reviewTab.appendChild(completionMessage);
+                    
+                    // 更新统计数据
+                    this.updateStats();
+                    this.loadSchedule();
+                }
+            }
+            
+            // 更新复习进度
+            updateProgress() {
+                const progress = (this.currentCardIndex / this.reviewQueue.length) * 100;
+                document.getElementById('review-progress').style.width = `${progress}%`;
+                document.getElementById('review-progress').parentElement.setAttribute('aria-valuenow', progress);
+            }
+            
+            // 处理创建卡片
+            async handleCreateCard() {
+                const question = document.getElementById('question').value.trim();
+                const answer = document.getElementById('answer').value.trim();
+                const category = document.getElementById('category').value.trim();
+                const tags = document.getElementById('tags').value.trim();
+                
+                if (!question || !answer) {
+                    Utils.showToast('问题和答案不能为空', 'error');
+                    return;
+                }
+                
+                try {
+                    const card = {
+                        question,
+                        answer,
+                        category: category || '未分类',
+                        tags: tags ? tags.split(',').map(tag => tag.trim()) : []
+                    };
+                    
+                    const cardId = await this.db.saveCard(card);
+                    
+                    // 重置表单
+                    document.getElementById('card-form').reset();
+                    
+                    // 显示成功消息
+                    Utils.showToast('卡片创建成功', 'success');
+                    
+                    // 刷新卡片列表和复习队列
+                    this.loadCardsList();
+                    this.loadReviewCards();
+                    this.loadCategories();
+                    this.updateStats();
+                } catch (error) {
+                    console.error('创建卡片失败:', error);
+                    Utils.showToast('创建卡片失败', 'error');
+                }
+            }
+            
+            // 加载分类列表
+            async loadCategories() {
+                try {
+                    const cards = await this.db.getAllCards();
+                    const categories = [...new Set(cards.map(card => card.category).filter(Boolean))];
+                    
+                    // 更新分类下拉列表
+                    const categoryList = document.getElementById('category-list');
+                    const editCategoryList = document.getElementById('edit-category-list');
+                    const filterCategory = document.getElementById('filter-category');
+                    
+                    // 清空现有选项
+                    categoryList.innerHTML = '';
+                    editCategoryList.innerHTML = '';
+                    
+                    // 保存当前选中的过滤器值
+                    const currentFilter = filterCategory.value;
+                    
+                    // 移除现有选项（保留第一个"所有分类"）
+                    while (filterCategory.options.length > 1) {
+                        filterCategory.remove(1);
+                    }
+                    
+                    // 添加分类选项
+                    categories.forEach(category => {
+                        // 添加到datalist
+                        const option1 = document.createElement('option');
+                        option1.value = category;
+                        categoryList.appendChild(option1);
+                        
+                        const option2 = document.createElement('option');
+                        option2.value = category;
+                        editCategoryList.appendChild(option2);
+                        
+                        // 添加到过滤器
+                        const option3 = document.createElement('option');
+                        option3.value = category;
+                        option3.textContent = category;
+                        filterCategory.appendChild(option3);
+                    });
+                    
+                    // 恢复过滤器选中状态
+                    if (currentFilter && categories.includes(currentFilter)) {
+                        filterCategory.value = currentFilter;
+                    }
+                } catch (error) {
+                    console.error('加载分类失败:', error);
+                }
+            }
+            
+            // 加载卡片列表
+            async loadCardsList() {
+                try {
+                    const searchTerm = document.getElementById('card-search').value.toLowerCase();
+                    const categoryFilter = document.getElementById('filter-category').value;
+                    const dueFilter = document.getElementById('filter-due').value;
+                    
+                    const cards = await this.db.getAllCards();
+                    
+                    // 过滤卡片
+                    this.filteredCards = cards.filter(card => {
+                        // 搜索词过滤
+                        const matchesSearch = 
+                            card.question.toLowerCase().includes(searchTerm) || 
+                            card.answer.toLowerCase().includes(searchTerm) ||
+                            (card.tags && card.tags.some(tag => tag.toLowerCase().includes(searchTerm))) ||
+                            (card.category && card.category.toLowerCase().includes(searchTerm));
+                        
+                        // 分类过滤
+                        const matchesCategory = !categoryFilter || card.category === categoryFilter;
+                        
+                        // 复习状态过滤
+                        let matchesDue = true;
+                        if (dueFilter === 'due') {
+                            const today = new Date();
+                            today.setHours(0, 0, 0, 0);
+                            const cardNextReview = new Date(card.nextReview);
+                            matchesDue = cardNextReview <= today;
+                        } else if (dueFilter === 'new') {
+                            matchesDue = card.repetitions === 0;
+                        }
+                        
+                        return matchesSearch && matchesCategory && matchesDue;
+                    });
+                    
+                    // 按下次复习时间排序
+                    this.filteredCards.sort((a, b) => new Date(a.nextReview) - new Date(b.nextReview));
+                    
+                    this.renderCardsPage(1);
+                    
+                } catch (error) {
+                    console.error('加载卡片列表失败:', error);
+                    Utils.showToast('加载卡片失败', 'error');
+                }
+            }
+            
+            // 渲染卡片分页
+            renderCardsPage(page) {
+                this.currentPage = page;
+                const cardsList = document.getElementById('cards-list');
+                cardsList.innerHTML = '';
+                
+                // 显示加载状态
+                const loadingIndicator = document.getElementById('cards-loading');
+                const noResultsIndicator = document.getElementById('no-cards-result');
+                
+                loadingIndicator.classList.remove('hidden');
+                noResultsIndicator.classList.add('hidden');
+                
+                // 短暂延迟以显示加载状态
+                setTimeout(async () => {
+                    if (this.filteredCards.length === 0) {
+                        noResultsIndicator.classList.remove('hidden');
+                        document.getElementById('batch-controls').classList.add('hidden');
+                        document.getElementById('pagination-controls').classList.add('hidden');
+                    } else {
+                        noResultsIndicator.classList.add('hidden');
+                        document.getElementById('batch-controls').classList.remove('hidden');
+                        document.getElementById('pagination-controls').classList.remove('hidden');
+                        
+                        // 更新全选复选框状态
+                        const allSelected = this.selectedCardIds.length === this.filteredCards.length;
+                        document.getElementById('select-all-cards').checked = allSelected;
+                        
+                        // 更新选中计数
+                        document.getElementById('selected-count').textContent = `已选择 ${this.selectedCardIds.length} 张卡片`;
+                        
+                        // 计算分页
+                        const startIndex = (page - 1) * this.cardsPerPage;
+                        const endIndex = Math.min(startIndex + this.cardsPerPage, this.filteredCards.length);
+                        const pageCards = this.filteredCards.slice(startIndex, endIndex);
+                        
+                        // 渲染卡片列表
+                        pageCards.forEach(card => {
+                            const cardElement = document.createElement('div');
+                            cardElement.className = 'p-4 border border-gray-100 rounded-lg card-shadow card-hover animate-fadeIn max-w-lg w-full';
+                            
+                            // 检查是否为今日需要复习
+                            const today = new Date();
+                            today.setHours(0, 0, 0, 0);
+                            const isDue = new Date(card.nextReview) <= today;
+                            
+                            const isSelected = this.selectedCardIds.includes(card.id);
+                            
+                            cardElement.innerHTML = `
+                                <div class="flex items-start justify-between">
+                                    <div class="flex-1 mr-4">
+                                        <div class="flex items-center mb-2">
+                                            <h3 class="font-medium text-gray-800">${card.question.substring(0, 30)}${card.question.length > 30 ? '...' : ''}</h3>
+                                            ${isDue ? '<span class="ml-2 text-xs bg-danger/10 text-danger px-1.5 py-0.5 rounded">待复习</span>' : ''}
+                                            ${card.repetitions === 0 ? '<span class="ml-2 text-xs bg-primary/10 text-primary px-1.5 py-0.5 rounded">新卡片</span>' : ''}
+                                        </div>
+                                        <p class="text-sm text-gray-600 mb-2 line-clamp-2">${card.answer.substring(0, 50)}${card.answer.length > 50 ? '...' : ''}</p>
+                                        <div class="flex flex-wrap items-center">
+                                            <span class="text-xs text-gray-500 mr-3">
+                                                <i class="fa fa-folder-o mr-1" aria-hidden="true"></i>${card.category || '未分类'}
+                                            </span>
+                                            <span class="text-xs text-gray-500">
+                                                <i class="fa fa-calendar-o mr-1" aria-hidden="true"></i>下次: ${Utils.formatDate(card.nextReview)}
+                                            </span>
+                                        </div>
+                                        ${card.tags && card.tags.length > 0 ? `
+                                            <div class="mt-2">
+                                                ${card.tags.map(tag => `<span class="tag">${tag}</span>`).join('')}
+                                            </div>
+                                        ` : ''}
+                                    </div>
+                                    <div class="flex flex-col items-center">
+                                        <input type="checkbox" class="card-select mr-2" data-id="${card.id}" ${isSelected ? 'checked' : ''}>
+                                        <div class="flex mt-2">
+                                            <button class="edit-card text-primary hover:text-secondary p-1 mr-1" data-id="${card.id}" title="编辑">
+                                                <i class="fa fa-pencil" aria-hidden="true"></i>
+                                            </button>
+                                            <button class="delete-card text-danger hover:text-danger/80 p-1" data-id="${card.id}" title="删除">
+                                                <i class="fa fa-trash" aria-hidden="true"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            `;
+                            
+                            cardsList.appendChild(cardElement);
+                            
+                            // 添加编辑事件
+                            cardElement.querySelector('.edit-card').addEventListener('click', () => {
+                                this.editCard(card.id);
+                            });
+                            
+                            // 添加删除事件
+                            cardElement.querySelector('.delete-card').addEventListener('click', () => {
+                                this.deleteCard(card.id);
+                            });
+                            
+                            // 添加选择事件
+                            cardElement.querySelector('.card-select').addEventListener('change', (e) => {
+                                const cardId = parseInt(e.target.dataset.id);
+                                if (e.target.checked) {
+                                    if (!this.selectedCardIds.includes(cardId)) {
+                                        this.selectedCardIds.push(cardId);
+                                    }
+                                } else {
+                                    this.selectedCardIds = this.selectedCardIds.filter(id => id !== cardId);
+                                }
+                                this.updateSelectedCount();
+                            });
+                        });
+                        
+                        // 更新分页信息
+                        document.getElementById('total-cards-count-pagination').textContent = this.filteredCards.length;
+                        document.getElementById('showing-range').textContent = `${startIndex + 1}-${endIndex}`;
+                        
+                        // 启用/禁用分页按钮
+                        document.getElementById('prev-page').disabled = page <= 1;
+                        document.getElementById('next-page').disabled = endIndex >= this.filteredCards.length;
+                    }
+                    
+                    loadingIndicator.classList.add('hidden');
+                }, 300);
+            }
+            
+            // 编辑卡片
+            async editCard(id) {
+                try {
+                    const card = await this.db.getCardById(id);
+                    if (!card) {
+                        Utils.showToast('未找到卡片', 'error');
+                        return;
+                    }
+                    
+                    // 填充表单
+                    document.getElementById('edit-card-id').value = card.id;
+                    document.getElementById('edit-question').value = card.question;
+                    document.getElementById('edit-answer').value = card.answer;
+                    document.getElementById('edit-category').value = card.category || '';
+                    document.getElementById('edit-tags').value = card.tags ? card.tags.join(', ') : '';
+                    
+                    // 显示模态框
+                    this.openModal();
+                } catch (error) {
+                    console.error('编辑卡片失败:', error);
+                    Utils.showToast('编辑卡片失败', 'error');
+                }
+            }
+            
+            // 处理更新卡片
+            async handleUpdateCard() {
+                const id = parseInt(document.getElementById('edit-card-id').value);
+                const question = document.getElementById('edit-question').value.trim();
+                const answer = document.getElementById('edit-answer').value.trim();
+                const category = document.getElementById('edit-category').value.trim();
+                const tags = document.getElementById('edit-tags').value.trim();
+                
+                if (!id || !question || !answer) {
+                    Utils.showToast('问题和答案不能为空', 'error');
+                    return;
+                }
+                
+                try {
+                    // 获取现有卡片
+                    const card = await this.db.getCardById(id);
+                    if (!card) {
+                        Utils.showToast('未找到卡片', 'error');
+                        return;
+                    }
+                    
+                    // 更新卡片信息
+                    const updatedCard = {
+                        ...card,
+                        question,
+                        answer,
+                        category: category || '未分类',
+                        tags: tags ? tags.split(',').map(tag => tag.trim()) : []
+                    };
+                    
+                    await this.db.saveCard(updatedCard);
+                    
+                    // 关闭模态框
+                    this.closeModal();
+                    
+                    // 显示成功消息
+                    Utils.showToast('卡片更新成功', 'success');
+                    
+                    // 刷新卡片列表和分类
+                    this.loadCardsList();
+                    this.loadCategories();
+                } catch (error) {
+                    console.error('更新卡片失败:', error);
+                    Utils.showToast('更新卡片失败', 'error');
+                }
+            }
+            
+            // 删除卡片
+            async deleteCard(id) {
+                if (!confirm('确定要删除这张卡片吗？此操作不可撤销。')) {
+                    return;
+                }
+                
+                try {
+                    await this.db.deleteCard(id);
+                    
+                    // 从选中列表中移除
+                    this.selectedCardIds = this.selectedCardIds.filter(cardId => cardId !== id);
+                    
+                    // 显示成功消息
+                    Utils.showToast('卡片已删除', 'success');
+                    
+                    // 刷新卡片列表和复习队列
+                    this.loadCardsList();
+                    this.loadReviewCards();
+                    this.loadCategories();
+                    this.updateStats();
+                } catch (error) {
+                    console.error('删除卡片失败:', error);
+                    Utils.showToast('删除卡片失败', 'error');
+                }
+            }
+            
+            // 打开模态框
+            openModal() {
+                const modal = document.getElementById('edit-modal');
+                const modalContent = document.getElementById('modal-content');
+                
+                modal.classList.remove('hidden');
+                // 触发重排后添加动画类
+                setTimeout(() => {
+                    modal.classList.remove('opacity-0');
+                    modalContent.classList.remove('scale-95');
+                    modalContent.classList.add('scale-100');
+                }, 10);
+                
+                // 阻止背景滚动
+                document.body.style.overflow = 'hidden';
+            }
+            
+            // 关闭模态框
+            closeModal() {
+                const modal = document.getElementById('edit-modal');
+                const modalContent = document.getElementById('modal-content');
+                
+                modal.classList.add('opacity-0');
+                modalContent.classList.remove('scale-100');
+                modalContent.classList.add('scale-95');
+                
+                // 完全隐藏模态框
+                setTimeout(() => {
+                    modal.classList.add('hidden');
+                    document.body.style.overflow = '';
+                }, 300);
+            }
+            
+            // 更新统计数据
+            async updateStats() {
+                try {
+                    // 总卡片数
+                    const totalCards = await this.db.getTotalCardsCount();
+                    document.getElementById('total-cards-count').textContent = totalCards;
+                    
+                    // 今日复习数
+                    const reviewedToday = await this.db.getTodaysStudyCount();
+                    document.getElementById('reviewed-today').textContent = reviewedToday;
+                    
+                    // 计算掌握率
+                    const cards = await this.db.getAllCards();
+                    const studyRecords = await this.db.getAllStudyRecords();
+                    
+                    let totalRatings = 0;
+                    let totalScore = 0;
+                    
+                    studyRecords.forEach(record => {
+                        const ratingScores = { 'again': 0, 'hard': 1, 'good': 2, 'easy': 3 };
+                        totalScore += ratingScores[record.rating] || 0;
+                        totalRatings++;
+                    });
+                    
+                    const masteryRate = totalRatings > 0 ? Math.round((totalScore / (totalRatings * 3)) * 100) : 0;
+                    document.getElementById('mastery-rate').textContent = `${masteryRate}%`;
+                    
+                    // 计算连续天数
+                    const today = new Date();
+                    let streak = 0;
+                    let currentDate = new Date(today);
+                    
+                    // 按日期分组学习记录
+                    const recordsByDate = {};
+                    studyRecords.forEach(record => {
+                        const date = new Date(record.date).toISOString().split('T')[0];
+                        if (!recordsByDate[date]) {
+                            recordsByDate[date] = [];
+                        }
+                        recordsByDate[date].push(record);
+                    });
+                    
+                    // 检查连续天数
+                    while (true) {
+                        const dateStr = currentDate.toISOString().split('T')[0];
+                        if (recordsByDate[dateStr] && recordsByDate[dateStr].length > 0) {
+                            streak++;
+                            currentDate.setDate(currentDate.getDate() - 1);
+                        } else {
+                            break;
+                        }
+                    }
+                    
+                    document.getElementById('streak-count').textContent = streak;
+                    
+                    // 如果当前在统计标签页，更新图表
+                    if (this.currentTab === 'stats') {
+                        this.updateCharts();
+                    }
+                } catch (error) {
+                    console.error('更新统计失败:', error);
+                }
+            }
+            
+            // 更新图表
+            updateCharts() {
+                this.updateDailyReviewChart();
+                this.updateCategoryChart();
+                this.updateMemoryCurveChart();
+            }
+            
+            // 更新每日复习图表
+            async updateDailyReviewChart() {
+                try {
+                    const studyRecords = await this.db.getAllStudyRecords();
+                    
+                    // 获取最近7天的日期
+                    const labels = Array.from({length: 7}, (_, i) => {
+                        const date = new Date();
+                        date.setDate(date.getDate() - 6 + i);
+                        return date.toLocaleDateString('zh-CN', {month: 'numeric', day: 'numeric'});
+                    });
+                    
+                    // 按日期统计复习数量
+                    const data = Array(7).fill(0);
+                    studyRecords.forEach(record => {
+                        const recordDate = new Date(record.date);
+                        const today = new Date();
+                        const diffTime = Math.abs(today - recordDate);
+                        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                        
+                        if (diffDays <= 7) {
+                            data[7 - diffDays]++;
+                        }
+                    });
+                    
+                    const ctx = document.getElementById('daily-review-chart').getContext('2d');
+                    
+                    if (window.dailyReviewChart) {
+                        window.dailyReviewChart.destroy();
+                    }
+                    
+                    window.dailyReviewChart = new Chart(ctx, {
+                        type: 'bar',
+                        data: {
+                            labels: labels,
+                            datasets: [{
+                                label: '复习卡片数',
+                                data: data,
+                                backgroundColor: 'rgba(79, 70, 229, 0.6)',
+                                borderColor: 'rgba(79, 70, 229, 1)',
+                                borderWidth: 1
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            scales: {
+                                y: {
+                                    beginAtZero: true,
+                                    ticks: {
+                                        precision: 0
+                                    }
+                                }
+                            }
+                        }
+                    });
+                } catch (error) {
+                    console.error('更新每日复习图表失败:', error);
+                }
+            }
+            
+            // 更新分类图表
+            async updateCategoryChart() {
+                try {
+                    const cards = await this.db.getAllCards();
+                    
+                    // 统计分类
+                    const categoryCounts = {};
+                    cards.forEach(card => {
+                        const category = card.category || '未分类';
+                        categoryCounts[category] = (categoryCounts[category] || 0) + 1;
+                    });
+                    
+                    const categories = Object.keys(categoryCounts);
+                    const data = Object.values(categoryCounts);
+                    
+                    // 生成颜色
+                    const colors = [
+                        'rgba(79, 70, 229, 0.7)',
+                        'rgba(239, 68, 68, 0.7)',
+                        'rgba(16, 185, 129, 0.7)',
+                        'rgba(245, 158, 11, 0.7)',
+                        'rgba(6, 182, 212, 0.7)',
+                        'rgba(124, 58, 237, 0.7)',
+                        'rgba(14, 165, 233, 0.7)'
+                    ];
+                    
+                    const ctx = document.getElementById('category-chart').getContext('2d');
+                    
+                    if (window.categoryChart) {
+                        window.categoryChart.destroy();
+                    }
+                    
+                    window.categoryChart = new Chart(ctx, {
+                        type: 'doughnut',
+                        data: {
+                            labels: categories,
+                            datasets: [{
+                                data: data,
+                                backgroundColor: colors.slice(0, categories.length),
+                                borderWidth: 1
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: {
+                                    position: 'right',
+                                    labels: {
+                                        boxWidth: 12,
+                                        font: {
+                                            size: 11
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    });
+                } catch (error) {
+                    console.error('更新分类图表失败:', error);
+                }
+            }
+            
+            // 更新记忆曲线图表
+            async updateMemoryCurveChart() {
+                try {
+                    const days = parseInt(document.getElementById('curve-range').value);
+                    
+                    // 理论遗忘曲线数据（艾宾浩斯）
+                    const theoryLabels = Array.from({length: days}, (_, i) => i + 1);
+                    const theoryData = this.ebbinghaus.getTheoreticalForgettingCurve(days);
+                    
+                    // 获取实际学习记录
+                    const studyRecords = await this.db.getAllStudyRecords();
+                    const cards = await this.db.getAllCards();
+                    
+                    // 计算实际记忆保留率（简化版）
+                    const actualData = theoryLabels.map(day => {
+                        // 简化计算：基于复习次数和评分估算记忆保留率
+                        const relevantRecords = studyRecords.filter(record => {
+                            const recordDate = new Date(record.date);
+                            const today = new Date();
+                            const diffDays = Math.ceil(Math.abs(today - recordDate) / (1000 * 60 * 60 * 24));
+                            return diffDays <= day;
+                        });
+                        
+                        if (relevantRecords.length === 0) return theoryData[day - 1] * 0.8; // 如果没有复习记录，假设比理论稍差
+                        
+                        // 计算平均评分
+                        let totalScore = 0;
+                        relevantRecords.forEach(record => {
+                            const ratingScores = { 'again': 0, 'hard': 0.5, 'good': 0.8, 'easy': 1 };
+                            totalScore += ratingScores[record.rating] || 0;
+                        });
+                        
+                        const avgScore = totalScore / relevantRecords.length;
+                        
+                        // 基于评分调整理论记忆保留率
+                        return Math.min(100, theoryData[day - 1] * (0.7 + avgScore * 0.3));
+                    });
+                    
+                    const ctx = document.getElementById('memory-curve-chart').getContext('2d');
+                    
+                    if (window.memoryCurveChart) {
+                        window.memoryCurveChart.destroy();
+                    }
+                    
+                    window.memoryCurveChart = new Chart(ctx, {
+                        type: 'line',
+                        data: {
+                            labels: theoryLabels,
+                            datasets: [
+                                {
+                                    label: '理论遗忘曲线',
+                                    data: theoryData,
+                                    borderColor: 'rgba(79, 70, 229, 1)',
+                                    backgroundColor: 'rgba(79, 70, 229, 0.1)',
+                                    borderWidth: 2,
+                                    fill: true,
+                                    tension: 0.3
+                                },
+                                {
+                                    label: '实际记忆曲线',
+                                    data: actualData,
+                                    borderColor: 'rgba(245, 158, 11, 1)',
+                                    backgroundColor: 'rgba(245, 158, 11, 0.1)',
+                                    borderWidth: 2,
+                                    fill: true,
+                                    tension: 0.3
+                                }
+                            ]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            scales: {
+                                y: {
+                                    beginAtZero: true,
+                                    max: 100,
+                                    title: {
+                                        display: true,
+                                        text: '记忆保留率 (%)'
+                                    }
+                                },
+                                x: {
+                                    title: {
+                                        display: true,
+                                        text: '天数'
+                                    }
+                                }
+                            }
+                        }
+                    });
+                } catch (error) {
+                    console.error('更新记忆曲线图表失败:', error);
+                }
+            }
+            
+            // 加载复习日程
+            async loadSchedule() {
+                try {
+                    const cards = await this.db.getAllCards();
+                    const schedule = {};
+                    
+                    // 按日期分组
+                    cards.forEach(card => {
+                        const date = new Date(card.nextReview);
+                        date.setHours(0, 0, 0, 0);
+                        const dateStr = date.toISOString().split('T')[0];
+                        
+                        if (!schedule[dateStr]) {
+                            schedule[dateStr] = [];
+                        }
+                        schedule[dateStr].push(card);
+                    });
+                    
+                    // 获取日期列表并排序
+                    const dates = Object.keys(schedule).sort();
+                    
+                    const scheduleContainer = document.getElementById('schedule-container');
+                    scheduleContainer.innerHTML = '';
+                    
+                    // 显示未来30天的复习安排
+                    const today = new Date();
+                    today.setHours(0, 0, 0, 0);
+                    
+                    const futureDate = new Date(today);
+                    futureDate.setDate(today.getDate() + 30);
+                    
+                    // 添加今天和未来的安排
+                    dates.forEach(dateStr => {
+                        const date = new Date(dateStr);
+                        
+                        // 只显示今天及未来30天的安排
+                        if (date > futureDate) return;
+                        
+                        const isToday = Utils.isSameDay(date, today);
+                        const isPast = date < today && !isToday;
+                        
+                        const dayCount = Math.ceil((date - today) / (1000 * 60 * 60 * 24));
+                        let dayLabel;
+                        
+                        if (isToday) {
+                            dayLabel = '今天';
+                        } else if (dayCount === 1) {
+                            dayLabel = '明天';
+                        } else if (dayCount > 1 && dayCount <= 7) {
+                            dayLabel = `${dayCount}天后`;
+                        } else if (dayCount > 7 && dayCount <= 30) {
+                            dayLabel = Utils.formatDate(date, { month: 'short', day: 'numeric' });
+                        } else if (isPast) {
+                            dayLabel = '已逾期';
+                        } else {
+                            dayLabel = Utils.formatDate(date);
+                        }
+                        
+                        const dateGroup = document.createElement('div');
+                        dateGroup.className = `p-3 rounded-lg animate-slideIn ${isToday ? 'bg-primary/10 border-l-4 border-primary' : 'bg-gray-50'} max-w-md w-full`;
+                        
+                        dateGroup.innerHTML = `
+                            <div class="flex justify-between items-center">
+                                <div class="font-medium ${isToday ? 'text-primary' : ''}">
+                                    ${dayLabel} (${Utils.formatDate(date)})
+                                </div>
+                                <span class="bg-gray-200 text-gray-700 text-xs px-2 py-0.5 rounded-full">
+                                    ${schedule[dateStr].length}张卡片
+                                </span>
+                            </div>
+                            ${isToday ? '' : `
+                                <div class="mt-2 text-sm text-gray-600">
+                                    ${schedule[dateStr]
+                                        .slice(0, 3)
+                                        .map(card => card.question.substring(0, 20) + (card.question.length > 20 ? '...' : ''))
+                                        .join('、')}
+                                    ${schedule[dateStr].length > 3 ? `... 还有${schedule[dateStr].length - 3}张` : ''}
+                                </div>
+                            `}
+                        `;
+                        
+                        scheduleContainer.appendChild(dateGroup);
+                    });
+                    
+                    // 如果没有安排，显示提示
+                    if (scheduleContainer.children.length === 0) {
+                        scheduleContainer.innerHTML = `
+                            <div class="text-center py-6 text-gray-500">
+                                <i class="fa fa-calendar-times-o text-4xl mb-3 opacity-30" aria-hidden="true"></i>
+                                <p>未来30天内没有复习安排</p>
+                            </div>
+                        `;
+                    }
+                } catch (error) {
+                    console.error('加载复习日程失败:', error);
+                }
+            }
+            
+            // 处理文件选择
+            handleFileSelection(e) {
+                if (e.target.files.length) {
+                    this.processImportFile(e.target.files[0]);
+                }
+            }
+            
+            // 处理导入文件 - 修复乱码问题
+            processImportFile(file) {
+                if (!file.name.endsWith('.csv')) {
+                    Utils.showToast('请选择CSV格式的文件', 'error');
+                    return;
+                }
+                
+                // 显示导入选项
+                document.getElementById('import-options').classList.remove('hidden');
+                document.getElementById('process-import').classList.remove('hidden');
+                
+                // 存储文件引用
+                this.importFile = file;
+                
+                Utils.showToast(`已选择文件: ${file.name}`, 'info');
+            }
+            
+            // 处理导入 - 修复乱码问题
+            async processImport() {
+                if (!this.importFile) return;
+                
+                // 显示进度条
+                document.getElementById('import-progress').classList.remove('hidden');
+                document.getElementById('import-progress-bar').style.width = '0%';
+                document.getElementById('import-progress-text').textContent = '正在解析文件...';
+                
+                const conflictHandle = document.querySelector('input[name="conflict-handle"]:checked').value;
+                
+                try {
+                    // 解析CSV文件 - 明确指定UTF-8编码
+                    const results = await new Promise((resolve, reject) => {
+                        Papa.parse(this.importFile, {
+                            header: true,
+                            skipEmptyLines: true,
+                            encoding: 'UTF-8', // 明确指定UTF-8编码
+                            complete: resolve,
+                            error: reject
+                        });
+                    });
+                    
+                    const cards = results.data;
+                    let imported = 0;
+                    let skipped = 0;
+                    let updated = 0;
+                    
+                    // 获取现有卡片用于冲突检查
+                    const existingCards = await this.db.getAllCards();
+                    
+                    // 准备要导入的卡片
+                    const cardsToImport = [];
+                    
+                    for (let i = 0; i < cards.length; i++) {
+                        const cardData = cards[i];
+                        
+                        // 基本验证 - 修复CSV导入问题
+                        if (!cardData.question || !cardData.answer) {
+                            console.warn(`跳过第${i+1}行: 缺少问题或答案`, cardData);
+                            skipped++;
+                            continue;
+                        }
+                        
+                        // 检查冲突（通过问题内容匹配）
+                        const existingCard = existingCards.find(c => 
+                            c.question.trim() === cardData.question.trim()
+                        );
+                        
+                        if (existingCard) {
+                            if (conflictHandle === 'overwrite') {
+                                // 更新现有卡片
+                                const updatedCard = {
+                                    ...existingCard,
+                                    answer: cardData.answer || existingCard.answer,
+                                    category: cardData.category || existingCard.category,
+                                    tags: cardData.tags ? cardData.tags.split(',').map(t => t.trim()) : existingCard.tags
+                                };
+                                
+                                cardsToImport.push(updatedCard);
+                                updated++;
+                            } else {
+                                // 跳过重复卡片
+                                skipped++;
+                            }
+                        } else {
+                            // 创建新卡片
+                            const newCard = {
+                                question: cardData.question.trim(),
+                                answer: cardData.answer.trim(),
+                                category: cardData.category ? cardData.category.trim() : '未分类',
+                                tags: cardData.tags ? cardData.tags.split(',').map(t => t.trim()) : []
+                            };
+                            
+                            cardsToImport.push(newCard);
+                            imported++;
+                        }
+                        
+                        // 更新进度
+                        const progress = Math.round(((i + 1) / cards.length) * 100);
+                        document.getElementById('import-progress-bar').style.width = `${progress}%`;
+                        document.getElementById('import-progress-text').textContent = `正在导入: ${progress}%`;
+                    }
+                    
+                    // 批量保存卡片
+                    if (cardsToImport.length > 0) {
+                        await this.db.saveCards(cardsToImport);
+                    }
+                    
+                    // 显示结果
+                    document.getElementById('import-progress-text').textContent = '导入完成';
+                    
+                    const resultElement = document.getElementById('import-result');
+                    resultElement.classList.remove('hidden');
+                    resultElement.className = 'mt-4 p-3 rounded-lg bg-success/10 text-success';
+                    resultElement.innerHTML = `
+                        <div class="flex items-center">
+                            <i class="fa fa-check-circle mr-2" aria-hidden="true"></i>
+                            <div>
+                                <strong>导入成功</strong>
+                                <p class="text-sm">共处理 ${cards.length} 条记录，新增 ${imported} 张，更新 ${updated} 张，跳过 ${skipped} 张</p>
+                            </div>
+                        </div>
+                    `;
+                    
+                    // 刷新数据
+                    this.loadCardsList();
+                    this.loadReviewCards();
+                    this.loadCategories();
+                    this.updateStats();
+                    
+                } catch (error) {
+                    console.error('导入失败:', error);
+                    document.getElementById('import-progress-text').textContent = '导入失败';
+                    
+                    const resultElement = document.getElementById('import-result');
+                    resultElement.classList.remove('hidden');
+                    resultElement.className = 'mt-4 p-3 rounded-lg bg-danger/10 text-danger';
+                    resultElement.innerHTML = `
+                        <div class="flex items-center">
+                            <i class="fa fa-exclamation-circle mr-2" aria-hidden="true"></i>
+                            <div>
+                                <strong>导入失败</strong>
+                                <p class="text-sm">处理文件时发生错误: ${error.message}</p>
+                            </div>
+                        </div>
+                    `;
+                }
+            }
+            
+            // 下载模板文件
+            downloadTemplate() {
+                const csvContent = `question,answer,category,tags
+"什么是HTML?","HTML是超文本标记语言","编程","基础,重要"
+"1+1等于几?","2","数学","简单"
+"艾宾浩斯遗忘曲线是什么?","描述了人类大脑对新事物遗忘的规律","学习方法","记忆,科学"
+"JavaScript是什么?","一种广泛用于网页开发的编程语言","编程","前端,脚本"
+"光合作用的定义?","植物利用光能将二氧化碳和水转化为有机物的过程","生物","植物,能量"
+`;
+                
+                const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+                const url = URL.createObjectURL(blob);
+                
+                const link = document.createElement('a');
+                link.setAttribute('href', url);
+                link.setAttribute('download', '艾宾浩斯卡片模板.csv');
+                link.style.visibility = 'hidden';
+                
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                
+                Utils.showToast('模板已下载', 'success');
+            }
+            
+            // 导出所有卡片
+            async exportAllCards() {
+                try {
+                    const cards = await this.db.getAllCards();
+                    
+                    if (cards.length === 0) {
+                        Utils.showToast('没有卡片可导出', 'info');
+                        return;
+                    }
+                    
+                    // 构建CSV内容
+                    const headers = ['question', 'answer', 'category', 'tags'];
+                    const rows = [headers.join(',')];
+                    
+                    cards.forEach(card => {
+                        const row = [
+                            card.question,
+                            card.answer,
+                            card.category || '',
+                            card.tags ? card.tags.join(',') : ''
+                        ];
+                        
+                        rows.push(Utils.arrayToCSVRow(row));
+                    });
+                    
+                    const csvContent = rows.join('\n');
+                    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+                    const url = URL.createObjectURL(blob);
+                    
+                    const link = document.createElement('a');
+                    link.setAttribute('href', url);
+                    link.setAttribute('download', `艾宾浩斯卡片_${new Date().toLocaleDateString()}.csv`);
+                    link.style.visibility = 'hidden';
+                    
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                    
+                    Utils.showToast(`已导出 ${cards.length} 张卡片`, 'success');
+                } catch (error) {
+                    console.error('导出卡片失败:', error);
+                    Utils.showToast('导出卡片失败', 'error');
+                }
+            }
+            
+            // 全选/取消全选所有卡片
+            toggleSelectAll(checked) {
+                if (checked) {
+                    // 选择所有过滤后的卡片
+                    this.selectedCardIds = this.filteredCards.map(card => card.id);
+                } else {
+                    // 取消全选
+                    this.selectedCardIds = [];
+                }
+                
+                // 重新渲染当前页，更新复选框状态
+                this.renderCardsPage(this.currentPage);
+                
+                // 更新选中计数
+                this.updateSelectedCount();
+            }
+            
+            // 更新选中计数
+            updateSelectedCount() {
+                document.getElementById('selected-count').textContent = `已选择 ${this.selectedCardIds.length} 张卡片`;
+            }
+            
+            // 删除选中的卡片
+            async deleteSelectedCards() {
+                if (this.selectedCardIds.length === 0) {
+                    Utils.showToast('请先选择要删除的卡片', 'info');
+                    return;
+                }
+                
+                if (!confirm(`确定要删除选中的 ${this.selectedCardIds.length} 张卡片吗？此操作不可撤销。`)) {
+                    return;
+                }
+                
+                try {
+                    // 批量删除卡片
+                    await this.db.deleteCards(this.selectedCardIds);
+                    
+                    // 清空选中列表
+                    this.selectedCardIds = [];
+                    
+                    // 显示成功消息
+                    Utils.showToast(`已删除 ${this.selectedCardIds.length} 张卡片`, 'success');
+                    
+                    // 刷新数据
+                    this.loadCardsList();
+                    this.loadReviewCards();
+                    this.loadCategories();
+                    this.updateStats();
+                } catch (error) {
+                    console.error('删除选中卡片失败:', error);
+                    Utils.showToast('删除卡片失败', 'error');
+                }
+            }
+            
+            // 上一页
+            prevPage() {
+                if (this.currentPage > 1) {
+                    this.renderCardsPage(this.currentPage - 1);
+                }
+            }
+            
+            // 下一页
+            nextPage() {
+                const totalPages = Math.ceil(this.filteredCards.length / this.cardsPerPage);
+                if (this.currentPage < totalPages) {
+                    this.renderCardsPage(this.currentPage + 1);
+                }
+            }
+        }
+
+        // 初始化应用
+        document.addEventListener('DOMContentLoaded', () => {
+            window.app = new App();
+        });
+    </script>
+</body>
+</html>

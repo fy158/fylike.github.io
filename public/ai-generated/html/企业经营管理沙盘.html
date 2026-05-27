@@ -1,0 +1,1562 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>企业经营管理沙盘模拟系统</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --primary: #2c3e50;
+            --secondary: #3498db;
+            --success: #2ecc71;
+            --warning: #f39c12;
+            --danger: #e74c3c;
+            --light: #ecf0f1;
+            --dark: #34495e;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #f5f7fa;
+            color: #333;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        header {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            padding: 2rem 0;
+            border-radius: 10px;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            position: relative;
+        }
+        
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .subtitle {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+        
+        .nav-tabs {
+            display: flex;
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-bottom: 2rem;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+        
+        .tab {
+            flex: 1;
+            padding: 1rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+        }
+        
+        .tab:hover {
+            background-color: var(--light);
+        }
+        
+        .tab.active {
+            background-color: var(--secondary);
+            color: white;
+        }
+        
+        .tab-content {
+            display: none;
+            background: white;
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            margin-bottom: 2rem;
+        }
+        
+        .tab-content.active {
+            display: block;
+            animation: fadeIn 0.5s ease;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        .panel {
+            margin-bottom: 2rem;
+            padding: 1.5rem;
+            border-radius: 8px;
+            background: white;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+        
+        .panel-title {
+            font-size: 1.3rem;
+            margin-bottom: 1rem;
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .decision-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+        }
+        
+        .decision-card {
+            border: 1px solid #e1e4e8;
+            border-radius: 8px;
+            padding: 1.5rem;
+            transition: all 0.3s ease;
+        }
+        
+        .decision-card:hover {
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            transform: translateY(-3px);
+        }
+        
+        .decision-card h3 {
+            margin-bottom: 1rem;
+            color: var(--dark);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .slider-container {
+            margin: 1rem 0;
+        }
+        
+        .slider-container label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+        }
+        
+        input[type="range"] {
+            width: 100%;
+            height: 8px;
+            border-radius: 5px;
+            background: #ddd;
+            outline: none;
+        }
+        
+        input[type="number"] {
+            width: 100%;
+            padding: 0.5rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 1rem;
+        }
+        
+        select {
+            width: 100%;
+            padding: 0.5rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 1rem;
+        }
+        
+        .btn {
+            padding: 0.7rem 1.5rem;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-primary {
+            background-color: var(--secondary);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background-color: #2980b9;
+        }
+        
+        .btn-success {
+            background-color: var(--success);
+            color: white;
+        }
+        
+        .btn-success:hover {
+            background-color: #27ae60;
+        }
+        
+        .btn-warning {
+            background-color: var(--warning);
+            color: white;
+        }
+        
+        .btn-warning:hover {
+            background-color: #e67e22;
+        }
+        
+        .kpi-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        
+        .kpi-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 8px;
+            text-align: center;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            border-top: 4px solid var(--secondary);
+        }
+        
+        .kpi-value {
+            font-size: 2rem;
+            font-weight: 700;
+            margin: 0.5rem 0;
+        }
+        
+        .kpi-change {
+            font-size: 0.9rem;
+            padding: 0.3rem 0.5rem;
+            border-radius: 20px;
+            display: inline-block;
+        }
+        
+        .positive {
+            background-color: rgba(46, 204, 113, 0.2);
+            color: var(--success);
+        }
+        
+        .negative {
+            background-color: rgba(231, 76, 60, 0.2);
+            color: var(--danger);
+        }
+        
+        .charts-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        
+        .chart-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+        
+        .feedback-item {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 8px;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+        
+        .feedback-item h4 {
+            margin-bottom: 0.5rem;
+            color: var(--primary);
+        }
+        
+        .analogy-box {
+            background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+            padding: 1.5rem;
+            border-radius: 8px;
+            margin-bottom: 1.5rem;
+            border-left: 5px solid var(--warning);
+        }
+        
+        .cash-flow-meter {
+            height: 20px;
+            background: #eee;
+            border-radius: 10px;
+            margin: 1rem 0;
+            overflow: hidden;
+        }
+        
+        .cash-level {
+            height: 100%;
+            background: linear-gradient(90deg, var(--success), var(--warning));
+            border-radius: 10px;
+            transition: width 0.5s ease;
+        }
+        
+        .warning {
+            color: var(--danger);
+            font-weight: 600;
+            margin-top: 0.5rem;
+        }
+        
+        .market-options {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+        
+        .market-options label {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .action-suggestions {
+            background: rgba(46, 204, 113, 0.1);
+            padding: 1.5rem;
+            border-radius: 8px;
+            border-left: 5px solid var(--success);
+        }
+        
+        .action-suggestions ul {
+            margin-left: 1.5rem;
+            margin-top: 1rem;
+        }
+        
+        .action-suggestions li {
+            margin-bottom: 0.5rem;
+        }
+        
+        .industry-template {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        
+        .template-card {
+            flex: 1;
+            padding: 1.5rem;
+            border-radius: 8px;
+            background: white;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+        
+        .template-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .template-card.selected {
+            border: 2px solid var(--secondary);
+            background: rgba(52, 152, 219, 0.1);
+        }
+        
+        .template-card h3 {
+            margin-bottom: 1rem;
+            color: var(--primary);
+        }
+        
+        .market-events {
+            background: rgba(243, 156, 18, 0.1);
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            border-left: 4px solid var(--warning);
+        }
+        
+        .market-event {
+            margin-bottom: 0.5rem;
+            padding: 0.5rem;
+            background: white;
+            border-radius: 4px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+        
+        .history-panel {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        
+        .history-item {
+            padding: 1rem;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .history-item:last-child {
+            border-bottom: none;
+        }
+        
+        .guide-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+        
+        .guide-modal {
+            background: white;
+            border-radius: 10px;
+            max-width: 500px;
+            width: 90%;
+            padding: 2rem;
+            position: relative;
+        }
+        
+        .guide-step {
+            display: none;
+        }
+        
+        .guide-step.active {
+            display: block;
+        }
+        
+        .guide-actions {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 2rem;
+        }
+        
+        .close-guide {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: var(--dark);
+        }
+        
+        .competitor-panel {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 8px;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+        
+        .competitor-card {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .competitor-card:last-child {
+            border-bottom: none;
+        }
+        
+        .competitor-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        
+        .competitor-score {
+            font-weight: bold;
+            color: var(--primary);
+        }
+        
+        @media (max-width: 768px) {
+            .decision-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .charts-container {
+                grid-template-columns: 1fr;
+            }
+            
+            .kpi-cards {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .industry-template {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>企业经营管理沙盘模拟系统</h1>
+            <p class="subtitle">基于费曼技巧的企业管理理论与实践融合平台</p>
+            <button id="show-guide" class="btn btn-warning" style="position: absolute; top: 1rem; right: 1rem;">新手引导</button>
+        </header>
+        
+        <div class="nav-tabs">
+            <div class="tab active" data-tab="overview">沙盘概览</div>
+            <div class="tab" data-tab="decisions">决策中心</div>
+            <div class="tab" data-tab="dashboard">经营仪表盘</div>
+            <div class="tab" data-tab="feedback">经营分析</div>
+            <div class="tab" data-tab="history">决策历史</div>
+        </div>
+        
+        <!-- 沙盘概览 -->
+        <div id="overview" class="tab-content active">
+            <div class="analogy-box">
+                <h2>🚢 企业远航模拟</h2>
+                <p>基于费曼技巧，我们将复杂的企业管理理论转化为直观的远航比喻：</p>
+                <ul>
+                    <li><strong>资金</strong> = 食物和淡水（现金流是生命线）</li>
+                    <li><strong>生产</strong> = 捕鱼和加工（运营效率决定产出）</li>
+                    <li><strong>市场</strong> = 天气和海流（外部环境变化莫测）</li>
+                    <li><strong>战略</strong> = 航海路线（方向决定成败）</li>
+                    <li><strong>团队</strong> = 船员（协作决定执行力）</li>
+                </ul>
+            </div>
+            
+            <div class="panel">
+                <h2 class="panel-title">🏭 选择行业模板</h2>
+                <div class="industry-template">
+                    <div class="template-card" data-industry="manufacturing">
+                        <h3>制造业</h3>
+                        <p>高固定成本，规模经济效应明显</p>
+                        <p>初始资金: ¥800,000</p>
+                        <p>主要成本: 设备折旧、原材料、人工</p>
+                    </div>
+                    <div class="template-card" data-industry="retail">
+                        <h3>零售业</h3>
+                        <p>低利润率，高周转率</p>
+                        <p>初始资金: ¥500,000</p>
+                        <p>主要成本: 库存、租金、营销</p>
+                    </div>
+                    <div class="template-card" data-industry="tech">
+                        <h3>科技行业</h3>
+                        <p>高研发投入，高增长潜力</p>
+                        <p>初始资金: ¥1,000,000</p>
+                        <p>主要成本: 研发、人才、营销</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="panel">
+                <h2 class="panel-title">📋 沙盘规则说明</h2>
+                <p>您将扮演一家企业的CEO，在模拟的6个季度内做出关键经营决策：</p>
+                <ol>
+                    <li>每季度需要制定<strong>产品策略、生产计划、定价和营销方案</strong></li>
+                    <li>关注<strong>现金流</strong>，避免资金断裂导致破产</li>
+                    <li>与3家虚拟竞争对手争夺市场份额</li>
+                    <li>应对<strong>动态市场事件</strong>（原材料价格波动、政策变化等）</li>
+                    <li>最终目标：实现<strong>利润最大化</strong>和<strong>企业价值提升</strong></li>
+                </ol>
+            </div>
+            
+            <div class="panel">
+                <h2 class="panel-title">🎯 经营核心要素</h2>
+                <div class="decision-grid">
+                    <div class="decision-card">
+                        <h3>💰 财务管理</h3>
+                        <p>现金流管理、成本控制、融资决策、税务规划</p>
+                    </div>
+                    <div class="decision-card">
+                        <h3>🏭 生产运营</h3>
+                        <p>产能规划、库存管理、效率提升、供应链优化</p>
+                    </div>
+                    <div class="decision-card">
+                        <h3>📈 市场营销</h3>
+                        <p>产品定位、定价策略、推广投入、渠道管理</p>
+                    </div>
+                    <div class="decision-card">
+                        <h3>🔍 战略规划</h3>
+                        <p>市场选择、竞争策略、长期发展、风险管理</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div style="text-align: center; margin-top: 2rem;">
+                <button class="btn btn-primary" id="start-simulation">开始模拟经营</button>
+            </div>
+        </div>
+        
+        <!-- 决策中心 -->
+        <div id="decisions" class="tab-content">
+            <div class="panel">
+                <h2 class="panel-title">🎮 经营决策中心 - 第 <span id="current-quarter">1</span> 季度</h2>
+                <p>请制定本季度的经营策略，决策将影响企业业绩</p>
+                
+                <div class="market-events">
+                    <h3>📢 本季度市场动态</h3>
+                    <div id="market-events-container">
+                        <!-- 市场事件将动态加载 -->
+                    </div>
+                </div>
+            </div>
+            
+            <div class="decision-grid">
+                <!-- 战略决策区 -->
+                <div class="panel">
+                    <h2 class="panel-title">🎯 战略决策</h2>
+                    
+                    <div class="decision-card">
+                        <h3>📦 产品策略</h3>
+                        <select id="product-mix" class="slider-container">
+                            <option value="basic">基础产品（低成本，低价格）</option>
+                            <option value="premium">高端产品（高成本，高价格）</option>
+                            <option value="mixed">混合策略（平衡型）</option>
+                        </select>
+                    </div>
+                    
+                    <div class="decision-card">
+                        <h3>🌍 市场开拓</h3>
+                        <div class="market-options">
+                            <label><input type="checkbox" name="market" value="local" checked> 本地市场</label>
+                            <label><input type="checkbox" name="market" value="regional"> 区域市场 (需投资 ¥50,000)</label>
+                            <label><input type="checkbox" name="market" value="national"> 全国市场 (需投资 ¥100,000)</label>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 运营决策区 -->
+                <div class="panel">
+                    <h2 class="panel-title">🏭 运营决策</h2>
+                    
+                    <div class="decision-card">
+                        <h3>🔧 生产计划</h3>
+                        <div class="slider-container">
+                            <label>产量：<span id="production-output">1000</span> 单位</label>
+                            <input type="range" id="production-slider" min="500" max="5000" value="1000" step="100">
+                        </div>
+                        <div class="cost-breakdown">
+                            <p>原材料成本：<span id="material-cost">¥50,000</span></p>
+                            <p>人工成本：<span id="labor-cost">¥30,000</span></p>
+                            <p>设备折旧：<span id="depreciation-cost">¥15,000</span></p>
+                        </div>
+                    </div>
+                    
+                    <div class="decision-card">
+                        <h3>📊 库存管理</h3>
+                        <div class="inventory-warning" id="inventory-alert">
+                            ⚠️ 当前库存水平：<span id="inventory-level">正常</span>
+                        </div>
+                        <p>安全库存：<input type="number" id="safety-stock" value="200" min="0" max="1000"> 单位</p>
+                    </div>
+                </div>
+                
+                <!-- 营销决策区 -->
+                <div class="panel">
+                    <h2 class="panel-title">📈 营销决策</h2>
+                    
+                    <div class="decision-card">
+                        <h3>💰 定价策略</h3>
+                        <div class="slider-container">
+                            <label>产品单价：¥<span id="price-value">100</span></label>
+                            <input type="range" id="product-price" value="100" min="50" max="200" step="5">
+                        </div>
+                        <div class="price-impact">
+                            <p>预计销量：<span id="projected-sales">950</span> 单位</p>
+                            <p>预计收入：<span id="projected-revenue">¥95,000</span></p>
+                        </div>
+                    </div>
+                    
+                    <div class="decision-card">
+                        <h3>📢 营销投入</h3>
+                        <div class="slider-container">
+                            <label>广告预算：¥<span id="ad-amount">20,000</span></label>
+                            <input type="range" id="ad-budget" min="0" max="100000" value="20000" step="5000">
+                        </div>
+                        <p>预计市场份额提升：<span id="market-share-boost">+5%</span></p>
+                    </div>
+                </div>
+                
+                <!-- 财务决策区 -->
+                <div class="panel">
+                    <h2 class="panel-title">💼 财务决策</h2>
+                    
+                    <div class="decision-card">
+                        <h3>💧 现金流监控</h3>
+                        <div class="cash-flow-meter">
+                            <div class="cash-level" id="cash-level" style="width: 65%"></div>
+                        </div>
+                        <p>可用现金：¥<span id="available-cash">650,000</span></p>
+                        <p class="warning" id="cash-warning" style="display: none;">⚠️ 现金流紧张，注意控制支出</p>
+                    </div>
+                    
+                    <div class="decision-card">
+                        <h3>🏦 融资选项</h3>
+                        <button class="btn btn-primary btn-loan" data-amount="100000" data-interest="0.08" style="width: 100%; margin-bottom: 10px;">
+                            申请贷款 ¥100,000 (利率8%)
+                        </button>
+                        <button class="btn btn-primary btn-loan" data-amount="500000" data-interest="0.12" style="width: 100%;">
+                            申请贷款 ¥500,000 (利率12%)
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <div style="text-align: center; margin-top: 2rem;">
+                <button class="btn btn-success" id="execute-decisions">执行本季度决策</button>
+            </div>
+        </div>
+        
+        <!-- 经营仪表盘 -->
+        <div id="dashboard" class="tab-content">
+            <div class="panel">
+                <h2 class="panel-title">📊 企业经营仪表盘 - 第 <span id="dashboard-quarter">1</span> 季度</h2>
+            </div>
+            
+            <div class="kpi-cards">
+                <div class="kpi-card">
+                    <h4>📈 净利润</h4>
+                    <div class="kpi-value" id="net-profit">¥125,000</div>
+                    <div class="kpi-change positive">+12%</div>
+                </div>
+                
+                <div class="kpi-card">
+                    <h4>💧 现金流</h4>
+                    <div class="kpi-value" id="cash-flow">¥650,000</div>
+                    <div class="kpi-change negative">-8%</div>
+                </div>
+                
+                <div class="kpi-card">
+                    <h4>🏆 市场份额</h4>
+                    <div class="kpi-value" id="market-share">18%</div>
+                    <div class="kpi-change positive">+3%</div>
+                </div>
+                
+                <div class="kpi-card">
+                    <h4>📦 库存周转</h4>
+                    <div class="kpi-value" id="inventory-turnover">2.5</div>
+                    <div class="kpi-change negative">-0.3</div>
+                </div>
+            </div>
+            
+            <div class="charts-container">
+                <div class="chart-card">
+                    <h4>利润趋势图</h4>
+                    <canvas id="profit-chart"></canvas>
+                </div>
+                <div class="chart-card">
+                    <h4>现金流预测</h4>
+                    <canvas id="cashflow-chart"></canvas>
+                </div>
+                <div class="chart-card">
+                    <h4>市场份额变化</h4>
+                    <canvas id="marketshare-chart"></canvas>
+                </div>
+                <div class="chart-card">
+                    <h4>成本结构分析</h4>
+                    <canvas id="cost-chart"></canvas>
+                </div>
+            </div>
+            
+            <div class="panel">
+                <h2 class="panel-title">🏆 竞争对手分析</h2>
+                <div class="competitor-panel">
+                    <div class="competitor-card">
+                        <div class="competitor-info">
+                            <h4>创新科技公司</h4>
+                            <span class="competitor-score">综合得分: 85</span>
+                        </div>
+                        <div>市场份额: 25%</div>
+                    </div>
+                    <div class="competitor-card">
+                        <div class="competitor-info">
+                            <h4>品质制造企业</h4>
+                            <span class="competitor-score">综合得分: 78</span>
+                        </div>
+                        <div>市场份额: 32%</div>
+                    </div>
+                    <div class="competitor-card">
+                        <div class="competitor-info">
+                            <h4>大众消费品公司</h4>
+                            <span class="competitor-score">综合得分: 72</span>
+                        </div>
+                        <div>市场份额: 25%</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="panel">
+                <h2 class="panel-title">📈 关键经营指标</h2>
+                <table style="width: 100%; border-collapse: collapse;">
+                    <thead>
+                        <tr style="background-color: #f8f9fa;">
+                            <th style="padding: 12px; text-align: left; border-bottom: 1px solid #ddd;">指标</th>
+                            <th style="padding: 12px; text-align: right; border-bottom: 1px solid #ddd;">当前值</th>
+                            <th style="padding: 12px; text-align: right; border-bottom: 1px solid #ddd;">行业平均</th>
+                            <th style="padding: 12px; text-align: right; border-bottom: 1px solid #ddd;">状态</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td style="padding: 12px; border-bottom: 1px solid #ddd;">毛利率</td>
+                            <td style="padding: 12px; text-align: right; border-bottom: 1px solid #ddd;">32%</td>
+                            <td style="padding: 12px; text-align: right; border-bottom: 1px solid #ddd;">28%</td>
+                            <td style="padding: 12px; text-align: right; border-bottom: 1px solid #ddd; color: var(--success);">良好</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 12px; border-bottom: 1px solid #ddd;">净资产收益率</td>
+                            <td style="padding: 12px; text-align: right; border-bottom: 1px solid #ddd;">15%</td>
+                            <td style="padding: 12px; text-align: right; border-bottom: 1px solid #ddd;">12%</td>
+                            <td style="padding: 12px; text-align: right; border-bottom: 1px solid #ddd; color: var(--success);">良好</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 12px; border-bottom: 1px solid #ddd;">流动比率</td>
+                            <td style="padding: 12px; text-align: right; border-bottom: 1px solid #ddd;">1.8</td>
+                            <td style="padding: 12px; text-align: right; border-bottom: 1px solid #ddd;">2.0</td>
+                            <td style="padding: 12px; text-align: right; border-bottom: 1px solid #ddd; color: var(--warning);">注意</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 12px; border-bottom: 1px solid #ddd;">应收账款周转</td>
+                            <td style="padding: 12px; text-align: right; border-bottom: 1px solid #ddd;">45天</td>
+                            <td style="padding: 12px; text-align: right; border-bottom: 1px solid #ddd;">40天</td>
+                            <td style="padding: 12px; text-align: right; border-bottom: 1px solid #ddd; color: var(--warning);">注意</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <!-- 经营分析 -->
+        <div id="feedback" class="tab-content">
+            <div class="panel">
+                <h2 class="panel-title">🎓 经营成果分析 - 第 <span id="feedback-quarter">1</span> 季度</h2>
+                <p>基于费曼技巧的经营原理解析与改进建议</p>
+            </div>
+            
+            <div class="feedback-item">
+                <h4>为什么现金流减少了？</h4>
+                <p>💡 <strong>简单解释：</strong>就像远航中淡水消耗太快。您把太多钱投到了设备和库存上，虽然资产增加了，但可用现金变少了。</p>
+                <p>📚 <strong>管理理论：</strong>这体现了<strong>营运资本管理</strong>的重要性 - 利润不等于现金！需要平衡资产投资与流动性。</p>
+            </div>
+
+            <div class="feedback-item">
+                <h4>市场份额为什么提升？</h4>
+                <p>💡 <strong>简单解释：</strong>您的营销投入就像在海上点亮了灯塔，让更多客户发现了您的产品。</p>
+                <p>📚 <strong>管理理论：</strong>这证明了<strong>市场营销组合(4P)</strong>中促销策略的有效性，但需要关注投入产出比。</p>
+            </div>
+            
+            <div class="feedback-item">
+                <h4>库存水平是否合理？</h4>
+                <p>💡 <strong>简单解释：</strong>库存就像船上的储备粮，太少会饿肚子，太多会占用空间且可能变质。</p>
+                <p>📚 <strong>管理理论：</strong>需要优化<strong>库存管理</strong>策略，找到平衡点以避免缺货损失和仓储成本。</p>
+            </div>
+            
+            <div class="action-suggestions">
+                <h3>💡 改进建议</h3>
+                <p>基于本季度经营情况，建议下季度关注以下方面：</p>
+                <ul>
+                    <li>✅ 考虑减少库存积压，释放现金</li>
+                    <li>✅ 适当提高营销预算，提升品牌知名度</li>
+                    <li>✅ 优化产品定价，平衡销量和利润</li>
+                    <li>✅ 评估区域市场开拓的可行性</li>
+                    <li>✅ 关注竞争对手的动态，调整竞争策略</li>
+                </ul>
+            </div>
+            
+            <div class="panel">
+                <h2 class="panel-title">📚 管理理论关联</h2>
+                <div class="decision-grid">
+                    <div class="decision-card">
+                        <h3>💰 财务管理</h3>
+                        <p><strong>相关理论：</strong>现金流管理、资本结构、财务杠杆</p>
+                        <p><strong>关键指标：</strong>净利润、现金流、ROE</p>
+                    </div>
+                    <div class="decision-card">
+                        <h3>🏭 生产运营</h3>
+                        <p><strong>相关理论：</strong>精益生产、供应链管理、质量控制</p>
+                        <p><strong>关键指标：</strong>产能利用率、库存周转率</p>
+                    </div>
+                    <div class="decision-card">
+                        <h3>📈 市场营销</h3>
+                        <p><strong>相关理论：</strong>4P/4C理论、市场细分、品牌定位</p>
+                        <p><strong>关键指标：</strong>市场份额、客户满意度</p>
+                    </div>
+                    <div class="decision-card">
+                        <h3>🔍 战略规划</h3>
+                        <p><strong>相关理论：</strong>SWOT分析、竞争战略、蓝海战略</p>
+                        <p><strong>关键指标：</strong>战略一致性、长期增长</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 决策历史 -->
+        <div id="history" class="tab-content">
+            <div class="panel">
+                <h2 class="panel-title">📜 决策历史记录</h2>
+                <p>回顾过往决策，分析策略效果，优化未来决策</p>
+            </div>
+            
+            <div class="panel history-panel">
+                <div class="history-item">
+                    <h4>第1季度决策</h4>
+                    <p><strong>生产计划：</strong>1000单位 | <strong>定价：</strong>¥100 | <strong>营销投入：</strong>¥20,000</p>
+                    <p><strong>结果：</strong>净利润 ¥125,000 | 市场份额 18%</p>
+                </div>
+                <!-- 历史记录将动态添加 -->
+            </div>
+        </div>
+    </div>
+
+    <!-- 新手引导 -->
+    <div class="guide-overlay" id="guide-overlay" style="display: none;">
+        <div class="guide-modal">
+            <button class="close-guide" id="close-guide">×</button>
+            
+            <div class="guide-step active" id="step1">
+                <h2>欢迎使用企业经营管理沙盘模拟系统</h2>
+                <p>本系统将帮助您通过实践学习企业管理知识。我们将通过6个季度的模拟经营，让您体验企业决策的全过程。</p>
+                <p>首先，请选择一个行业模板开始您的经营之旅。</p>
+                <div class="guide-actions">
+                    <button class="btn btn-primary" id="next-step1">下一步</button>
+                </div>
+            </div>
+            
+            <div class="guide-step" id="step2">
+                <h2>行业模板选择</h2>
+                <p>不同行业有不同的成本结构和经营特点：</p>
+                <ul>
+                    <li><strong>制造业：</strong>高固定成本，规模经济效应明显</li>
+                    <li><strong>零售业：</strong>低利润率，高周转率</li>
+                    <li><strong>科技行业：</strong>高研发投入，高增长潜力</li>
+                </ul>
+                <p>请根据您的兴趣选择一个行业模板。</p>
+                <div class="guide-actions">
+                    <button class="btn btn-warning" id="prev-step2">上一步</button>
+                    <button class="btn btn-primary" id="next-step2">下一步</button>
+                </div>
+            </div>
+            
+            <div class="guide-step" id="step3">
+                <h2>决策中心</h2>
+                <p>在决策中心，您需要制定每个季度的经营策略：</p>
+                <ul>
+                    <li><strong>战略决策：</strong>选择产品策略和市场开拓方向</li>
+                    <li><strong>运营决策：</strong>制定生产计划和库存管理策略</li>
+                    <li><strong>营销决策：</strong>确定产品定价和广告投入</li>
+                    <li><strong>财务决策：</strong>监控现金流和融资需求</li>
+                </ul>
+                <div class="guide-actions">
+                    <button class="btn btn-warning" id="prev-step3">上一步</button>
+                    <button class="btn btn-primary" id="next-step3">下一步</button>
+                </div>
+            </div>
+            
+            <div class="guide-step" id="step4">
+                <h2>经营仪表盘</h2>
+                <p>经营仪表盘将展示您的经营成果：</p>
+                <ul>
+                    <li><strong>关键指标：</strong>净利润、现金流、市场份额等</li>
+                    <li><strong>趋势图表：</strong>利润趋势、现金流预测等</li>
+                    <li><strong>竞争对手分析：</strong>了解市场竞争态势</li>
+                </ul>
+                <p>通过这些数据，您可以评估经营策略的效果。</p>
+                <div class="guide-actions">
+                    <button class="btn btn-warning" id="prev-step4">上一步</button>
+                    <button class="btn btn-primary" id="next-step4">下一步</button>
+                </div>
+            </div>
+            
+            <div class="guide-step" id="step5">
+                <h2>经营分析与决策历史</h2>
+                <p>系统将基于费曼技巧提供经营分析：</p>
+                <ul>
+                    <li><strong>经营分析：</strong>用简单比喻解释经营原理</li>
+                    <li><strong>改进建议：</strong>提供具体的优化方向</li>
+                    <li><strong>决策历史：</strong>记录和对比过往决策</li>
+                </ul>
+                <p>通过复盘分析，您可以持续改进经营策略。</p>
+                <div class="guide-actions">
+                    <button class="btn btn-warning" id="prev-step5">上一步</button>
+                    <button class="btn btn-success" id="finish-guide">开始体验</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 初始化数据
+        let currentQuarter = 1;
+        let selectedIndustry = 'manufacturing';
+        let companyData = {
+            cash: 650000,
+            profit: 125000,
+            marketShare: 18,
+            inventory: 1200,
+            revenue: 350000,
+            costs: 225000
+        };
+        
+        let decisionHistory = [];
+        let marketEvents = [];
+        
+        // 行业模板配置
+        const industryTemplates = {
+            manufacturing: {
+                name: "制造业",
+                initialCash: 800000,
+                materialCostPerUnit: 50,
+                laborCostPerUnit: 30,
+                depreciationRate: 0.05,
+                taxRate: 0.25
+            },
+            retail: {
+                name: "零售业",
+                initialCash: 500000,
+                materialCostPerUnit: 40,
+                laborCostPerUnit: 20,
+                depreciationRate: 0.03,
+                taxRate: 0.20
+            },
+            tech: {
+                name: "科技行业",
+                initialCash: 1000000,
+                materialCostPerUnit: 30,
+                laborCostPerUnit: 50,
+                depreciationRate: 0.08,
+                taxRate: 0.15
+            }
+        };
+        
+        // 市场事件库
+        const eventLibrary = [
+            { type: 'material', text: '原材料价格上涨15%', effect: { materialCost: 1.15 } },
+            { type: 'material', text: '原材料价格下降10%', effect: { materialCost: 0.9 } },
+            { type: 'demand', text: '市场需求旺盛，预计销量增加20%', effect: { demand: 1.2 } },
+            { type: 'demand', text: '市场需求疲软，预计销量减少15%', effect: { demand: 0.85 } },
+            { type: 'policy', text: '政府推出行业补贴政策', effect: { subsidy: 50000 } },
+            { type: 'policy', text: '环保政策收紧，合规成本增加', effect: { complianceCost: 30000 } },
+            { type: 'competition', text: '主要竞争对手推出新产品', effect: { marketShare: 0.9 } },
+            { type: 'competition', text: '竞争对手降价促销', effect: { pricePressure: 0.9 } }
+        ];
+        
+        // 初始化图表
+        let profitChart, cashflowChart, marketshareChart, costChart;
+        
+        // 页面加载完成后初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeCharts();
+            setupEventListeners();
+            updateAllDisplays();
+            generateMarketEvents();
+            
+            // 显示新手引导
+            setTimeout(() => {
+                document.getElementById('guide-overlay').style.display = 'flex';
+            }, 1000);
+        });
+        
+        // 初始化图表
+        function initializeCharts() {
+            const profitCtx = document.getElementById('profit-chart').getContext('2d');
+            profitChart = new Chart(profitCtx, {
+                type: 'line',
+                data: {
+                    labels: ['Q1', 'Q2', 'Q3', 'Q4', 'Q5', 'Q6'],
+                    datasets: [{
+                        label: '净利润',
+                        data: [125, 110, 135, 120, 140, 0],
+                        borderColor: '#2ecc71',
+                        backgroundColor: 'rgba(46, 204, 113, 0.1)',
+                        tension: 0.3,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: '季度利润趋势 (千元)'
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+            
+            const cashflowCtx = document.getElementById('cashflow-chart').getContext('2d');
+            cashflowChart = new Chart(cashflowCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['Q1', 'Q2', 'Q3', 'Q4', 'Q5', 'Q6'],
+                    datasets: [{
+                        label: '现金流',
+                        data: [650, 580, 620, 550, 600, 0],
+                        backgroundColor: '#3498db'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: '季度现金流 (千元)'
+                        }
+                    }
+                }
+            });
+            
+            const marketshareCtx = document.getElementById('marketshare-chart').getContext('2d');
+            marketshareChart = new Chart(marketshareCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['您的公司', '竞争对手A', '竞争对手B', '竞争对手C'],
+                    datasets: [{
+                        data: [18, 32, 25, 25],
+                        backgroundColor: [
+                            '#3498db',
+                            '#e74c3c',
+                            '#f39c12',
+                            '#9b59b6'
+                        ]
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: '市场份额分布 (%)'
+                        }
+                    }
+                }
+            });
+            
+            const costCtx = document.getElementById('cost-chart').getContext('2d');
+            costChart = new Chart(costCtx, {
+                type: 'pie',
+                data: {
+                    labels: ['原材料', '人工', '营销', '管理', '折旧', '税费'],
+                    datasets: [{
+                        data: [40, 20, 15, 10, 10, 5],
+                        backgroundColor: [
+                            '#3498db',
+                            '#2ecc71',
+                            '#f39c12',
+                            '#9b59b6',
+                            '#e74c3c',
+                            '#1abc9c'
+                        ]
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: '成本结构分析 (%)'
+                        }
+                    }
+                }
+            });
+        }
+        
+        // 设置事件监听器 - 核心修复：标签切换功能
+        function setupEventListeners() {
+            // 标签切换 - 修复核心：确保标签与内容区同步切换
+            const tabs = document.querySelectorAll('.tab');
+            const tabContents = document.querySelectorAll('.tab-content');
+            
+            // 验证元素是否存在
+            console.log(`已找到 ${tabs.length} 个标签，${tabContents.length} 个内容区`);
+            if (tabs.length === 0 || tabContents.length === 0) {
+                console.error('未找到标签或内容区元素，标签切换功能无法初始化');
+                return;
+            }
+            
+            tabs.forEach(tab => {
+                tab.addEventListener('click', function() {
+                    const targetTabId = this.dataset.tab; // 获取目标内容区ID
+                    console.log(`点击标签：${targetTabId}，开始切换模块`);
+
+                    // 1. 移除所有标签的active类，给当前标签添加active
+                    tabs.forEach(t => t.classList.remove('active'));
+                    this.classList.add('active');
+
+                    // 2. 移除所有内容区的active类，给目标内容区添加active
+                    tabContents.forEach(content => content.classList.remove('active'));
+                    const targetContent = document.getElementById(targetTabId);
+                    
+                    if (targetContent) {
+                        targetContent.classList.add('active');
+                        console.log(`模块切换成功：已显示 ${targetTabId} 内容区`);
+                    } else {
+                        console.error(`未找到ID为${targetTabId}的内容区`);
+                        alert(`模块加载失败，请刷新页面重试`);
+                    }
+                });
+            });
+            
+            // 行业模板选择
+            document.querySelectorAll('.template-card').forEach(card => {
+                card.addEventListener('click', function() {
+                    document.querySelectorAll('.template-card').forEach(c => c.classList.remove('selected'));
+                    this.classList.add('selected');
+                    selectedIndustry = this.dataset.industry;
+                    
+                    // 根据行业模板更新初始数据
+                    const template = industryTemplates[selectedIndustry];
+                    companyData.cash = template.initialCash;
+                    updateCashDisplay();
+                    
+                    alert(`已选择${template.name}模板，初始资金: ¥${template.initialCash.toLocaleString()}`);
+                });
+            });
+            
+            // 开始模拟按钮
+            document.getElementById('start-simulation').addEventListener('click', function() {
+                console.log('点击开始模拟按钮');
+                document.querySelector('.tab[data-tab="decisions"]').click();
+            });
+            
+            // 生产滑块
+            document.getElementById('production-slider').addEventListener('input', function() {
+                const production = parseInt(this.value);
+                document.getElementById('production-output').textContent = production;
+                updateCosts();
+                updateProjectedSales();
+            });
+            
+            // 价格滑块
+            document.getElementById('product-price').addEventListener('input', function() {
+                const price = parseInt(this.value);
+                document.getElementById('price-value').textContent = price;
+                updateProjectedSales();
+            });
+            
+            // 广告预算滑块
+            document.getElementById('ad-budget').addEventListener('input', function() {
+                const budget = parseInt(this.value);
+                document.getElementById('ad-amount').textContent = budget.toLocaleString();
+                
+                // 计算市场份额提升
+                const boost = Math.min(10, Math.floor(budget / 5000));
+                document.getElementById('market-share-boost').textContent = '+' + boost + '%';
+                
+                updateProjectedSales();
+            });
+            
+            // 贷款按钮
+            document.querySelectorAll('.btn-loan').forEach(button => {
+                button.addEventListener('click', function() {
+                    const amount = parseInt(this.dataset.amount);
+                    const interest = parseFloat(this.dataset.interest);
+                    
+                    // 更新现金
+                    companyData.cash += amount;
+                    updateCashDisplay();
+                    
+                    alert(`成功获得贷款 ¥${amount.toLocaleString()}，年利率 ${interest*100}%`);
+                });
+            });
+            
+            // 执行决策按钮
+            document.getElementById('execute-decisions').addEventListener('click', function() {
+                console.log('执行决策按钮被点击');
+                
+                // 记录决策历史
+                recordDecision();
+                
+                // 模拟计算季度结果
+                simulateQuarter();
+                
+                // 更新所有显示
+                updateAllDisplays();
+                
+                // 生成新的市场事件
+                generateMarketEvents();
+                
+                // 切换到仪表盘
+                document.querySelector('.tab[data-tab="dashboard"]').click();
+                
+                alert(`第${currentQuarter}季度经营完成！请查看经营结果。`);
+            });
+            
+            // 新手引导相关事件
+            document.getElementById('show-guide').addEventListener('click', function() {
+                document.getElementById('guide-overlay').style.display = 'flex';
+                showGuideStep(1);
+            });
+            
+            document.getElementById('close-guide').addEventListener('click', function() {
+                document.getElementById('guide-overlay').style.display = 'none';
+            });
+            
+            // 引导步骤导航
+            document.getElementById('next-step1').addEventListener('click', function() { showGuideStep(2); });
+            document.getElementById('next-step2').addEventListener('click', function() { showGuideStep(3); });
+            document.getElementById('next-step3').addEventListener('click', function() { showGuideStep(4); });
+            document.getElementById('next-step4').addEventListener('click', function() { showGuideStep(5); });
+            
+            document.getElementById('prev-step2').addEventListener('click', function() { showGuideStep(1); });
+            document.getElementById('prev-step3').addEventListener('click', function() { showGuideStep(2); });
+            document.getElementById('prev-step4').addEventListener('click', function() { showGuideStep(3); });
+            document.getElementById('prev-step5').addEventListener('click', function() { showGuideStep(4); });
+            
+            document.getElementById('finish-guide').addEventListener('click', function() {
+                document.getElementById('guide-overlay').style.display = 'none';
+            });
+        }
+        
+        // 显示引导步骤
+        function showGuideStep(step) {
+            document.querySelectorAll('.guide-step').forEach(s => s.classList.remove('active'));
+            document.getElementById(`step${step}`).classList.add('active');
+        }
+        
+        // 生成市场事件
+        function generateMarketEvents() {
+            marketEvents = [];
+            const eventsContainer = document.getElementById('market-events-container');
+            eventsContainer.innerHTML = '';
+            
+            // 随机选择1-2个市场事件
+            const numEvents = Math.floor(Math.random() * 2) + 1;
+            for (let i = 0; i < numEvents; i++) {
+                const randomEvent = eventLibrary[Math.floor(Math.random() * eventLibrary.length)];
+                marketEvents.push(randomEvent);
+                
+                const eventElement = document.createElement('div');
+                eventElement.className = 'market-event';
+                eventElement.textContent = randomEvent.text;
+                eventsContainer.appendChild(eventElement);
+            }
+        }
+        
+        // 记录决策历史
+        function recordDecision() {
+            const decision = {
+                quarter: currentQuarter,
+                production: parseInt(document.getElementById('production-slider').value),
+                price: parseInt(document.getElementById('product-price').value),
+                adBudget: parseInt(document.getElementById('ad-budget').value),
+                productMix: document.getElementById('product-mix').value,
+                profit: companyData.profit,
+                marketShare: companyData.marketShare,
+                cash: companyData.cash
+            };
+            
+            decisionHistory.push(decision);
+            updateHistoryDisplay();
+        }
+        
+        // 更新历史记录显示
+        function updateHistoryDisplay() {
+            const historyPanel = document.querySelector('.history-panel');
+            historyPanel.innerHTML = '';
+            
+            decisionHistory.forEach(decision => {
+                const historyItem = document.createElement('div');
+                historyItem.className = 'history-item';
+                historyItem.innerHTML = `
+                    <h4>第${decision.quarter}季度决策</h4>
+                    <p><strong>生产计划：</strong>${decision.production}单位 | <strong>定价：</strong>¥${decision.price} | <strong>营销投入：</strong>¥${decision.adBudget.toLocaleString()}</p>
+                    <p><strong>结果：</strong>净利润 ¥${decision.profit.toLocaleString()} | 市场份额 ${decision.marketShare}% | 现金 ¥${decision.cash.toLocaleString()}</p>
+                `;
+                historyPanel.appendChild(historyItem);
+            });
+        }
+        
+        // 更新成本计算
+        function updateCosts() {
+            const production = parseInt(document.getElementById('production-slider').value);
+            const template = industryTemplates[selectedIndustry];
+            
+            const materialCost = production * template.materialCostPerUnit;
+            const laborCost = production * template.laborCostPerUnit;
+            const depreciationCost = template.initialCash * template.depreciationRate / 4; // 季度折旧
+            
+            document.getElementById('material-cost').textContent = '¥' + materialCost.toLocaleString();
+            document.getElementById('labor-cost').textContent = '¥' + laborCost.toLocaleString();
+            document.getElementById('depreciation-cost').textContent = '¥' + depreciationCost.toLocaleString();
+        }
+        
+        // 更新预计销售额
+        function updateProjectedSales() {
+            const production = parseInt(document.getElementById('production-slider').value);
+            const price = parseInt(document.getElementById('product-price').value);
+            const adBudget = parseInt(document.getElementById('ad-budget').value);
+            
+            // 应用市场事件影响
+            let demandFactor = 1;
+            marketEvents.forEach(event => {
+                if (event.type === 'demand') {
+                    demandFactor *= event.effect.demand;
+                }
+            });
+            
+            // 简单计算预计销量（基于价格和广告）
+            let baseSales = 1000 * demandFactor;
+            const priceEffect = Math.max(0.5, 2 - price / 100);
+            const adEffect = 1 + (adBudget / 50000) * 0.5;
+            
+            const projectedSales = Math.min(production, Math.floor(baseSales * priceEffect * adEffect));
+            const projectedRevenue = projectedSales * price;
+            
+            document.getElementById('projected-sales').textContent = projectedSales;
+            document.getElementById('projected-revenue').textContent = '¥' + projectedRevenue.toLocaleString();
+        }
+        
+        // 更新现金显示
+        function updateCashDisplay() {
+            document.getElementById('available-cash').textContent = companyData.cash.toLocaleString();
+            
+            // 更新现金流量表
+            const template = industryTemplates[selectedIndustry];
+            const cashPercentage = Math.min(100, (companyData.cash / template.initialCash) * 100);
+            document.getElementById('cash-level').style.width = cashPercentage + '%';
+            
+            // 显示/隐藏现金警告
+            const cashWarning = document.getElementById('cash-warning');
+            if (companyData.cash < 100000) {
+                cashWarning.style.display = 'block';
+            } else {
+                cashWarning.style.display = 'none';
+            }
+        }
+        
+        // 模拟季度经营
+        function simulateQuarter() {
+            // 获取用户决策
+            const production = parseInt(document.getElementById('production-slider').value);
+            const price = parseInt(document.getElementById('product-price').value);
+            const adBudget = parseInt(document.getElementById('ad-budget').value);
+            const productMix = document.getElementById('product-mix').value;
+            
+            const template = industryTemplates[selectedIndustry];
+            
+            // 计算成本
+            let materialCost = production * template.materialCostPerUnit;
+            const laborCost = production * template.laborCostPerUnit;
+            const depreciationCost = template.initialCash * template.depreciationRate / 4; // 季度折旧
+            const overhead = 50000; // 固定管理费用
+            
+            // 应用市场事件影响
+            marketEvents.forEach(event => {
+                if (event.type === 'material') {
+                    materialCost *= event.effect.materialCost;
+                }
+                if (event.type === 'policy' && event.effect.complianceCost) {
+                    overhead += event.effect.complianceCost;
+                }
+            });
+            
+            // 计算收入
+            let baseSales = 1000;
+            let demandFactor = 1;
+            marketEvents.forEach(event => {
+                if (event.type === 'demand') {
+                    demandFactor *= event.effect.demand;
+                }
+            });
+            
+            const priceEffect = Math.max(0.5, 2 - price / 100);
+            const adEffect = 1 + (adBudget / 50000) * 0.5;
+            const productMixEffect = productMix === 'premium' ? 1.2 : (productMix === 'basic' ? 0.9 : 1.0);
+            
+            const sales = Math.min(production, Math.floor(baseSales * priceEffect * adEffect * productMixEffect * demandFactor));
+            const revenue = sales * price;
+            
+            // 计算利润
+            const totalCosts = materialCost + laborCost + overhead + adBudget + depreciationCost;
+            let profit = revenue - totalCosts;
+            
+            // 计算税费
+            const tax = profit > 0 ? profit * template.taxRate : 0;
+            profit -= tax;
+            
+            // 应用政策补贴
+            marketEvents.forEach(event => {
+                if (event.type === 'policy' && event.effect.subsidy) {
+                    profit += event.effect.subsidy;
+                }
+            });
+            
+            // 更新公司数据
+            companyData.cash = companyData.cash + profit;
+            companyData.profit = profit;
+            companyData.revenue = revenue;
+            companyData.costs = totalCosts;
+            
+            // 更新市场份额（简单模拟）
+            let marketShareChange = (adBudget > 30000 ? 2 : 0) + (price < 120 ? 1 : 0);
+            marketEvents.forEach(event => {
+                if (event.type === 'competition' && event.effect.marketShare) {
+                    marketShareChange -= 3;
+                }
+            });
+            
+            companyData.marketShare = Math.min(40, Math.max(5, companyData.marketShare + marketShareChange));
+            
+            // 更新库存
+            companyData.inventory = Math.max(0, production - sales);
+            
+            // 更新季度
+            currentQuarter++;
+            
+            // 更新图表数据
+            updateChartData();
+        }
+        
+        // 更新图表数据
+        function updateChartData() {
+            // 这里只是示例，实际应该从公司数据中获取
+            profitChart.data.datasets[0].data[currentQuarter-1] = companyData.profit / 1000;
+            profitChart.update();
+            
+            cashflowChart.data.datasets[0].data[currentQuarter-1] = companyData.cash / 1000;
+            cashflowChart.update();
+            
+            marketshareChart.data.datasets[0].data[0] = companyData.marketShare;
+            marketshareChart.update();
+        }
+        
+        // 更新所有显示
+        function updateAllDisplays() {
+            // 更新季度显示
+            document.getElementById('current-quarter').textContent = currentQuarter;
+            document.getElementById('dashboard-quarter').textContent = currentQuarter;
+            document.getElementById('feedback-quarter').textContent = currentQuarter;
+            
+            // 更新KPI卡片
+            document.getElementById('net-profit').textContent = '¥' + companyData.profit.toLocaleString();
+            document.getElementById('cash-flow').textContent = '¥' + companyData.cash.toLocaleString();
+            document.getElementById('market-share').textContent = companyData.marketShare + '%';
+            
+            // 更新现金显示
+            updateCashDisplay();
+            
+            // 重置决策界面为下季度准备
+            if (currentQuarter < 6) {
+                document.getElementById('production-slider').value = 1000;
+                document.getElementById('product-price').value = 100;
+                document.getElementById('ad-budget').value = 20000;
+                updateCosts();
+                updateProjectedSales();
+            } else {
+                // 游戏结束
+                let finalScore = companyData.profit + companyData.cash + (companyData.marketShare * 10000);
+                alert(`恭喜！您已完成6个季度的经营模拟。\n最终利润：¥${companyData.profit.toLocaleString()}\n最终现金：¥${companyData.cash.toLocaleString()}\n市场份额：${companyData.marketShare}%\n综合得分：${finalScore.toLocaleString()}`);
+            }
+        }
+    </script>
+</body>
+</html>

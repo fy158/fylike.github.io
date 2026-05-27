@@ -1,0 +1,244 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ========== 用户表 ==========
+model User {
+  id        String   @id @default(cuid())
+  username  String   @unique
+  email     String   @unique
+  password  String
+  avatar    String   @default("/images/avatar-default.jpg")
+  role      String   @default("user")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  articles  Article[]
+  comments  Comment[]
+  wishes    Wish[]
+  blessings Blessing[]
+  photos    Photo[]
+}
+
+// ========== 文章分类 ==========
+model Category {
+  id    String @id @default(cuid())
+  name  String @unique
+  slug  String @unique
+  count Int    @default(0)
+
+  articles Article[]
+}
+
+// ========== 文章 ==========
+model Article {
+  id           String   @id @default(cuid())
+  title        String
+  content      String
+  excerpt      String?
+  categoryName String
+  coverImage   String   @default("/images/story-default.jpg")
+  views        Int      @default(0)
+  authorId     String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  author   User      @relation(fields: [authorId], references: [id])
+  cat      Category  @relation(fields: [categoryName], references: [name])
+  comments Comment[]
+}
+
+// ========== 评论 ==========
+model Comment {
+  id        String   @id @default(cuid())
+  content   String
+  articleId String
+  authorId  String
+  parentId  String?
+  likes     Int      @default(0)
+  createdAt DateTime @default(now())
+
+  article Article   @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  author  User      @relation(fields: [authorId], references: [id])
+  parent  Comment?  @relation("CommentReplies", fields: [parentId], references: [id])
+  replies Comment[] @relation("CommentReplies")
+}
+
+// ========== 许愿池 ==========
+model Wish {
+  id          String   @id @default(cuid())
+  content     String
+  author      String
+  authorId    String?
+  likes       Int      @default(0)
+  emoji       String   @default("💫")
+  borderColor String   @default("from-pink-400 to-purple-400")
+  createdAt   DateTime @default(now())
+
+  user User? @relation(fields: [authorId], references: [id])
+}
+
+// ========== 祝福板 ==========
+model Blessing {
+  id          String   @id @default(cuid())
+  author      String
+  content     String
+  avatarColor String   @default("from-pink-400 to-rose-400")
+  isVIP       Boolean  @default(false)
+  authorId    String?
+  createdAt   DateTime @default(now())
+
+  user    User?          @relation(fields: [authorId], references: [id])
+  replies BlessingReply[]
+}
+
+// ========== 祝福回复 ==========
+model BlessingReply {
+  id        String   @id @default(cuid())
+  author    String
+  content   String
+  toUser    String?
+  blessingId String
+  createdAt DateTime @default(now())
+
+  blessing Blessing @relation(fields: [blessingId], references: [id], onDelete: Cascade)
+}
+
+// ========== 相册照片 ==========
+model Photo {
+  id        String   @id @default(cuid())
+  title     String
+  src       String
+  category  String   @default("日常")
+  date      String
+  authorId  String?
+  createdAt DateTime @default(now())
+
+  user User? @relation(fields: [authorId], references: [id])
+}
+
+// ========== 站点统计 ==========
+model SiteStats {
+  id        String @id @default("main")
+  articles  Int    @default(0)
+  views     Int    @default(0)
+  wishes    Int    @default(0)
+  blessings Int    @default(0)
+  updatedAt DateTime @updatedAt
+}
+
+// ========== 心情天气记录 ==========
+model MoodWeather {
+  id        String   @id @default(cuid())
+  moodId    String
+  label     String
+  icon      String
+  note      String?
+  color     String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  date      String   @unique
+}
+
+// ========== 情绪记录 ==========
+model EmotionRecord {
+  id        String   @id @default(cuid())
+  emotionId String
+  emotion   String
+  icon      String
+  level     Int
+  note      String?
+  createdAt DateTime @default(now())
+}
+
+// ========== 每日心情标记 ==========
+model DailyMood {
+  id        String   @id @default(cuid())
+  date      String   @unique
+  mood      String
+  emoji     String
+  note      String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// ========== 恋爱日记 ==========
+model LoveDiary {
+  id        String   @id @default(cuid())
+  title     String
+  content   String
+  mood      String?
+  date      DateTime @default(now())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// ========== 纪念日 ==========
+model Anniversary {
+  id          String   @id @default(cuid())
+  title       String
+  date        DateTime
+  description String?
+  icon        String   @default("🎉")
+  color       String   @default("from-pink-400 to-rose-400")
+  isRecurring Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+// ========== 甜蜜清单 ==========
+model SweetBucketList {
+  id          String   @id @default(cuid())
+  title       String
+  category    String
+  description String?
+  completed   Boolean  @default(false)
+  completedAt DateTime?
+  targetDate  DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+// ========== 悄悄话信箱 ==========
+model SecretMessage {
+  id        String   @id @default(cuid())
+  content   String
+  author    String   @default("匿名")
+  isRead    Boolean  @default(false)
+  readAt    DateTime?
+  reply     String?
+  replyAt   DateTime?
+  createdAt DateTime @default(now())
+}
+
+// ========== AI生成内容 ==========
+model AIGeneratedContent {
+  id          String   @id @default(cuid())
+  title       String
+  description String
+  type        String
+  url         String
+  coverImage  String
+  icon        String
+  category    String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+// ========== 链接收藏 ==========
+model LinkCollection {
+  id          String   @id @default(cuid())
+  title       String
+  description String
+  url         String
+  coverImage  String
+  icon        String   @default("🔗")
+  order       Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
